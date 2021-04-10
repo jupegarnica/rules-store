@@ -22,7 +22,7 @@ Deno.test('Simple Number DB', async () => {
   await Deno.remove(db.storePath);
 });
 
-Deno.test('DB subscription on',  () => {
+Deno.test('DB subscription on', () => {
   const db = new Store();
 
   db.set('A', 1);
@@ -37,7 +37,7 @@ Deno.test('DB subscription on',  () => {
   assertEquals(called, true);
 });
 
-Deno.test('DB subscription off',  () => {
+Deno.test('DB subscription off', () => {
   const db = new Store();
 
   db.set('A', 1);
@@ -65,17 +65,23 @@ Deno.test('DB subscription off',  () => {
   assertEquals(hasThrown, true);
 });
 
-Deno.test('DB delete store', async () => {
-  const db = new Store();
+Deno.test('DB load / write / delete store', async () => {
+  const testStorePath = './test.store.json';
+  const db = new Store(testStorePath);
 
-  db.set('number1', 5);
-  db.set('number2', 10);
+  db.set('number5', 5);
+  db.set('number10', 10);
 
-  await db.write();
+  await db.write(testStorePath);
+
+  const db2 = new Store(testStorePath);
+
+  assertEquals(db2.get('number5'), 5);
 
   assertEquals(existsSync(db.storePath), true);
 
   await db.deleteStore();
+  // await db2.deleteStore();
 
   // Make sure to clean up first in case of assert failure.
   const x = existsSync(db.storePath);

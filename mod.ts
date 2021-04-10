@@ -1,13 +1,15 @@
 import { createHash, existsSync } from './deps.ts';
-
+import { deepSet, deepGet } from './helpers.ts';
 export type Subscription = (data: unknown) => void;
 
+// deno-lint-ignore no-explicit-any
+type Value = any;
 /**
  * A super simple key-value database.
  * Keys always are strings.
  * Value type can be specified through generics.
  */
-export class Store<T> {
+export class Store {
   // =====================    PROPS
 
   /**
@@ -28,7 +30,7 @@ export class Store<T> {
   /**
    * The actual data cache.
    */
-  private _cache: { [name: string]: T };
+  private _cache: { [name: string]: Value };
 
   /**
    * The hashed value of currently cached data.
@@ -68,13 +70,9 @@ export class Store<T> {
    * @param storePath Custom file path used by read operation
    * @param force Ignore hash comparison and force read
    */
-  private load(
-    storePath?: string,
-    force = false,
-  ): void {
+  private load(storePath?: string, force = false): void {
     if (!storePath) storePath = this._storePath;
-    if (!(existsSync(storePath))) return;
-
+    if (!existsSync(storePath)) return;
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
@@ -98,8 +96,8 @@ export class Store<T> {
    * @param key The key
    * @returns The value
    */
-  public get(key: string): T {
-    return this._cache[key];
+  public get(keys: string) {
+    return deepGet(this._cache, keys);
   }
 
   /**
@@ -109,13 +107,16 @@ export class Store<T> {
    * @param value The new value
    * @param override Whether to overide the value if it's already stored
    */
-  public set(key: string, value: T, override = true) {
+  public set(keys: string, value: Value, override = true) {
     // Prevent override.
-    if (key in this._cache && !override) return;
+    if (keys in this._cache && !override) return;
 
-    this._cache[key] = value;
-    if (this._subscriptions[key]?.length) {
-      this._subscriptions[key].forEach((cb) => cb(value));
+    // this._cache[keys] = value;
+
+    deepSet(this._cache, keys, value);
+
+    if (this._subscriptions[keys]?.length) {
+      this._subscriptions[keys].forEach((cb) => cb(value));
     }
 
     // Calculate new hash.
@@ -126,22 +127,22 @@ export class Store<T> {
     this._cacheHash = hash.toString();
   }
 
-  public on(key: string, callback: Subscription): T {
-    this._subscriptions[key] ||= [];
-    this._subscriptions[key].push(callback);
-    const value = this.get(key);
+  public on(keys: string, callback: Subscription): Value {
+    this._subscriptions[keys] ||= [];
+    this._subscriptions[keys].push(callback);
+    const value = this.get(keys);
     callback(value);
     return value;
   }
-  public off(key: string, callback: Subscription): void {
-    if (!this._subscriptions[key]) throw new Error('Not Found');
-    const index = this._subscriptions[key].findIndex(
+  public off(keys: string, callback: Subscription): void {
+    if (!this._subscriptions[keys]) throw new Error('Not Found');
+    const index = this._subscriptions[keys].findIndex(
       (cb) => cb === callback,
     );
 
     if (index < 0) throw new Error('Not Found');
 
-    this._subscriptions[key].splice(index, 1);
+    this._subscriptions[keys].splice(index, 1);
   }
 
   /**
@@ -191,7 +192,8 @@ export class Store<T> {
    */
   public async deleteStore(storePath?: string): Promise<void> {
     if (!storePath) storePath = this._storePath;
-    if (!(existsSync(storePath))) throw new Error(`${storePath} not exists`);
+    if (!existsSync(storePath))
+      throw new Error(`${storePath} not exists`);
     return await Deno.remove(storePath);
   }
 

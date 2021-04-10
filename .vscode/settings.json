@@ -1,8 +1,5 @@
 {
     "deno.enable": true,
-    "deno.import_intellisense_origins": {
-        "https://deno.land": true
-    },
     "workbench.colorCustomizations": {
         "activityBar.activeBackground": "#365ed4",
         "activityBar.activeBorder": "#e37c96",

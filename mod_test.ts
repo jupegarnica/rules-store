@@ -1,16 +1,17 @@
 import { Store } from './mod.ts';
 import { existsSync } from './deps.ts';
 import { assertEquals } from './test_deps.ts';
+const testStorePath = './test.store.json';
 
 Deno.test('Empty DB', async () => {
-  const db = new Store();
+  const db = new Store(testStorePath);
   await db.write();
 
   assertEquals(existsSync(db.storePath), false);
 });
 
 Deno.test('Simple Number DB', async () => {
-  const db = new Store();
+  const db = new Store(testStorePath);
 
   db.set('number', 5);
   assertEquals(db.get('number'), 5);
@@ -23,7 +24,7 @@ Deno.test('Simple Number DB', async () => {
 });
 
 Deno.test('DB subscription on', () => {
-  const db = new Store();
+  const db = new Store(testStorePath);
 
   db.set('A', 1);
   let called = false;
@@ -38,7 +39,7 @@ Deno.test('DB subscription on', () => {
 });
 
 Deno.test('DB subscription off', () => {
-  const db = new Store();
+  const db = new Store(testStorePath);
 
   db.set('A', 1);
 
@@ -66,7 +67,6 @@ Deno.test('DB subscription off', () => {
 });
 
 Deno.test('DB load / write / delete store', async () => {
-  const testStorePath = './test.store.json';
   const db = new Store(testStorePath);
 
   db.set('number5', 5);
@@ -89,3 +89,13 @@ Deno.test('DB load / write / delete store', async () => {
 
   assertEquals(x, false);
 });
+
+Deno.test('Deep set and get', ( ) => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+  const C = db.get('a.b.c');
+  assertEquals(C, true);
+  const B = db.get('a.b');
+  assertEquals(B, {c: true});
+
+})

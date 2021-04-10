@@ -1,10 +1,10 @@
-import { DsDDB } from "./mod.ts";
+import { Store } from "./mod.ts";
 import { exists } from "./deps.ts";
 import { assertEquals } from "./test_deps.ts";
 
 Deno.test("Empty DB", async () => {
 
-    let db = new DsDDB();
+    let db = new Store();
     await db.load();
     await db.write();
 
@@ -14,7 +14,7 @@ Deno.test("Empty DB", async () => {
 
 Deno.test("Simple Numer DB", async () => {
 
-    let db = new DsDDB();
+    let db = new Store();
     await db.load();
 
     db.set("number1", 5);
@@ -30,7 +30,7 @@ Deno.test("Simple Numer DB", async () => {
 
 Deno.test("DB delete store", async () => {
 
-    let db = new DsDDB();
+    let db = new Store();
     await db.load();
 
     db.set("number1", 5);
@@ -47,6 +47,6 @@ Deno.test("DB delete store", async () => {
     if (x) await Deno.remove(db.storePath);
 
     assertEquals(x, false);
-    
+
 
 });

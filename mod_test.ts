@@ -4,7 +4,7 @@ import { assertEquals } from "./test_deps.ts";
 
 Deno.test("Empty DB", async () => {
 
-    let db = new Store();
+    const db = new Store();
     await db.load();
     await db.write();
 

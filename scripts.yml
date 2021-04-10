@@ -1,0 +1,4 @@
+scripts:
+  test: deno test --allow-read --allow-write --unstable
+  lint: deno lint --unstable *.ts
+  format: deno fmt  *.ts

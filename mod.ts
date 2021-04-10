@@ -87,7 +87,7 @@ export class Store<T> {
         this._cache[key] = value;
 
         // Calculate new hash.
-        let hash = createHash("md5");
+        const hash = createHash("md5");
         hash.update(JSON.stringify(this._cache.valueOf()));
 
         // Store new hash.
@@ -116,7 +116,7 @@ export class Store<T> {
      * @param storePath Custom file path used by write operation
      * @param force Ignore hashe comparison and force write
      */
-    public async write(storePath?: string, force: boolean = false): Promise<void> {
+    public async write(storePath?: string, force = false): Promise<void> {
 
         // Write probably not necessary.
         if (!force && this._lastKnownStoreHash === this._cacheHash) return;
@@ -136,7 +136,7 @@ export class Store<T> {
      * @param storePath Custom file path used by read operation
      * @param force Ignore hashe comparison and force read
      */
-    public async load(storePath?: string, force: boolean = false): Promise<boolean> {
+    public async load(storePath?: string, force = false): Promise<boolean> {
 
         if (!storePath) storePath = this._storePath;
         if (!await exists(storePath)) return false;

@@ -12,9 +12,9 @@ Deno.test("Empty DB", async () => {
 
 });
 
-Deno.test("Simple Numer DB", async () => {
+Deno.test("Simple Number DB", async () => {
 
-    let db = new Store();
+    const db = new Store();
     await db.load();
 
     db.set("number1", 5);
@@ -30,7 +30,7 @@ Deno.test("Simple Numer DB", async () => {
 
 Deno.test("DB delete store", async () => {
 
-    let db = new Store();
+    const db = new Store();
     await db.load();
 
     db.set("number1", 5);
@@ -43,8 +43,8 @@ Deno.test("DB delete store", async () => {
     await db.deleteStore()
 
     // Make sure to clean up first in case of assert failure.
-    let x = await exists(db.storePath);
-    if (x) await Deno.remove(db.storePath);
+    const x = await exists(db.storePath);
+    // if (x) await Deno.remove(db.storePath);
 
     assertEquals(x, false);
 

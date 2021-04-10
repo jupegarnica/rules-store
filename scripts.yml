@@ -2,3 +2,6 @@ scripts:
   test: deno test --allow-read --allow-write --unstable
   lint: deno lint --unstable *.ts
   format: deno fmt  *.ts
+  update:
+    cmd: deno run -A https://deno.land/x/udd@0.4.0/main.ts deps.ts
+    watch: false

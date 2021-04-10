@@ -54,7 +54,7 @@ export class Store<T> {
     this._encoder = new TextEncoder();
     this._storePath = storePath
       ? storePath
-      : `${new URL('.', Deno.mainModule).pathname}.store.json`;
+      : `${new URL('.store.json', Deno.mainModule).pathname}`;
     this._cache = {};
     this._cacheHash = '';
     this._lastKnownStoreHash = '';

@@ -1,4 +1,4 @@
-import { createHash, exists } from './deps.ts';
+import { createHash, existsSync } from './deps.ts';
 
 export type Subscription = (data: unknown) => void;
 
@@ -58,6 +58,7 @@ export class Store<T> {
     this._cache = {};
     this._cacheHash = '';
     this._lastKnownStoreHash = '';
+    this.load();
   }
   /**
    * Load stored data from disk into cache.
@@ -65,27 +66,28 @@ export class Store<T> {
    * // TODO: Store & Check file hash.
    *
    * @param storePath Custom file path used by read operation
-   * @param force Ignore hashe comparison and force read
+   * @param force Ignore hash comparison and force read
    */
-  public async load(
+  private load(
     storePath?: string,
     force = false,
-  ): Promise<boolean> {
+  ): void {
     if (!storePath) storePath = this._storePath;
-    if (!(await exists(storePath))) return false;
+    if (!(existsSync(storePath))) return;
+
 
     // Load data from file.
-    const data = await Deno.readFile(storePath);
+    const data = Deno.readFileSync(storePath);
     const decoded = JSON.parse(this._decoder.decode(data));
 
     // Reload probably not necessary.
-    if (!force && decoded._hash === this._cacheHash) return true;
+    if (!force && decoded._hash === this._cacheHash) return;
 
     // Store new data.
     this._cache = decoded.data;
     this._lastKnownStoreHash = decoded._hash;
 
-    return true;
+    return;
   }
 
   // =====================    DATA ACCESS
@@ -124,9 +126,10 @@ export class Store<T> {
     this._cacheHash = hash.toString();
   }
 
-  public on(key: string, callback: Subscription): void {
+  public on(key: string, callback: Subscription): T {
     this._subscriptions[key] ||= [];
     this._subscriptions[key].push(callback);
+    return this.get(key)
   }
   public off(key: string, callback: Subscription): void {
     if (!this._subscriptions[key]) throw new Error('Not Found');
@@ -186,8 +189,8 @@ export class Store<T> {
    */
   public async deleteStore(storePath?: string): Promise<void> {
     if (!storePath) storePath = this._storePath;
-    if (!(await exists(storePath))) return;
-    return Deno.remove(storePath);
+    if (!(existsSync(storePath))) throw new Error(`${storePath} not exists`);
+    return await Deno.remove(storePath);
   }
 
   // =====================    GETTER & SETTER

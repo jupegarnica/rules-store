@@ -1,52 +1,59 @@
 import { Store } from './mod.ts';
-import { exists } from './deps.ts';
+import { existsSync } from './deps.ts';
 import { assertEquals } from './test_deps.ts';
 
 Deno.test('Empty DB', async () => {
   const db = new Store();
-  await db.load();
   await db.write();
 
-  assertEquals(await exists(db.storePath), false);
+  assertEquals(existsSync(db.storePath), false);
 });
 
 Deno.test('Simple Number DB', async () => {
   const db = new Store();
-  await db.load();
 
-  db.set('number1', 5);
-  db.set('number2', 10);
+  db.set('number', 5);
+  assertEquals(db.get('number'), 5);
 
   await db.write();
 
-  assertEquals(await exists(db.storePath), true);
+  assertEquals(existsSync(db.storePath), true);
 
   await Deno.remove(db.storePath);
 });
 
-Deno.test('DB subscription on', async () => {
+Deno.test('DB subscription on',  () => {
   const db = new Store();
-  await db.load();
 
   db.set('A', 1);
-  const onChange = (data: unknown) => assertEquals(data, 2);
-  db.on('A', onChange);
+  let called = false;
+  const onChange = (data: unknown) => {
+    called = true;
+    assertEquals(data, 1);
+  };
+  const returned = db.on('A', onChange);
 
-  db.set('A', 2);
+  assertEquals(returned, 1);
+  assertEquals(called, true);
 });
 
-Deno.test('DB subscription off', async () => {
+Deno.test('DB subscription off',  () => {
   const db = new Store();
-  await db.load();
 
   db.set('A', 1);
-  //   db.on('A', (data) => console.log(data, 2));
-  const onChange = (data: unknown) => assertEquals(data, 2);
-  db.on('A', onChange);
-  db.set('A', 2);
 
+  let called = false;
+  const onChange = (data: unknown) => {
+    called = true;
+    assertEquals(data, 1);
+  };
+
+  db.on('A', onChange);
+  assertEquals(called, true);
   db.off('A', onChange);
+  called = false;
   db.set('A', 3); // should not call onChange
+  assertEquals(called, false);
 
   let hasThrown = false;
   try {
@@ -60,19 +67,18 @@ Deno.test('DB subscription off', async () => {
 
 Deno.test('DB delete store', async () => {
   const db = new Store();
-  await db.load();
 
   db.set('number1', 5);
   db.set('number2', 10);
 
   await db.write();
 
-  assertEquals(await exists(db.storePath), true);
+  assertEquals(existsSync(db.storePath), true);
 
   await db.deleteStore();
 
   // Make sure to clean up first in case of assert failure.
-  const x = await exists(db.storePath);
+  const x = existsSync(db.storePath);
   // if (x) await Deno.remove(db.storePath);
 
   assertEquals(x, false);

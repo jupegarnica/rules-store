@@ -129,7 +129,9 @@ export class Store<T> {
   public on(key: string, callback: Subscription): T {
     this._subscriptions[key] ||= [];
     this._subscriptions[key].push(callback);
-    return this.get(key)
+    const value = this.get(key);
+    callback(value);
+    return value;
   }
   public off(key: string, callback: Subscription): void {
     if (!this._subscriptions[key]) throw new Error('Not Found');

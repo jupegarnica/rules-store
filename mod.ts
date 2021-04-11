@@ -1,6 +1,12 @@
-import { createHash, existsSync } from './deps.ts';
-import { deepSet, deepGet } from './helpers.ts';
-export type Subscription = (data: unknown) => void;
+import { existsSync } from './deps.ts';
+import { deepSet, deepGet, calcHash } from './helpers.ts';
+
+type Subscriber = (data: unknown) => void;
+type Subscription = {
+  callback: Subscriber;
+  hash: string;
+  keys: string;
+};
 
 // deno-lint-ignore no-explicit-any
 type Value = any;
@@ -44,7 +50,7 @@ export class Store {
    */
   private _lastKnownStoreHash: string;
 
-  private _subscriptions: { [key: string]: Subscription[] } = {};
+  private _subscriptions: Subscription[] = [];
   // =====================    CONSTRUCTOR
 
   /**
@@ -90,14 +96,18 @@ export class Store {
     return;
   }
 
-  private _notify(keys: string, value: Value, oldValue: Value) {
-    if (this._subscriptions[keys]?.length) {
-      const runCallback = (cb: Subscription) => cb(value);
-      this._subscriptions[keys].forEach(runCallback);
+  private _notify() {
+    for (const subscription of this._subscriptions) {
+      const { keys, callback } = subscription;
+      const value = this.get(keys);
+
+      const newHash = calcHash(value);
+      if (newHash !== subscription.hash) {
+        callback(value);
+        subscription.hash = newHash;
+      }
     }
   }
-
-  // =====================    DATA ACCESS
 
   /**
    * Retrieves a value from database by specified key.
@@ -114,10 +124,9 @@ export class Store {
    *
    * @param key The key
    * @param value The new value
-   * @param override Whether to overide the value if it's already stored
    */
   public set(keys: string, value: Value) {
-    const oldValue = this.get(keys);
+    // const oldValue = this.get(keys);
 
     // // Prevent override.
     // if (oldValue !== undefined && !override)
@@ -125,33 +134,38 @@ export class Store {
 
     deepSet(this._data, keys, value);
 
-    this._notify(keys, value, oldValue);
+    this._notify();
 
-    // Calculate new hash.
-    const hash = createHash('sha1');
-    hash.update(JSON.stringify(this._data.valueOf()));
     // Store new hash.
-    this._dataHash = hash.toString();
+    this._dataHash = calcHash(this._data);
 
     return value;
   }
 
-  public on(keys: string, callback: Subscription): Value {
-    this._subscriptions[keys] ||= [];
-    this._subscriptions[keys].push(callback);
+  public on(keys: string, callback: Subscriber): Value {
     const value = this.get(keys);
+    this._subscriptions.push({
+      callback,
+      hash: calcHash(value),
+      keys,
+    });
     callback(value);
     return value;
   }
-  public off(keys: string, callback: Subscription): void {
-    if (!this._subscriptions[keys]) throw new Error('Not Found');
-    const index = this._subscriptions[keys].findIndex(
-      (cb) => cb === callback,
+  public off(keys: string, callback: Subscriber): void {
+    const oldLength = this._subscriptions.length;
+
+    this._subscriptions = this._subscriptions.filter(
+      (subscription) =>
+        !(
+          subscription.keys === keys &&
+          subscription.callback === callback
+        ),
     );
 
-    if (index < 0) throw new Error('Not Found');
-
-    this._subscriptions[keys].splice(index, 1);
+    if (oldLength === this._subscriptions.length) {
+      throw new Error('no subscription found');
+    }
   }
 
   /**

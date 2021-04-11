@@ -10,7 +10,7 @@ Deno.test('Empty DB', async () => {
   assertEquals(existsSync(db.storePath), false);
 });
 
-Deno.test('Simple Number DB', async () => {
+Deno.test('write DB', async () => {
   const db = new Store(testStorePath);
 
   db.set('number', 5);
@@ -27,15 +27,21 @@ Deno.test('DB subscription on', () => {
   const db = new Store(testStorePath);
 
   db.set('A', 1);
-  let called = false;
+  let called = 0;
   const onChange = (data: unknown) => {
-    called = true;
-    assertEquals(data, 1);
+    called++;
+    assertEquals(data, called);
   };
   const returned = db.on('A', onChange);
 
   assertEquals(returned, 1);
-  assertEquals(called, true);
+  assertEquals(called, 1);
+
+  db.set('A', 2);
+  assertEquals(called, 2);
+
+  db.set('A', 3);
+  assertEquals(called, 3);
 });
 
 Deno.test('DB subscription off', () => {
@@ -90,6 +96,15 @@ Deno.test('DB load / write / delete store', async () => {
   assertEquals(x, false);
 });
 
+Deno.test('Simple set and get', () => {
+  const db = new Store(testStorePath);
+  db.set('a', []);
+  const A = db.get('a');
+
+  assertEquals(A, []);
+  const B = db.get('a.b');
+  assertEquals(B, undefined);
+});
 Deno.test('Deep set and get', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', true);
@@ -98,7 +113,6 @@ Deno.test('Deep set and get', () => {
   const B = db.get('a.b');
   assertEquals(B, { c: true });
 });
-
 
 Deno.test('Deep set and get undefined', () => {
   const db = new Store(testStorePath);
@@ -119,9 +133,7 @@ Deno.test('Deep set and get undefined', () => {
 
 // });
 
-
-
-Deno.test('Deep set and get subscription', () => {
+Deno.test('Deep basic subscription ', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', true);
 
@@ -136,13 +148,8 @@ Deno.test('Deep set and get subscription', () => {
   assertEquals(called, true);
 });
 
-
-
-
-
-
 // false &&
-Deno.test('Deep set and get subscription', () => {
+Deno.test('Deep complex subscription', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', true);
 
@@ -157,26 +164,33 @@ Deno.test('Deep set and get subscription', () => {
         assertEquals(data, { c: 33 });
       }
       if (called === 3) {
+        assertEquals(data, { c: 33, d: 34 });
+      }
+      if (called === 4) {
         assertEquals(data, undefined);
       }
     };
 
-    const C = db.on('a.b', onChange);
+    const B = db.on('a.b', onChange);
 
     //  should be called
-    assertEquals(C, { c: true });
+    assertEquals(B, { c: true });
     assertEquals(called, 1);
 
     // TODO make it work
     db.set('a.b.c', 33);
+    assertEquals(db.get('a.b.c'),33);
     assertEquals(called, 2);
 
-    db.set('a', 1);
+    db.set('a.b.d', 34);
     assertEquals(called, 3);
+
+    db.set('a', 1);
+    assertEquals(called, 4);
 
     //  should not be called
     db.set('a.z', true);
     db.set('z', true);
-    assertEquals(called, 3);
+    assertEquals(called, 4);
   }
 });

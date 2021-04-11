@@ -1,10 +1,21 @@
+import { createHash } from './deps.ts';
+
 function isObject(obj: unknown): boolean {
   return typeof obj === 'object' && obj !== null;
 }
 function getKeys(path: string): string[] {
   return path.split(/[\\\\/\.]/).filter((key) => key); // match "\" "/" o "."
 }
-
+// deno-lint-ignore no-explicit-any
+export function calcHash(data: any): string {
+  const hasher = createHash('sha1');
+  if (data === undefined) {
+    hasher.update('');
+  } else {
+    hasher.update(JSON.stringify(data.valueOf()));
+  }
+  return hasher.toString();
+}
 export function isValidNumber(key: string): boolean {
   const maybeNumber = Number(key);
   return maybeNumber >= 0;
@@ -35,7 +46,7 @@ export const deepSet = (
     if (!currentObject) break;
 
     if (!isObject(currentObject[key]) && create) {
-      currentObject[key] = isValidNumber(key) ? {} : [];
+      currentObject[key] = isValidNumber(key) ? [] : {};
     }
 
     if (!keys.length) {

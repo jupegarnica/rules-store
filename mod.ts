@@ -88,6 +88,13 @@ export class Store {
     return;
   }
 
+  private _notify(keys: string, value: Value, oldValue: Value) {
+    if (this._subscriptions[keys]?.length) {
+      const runCallback = (cb: Subscription) => cb(value);
+      this._subscriptions[keys].forEach(runCallback);
+    }
+  }
+
   // =====================    DATA ACCESS
 
   /**
@@ -108,23 +115,23 @@ export class Store {
    * @param override Whether to overide the value if it's already stored
    */
   public set(keys: string, value: Value, override = true) {
-    // Prevent override.
-    if (this.get(keys) === undefined && !override) return;
+    const oldValue = this.get(keys);
 
-    // this._cache[keys] = value;
+    // Prevent override.
+    if (oldValue === undefined && !override)
+      throw new Error('Override not allowed');
 
     deepSet(this._cache, keys, value);
 
-    if (this._subscriptions[keys]?.length) {
-      this._subscriptions[keys].forEach((cb) => cb(value));
-    }
+    this._notify(keys, value, oldValue);
 
     // Calculate new hash.
     const hash = createHash('md5');
     hash.update(JSON.stringify(this._cache.valueOf()));
-
     // Store new hash.
     this._cacheHash = hash.toString();
+
+    return value;
   }
 
   public on(keys: string, callback: Subscription): Value {

@@ -1,5 +1,5 @@
-import { deepSet, deepGet, isValidNumber } from './helpers.ts';
-import { assertEquals } from './test_deps.ts';
+import { deepSet, deepGet, isValidNumber } from '../helpers.ts';
+import { assertEquals } from '../test_deps.ts';
 
 Deno.test('deepSet', () => {
   const data = {};

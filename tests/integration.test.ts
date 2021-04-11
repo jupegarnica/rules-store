@@ -1,7 +1,7 @@
-import { Store } from './mod.ts';
-import { existsSync } from './deps.ts';
-import { assertEquals } from './test_deps.ts';
-const testStorePath = './test.store.json';
+import { Store } from '../mod.ts';
+import { existsSync } from '../deps.ts';
+import { assertEquals } from '../test_deps.ts';
+const testStorePath = '../test.store.json';
 
 Deno.test('Empty DB', async () => {
   const db = new Store(testStorePath);

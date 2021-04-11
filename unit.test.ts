@@ -43,3 +43,22 @@ Deno.test('deepGet', () => {
 
 
 });
+
+
+Deno.test('deepGet array', () => {
+  const array = [{ a: true }, { y: { z: true } }];
+
+  const a = deepGet(array, '0.a');
+  assertEquals(a, true );
+
+  const obj = {a: [{b:true}, null]};
+
+  const b = deepGet(obj, 'a.0.b');
+  assertEquals(b, true );
+
+  const _1 = deepGet(obj, 'a.1');
+  assertEquals(_1, null );
+
+
+
+});

@@ -2,7 +2,12 @@ function isObject(obj: unknown): boolean {
   return typeof obj === 'object' && obj !== null;
 }
 function getKeys(path: string): string[] {
-  return path.split(/[\\\\/\.]/).filter(key => key); // match "\" "/" o "."
+  return path.split(/[\\\\/\.]/).filter((key) => key); // match "\" "/" o "."
+}
+
+export function isValidNumber(key: string): boolean {
+  const maybeNumber = Number(key);
+  return maybeNumber >= 0;
 }
 // deno-lint-ignore no-explicit-any
 type Objectish = { [key: string]: any };
@@ -30,7 +35,7 @@ export const deepSet = (
     if (!currentObject) break;
 
     if (!isObject(currentObject[key]) && create) {
-      currentObject[key] = {};
+      currentObject[key] = isValidNumber(key) ? {} : [];
     }
 
     if (!keys.length) {
@@ -42,9 +47,7 @@ export const deepSet = (
   return obj;
 };
 
-
 export const affectedKeys = (
-
   path: string,
   // deno-lint-ignore no-explicit-any
   value: any,

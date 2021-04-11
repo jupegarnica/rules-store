@@ -18,9 +18,10 @@ Deno.test('deepSet', () => {
 
 Deno.test('deepSet array', () => {
   const data = {};
+
   const arr = [];
-  arr.length = 2
   arr[1] = true
+
   deepSet(data, 'a.1', true);
   assertEquals(data, {a: arr});
 

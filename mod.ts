@@ -4,6 +4,8 @@ export type Subscription = (data: unknown) => void;
 
 // deno-lint-ignore no-explicit-any
 type Value = any;
+type Data = { [key: string]: Value };
+
 /**
  * A super simple key-value database.
  * Keys always are strings.
@@ -30,12 +32,12 @@ export class Store {
   /**
    * The actual data cache.
    */
-  private _cache: { [name: string]: Value };
+  private _data: Data;
 
   /**
    * The hashed value of currently cached data.
    */
-  private _cacheHash: string;
+  private _dataHash: string;
 
   /**
    * Stores the last known hash from store file.
@@ -57,8 +59,8 @@ export class Store {
     this._storePath = storePath
       ? storePath
       : `${new URL('.store.json', Deno.mainModule).pathname}`;
-    this._cache = {};
-    this._cacheHash = '';
+    this._data = {};
+    this._dataHash = '';
     this._lastKnownStoreHash = '';
     this.load();
   }
@@ -79,10 +81,10 @@ export class Store {
     const decoded = JSON.parse(this._decoder.decode(data));
 
     // Reload probably not necessary.
-    if (!force && decoded._hash === this._cacheHash) return;
+    if (!force && decoded._hash === this._dataHash) return;
 
     // Store new data.
-    this._cache = decoded.data;
+    this._data = decoded.data;
     this._lastKnownStoreHash = decoded._hash;
 
     return;
@@ -104,7 +106,7 @@ export class Store {
    * @returns The value
    */
   public get(keys: string) {
-    return deepGet(this._cache, keys);
+    return deepGet(this._data, keys);
   }
 
   /**
@@ -114,22 +116,22 @@ export class Store {
    * @param value The new value
    * @param override Whether to overide the value if it's already stored
    */
-  public set(keys: string, value: Value, override = true) {
+  public set(keys: string, value: Value) {
     const oldValue = this.get(keys);
 
-    // Prevent override.
-    if (oldValue === undefined && !override)
-      throw new Error('Override not allowed');
+    // // Prevent override.
+    // if (oldValue !== undefined && !override)
+    //   throw new Error('Override not allowed');
 
-    deepSet(this._cache, keys, value);
+    deepSet(this._data, keys, value);
 
     this._notify(keys, value, oldValue);
 
     // Calculate new hash.
     const hash = createHash('sha1');
-    hash.update(JSON.stringify(this._cache.valueOf()));
+    hash.update(JSON.stringify(this._data.valueOf()));
     // Store new hash.
-    this._cacheHash = hash.toString();
+    this._dataHash = hash.toString();
 
     return value;
   }
@@ -159,7 +161,7 @@ export class Store {
    * @returns Whether the key is stored in the database
    */
   public contains(key: string): boolean {
-    return key in this._cache;
+    return key in this._data;
   }
 
   // =====================    MANAGEMENT
@@ -177,14 +179,14 @@ export class Store {
     force = false,
   ): Promise<void> {
     // Write probably not necessary.
-    if (!force && this._lastKnownStoreHash === this._cacheHash)
+    if (!force && this._lastKnownStoreHash === this._dataHash)
       return;
     if (!storePath) storePath = this._storePath;
 
     // Write data.
     const data = JSON.stringify({
-      _hash: this._cacheHash,
-      data: this._cache,
+      _hash: this._dataHash,
+      data: this._data,
     });
     return await Deno.writeFile(
       storePath,

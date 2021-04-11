@@ -126,7 +126,7 @@ export class Store {
     this._notify(keys, value, oldValue);
 
     // Calculate new hash.
-    const hash = createHash('md5');
+    const hash = createHash('sha1');
     hash.update(JSON.stringify(this._cache.valueOf()));
     // Store new hash.
     this._cacheHash = hash.toString();

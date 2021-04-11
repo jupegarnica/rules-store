@@ -34,4 +34,12 @@ Deno.test('deepGet', () => {
     const b4 = deepGet(data, '\\a.b/');
     assertEquals(b4, true);
 
+
+    const undef = deepGet(data, 'c');
+    assertEquals(undef, undefined);
+
+    const undef2 = deepGet(data, 'c.d.e');
+    assertEquals(undef2, undefined);
+
+
 });

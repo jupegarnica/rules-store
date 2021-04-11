@@ -90,12 +90,93 @@ Deno.test('DB load / write / delete store', async () => {
   assertEquals(x, false);
 });
 
-Deno.test('Deep set and get', ( ) => {
+Deno.test('Deep set and get', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', true);
   const C = db.get('a.b.c');
   assertEquals(C, true);
   const B = db.get('a.b');
-  assertEquals(B, {c: true});
+  assertEquals(B, { c: true });
+});
 
-})
+
+Deno.test('Deep set and get undefined', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+  const C = db.get('a.c');
+  assertEquals(C, undefined);
+  const B = db.get('a.b.c.z.x.x');
+  assertEquals(B, undefined);
+});
+
+// Deno.test('Deep set and get override', () => {
+//   const db = new Store(testStorePath);
+//   db.set('a.b.c', true, false);
+
+//   const C = db.set('a.c', true);
+
+//   assertEquals(C, undefined);
+
+// });
+
+
+
+Deno.test('Deep set and get subscription', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+
+  let called = false;
+  const onChangeC = (data: unknown) => {
+    called = true;
+    assertEquals(data, true);
+  };
+  const C = db.on('a.b.c', onChangeC);
+  assertEquals(C, true);
+
+  assertEquals(called, true);
+});
+
+
+
+
+
+
+// false &&
+Deno.test('Deep set and get subscription', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+
+  {
+    let called = 0;
+    const onChange = (data: unknown) => {
+      called++;
+      if (called === 1) {
+        assertEquals(data, { c: true });
+      }
+      if (called === 2) {
+        assertEquals(data, { c: 33 });
+      }
+      if (called === 3) {
+        assertEquals(data, undefined);
+      }
+    };
+
+    const C = db.on('a.b', onChange);
+
+    //  should be called
+    assertEquals(C, { c: true });
+    assertEquals(called, 1);
+
+    // TODO make it work
+    db.set('a.b.c', 33);
+    assertEquals(called, 2);
+
+    db.set('a', 1);
+    assertEquals(called, 3);
+
+    //  should not be called
+    db.set('a.z', true);
+    db.set('z', true);
+    assertEquals(called, 3);
+  }
+});

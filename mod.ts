@@ -109,7 +109,7 @@ export class Store {
    */
   public set(keys: string, value: Value, override = true) {
     // Prevent override.
-    if (keys in this._cache && !override) return;
+    if (this.get(keys) === undefined && !override) return;
 
     // this._cache[keys] = value;
 

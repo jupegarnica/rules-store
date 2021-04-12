@@ -108,7 +108,9 @@ export class Store {
       }
     }
   }
-
+  private _addDataHash() {
+    this._dataHash = calcHash(this._data);
+  }
   /**
    * Retrieves a value from database by specified key.
    *
@@ -126,13 +128,11 @@ export class Store {
    * @param value The new value
    */
   public set(keys: string, value: Value) {
-
     deepSet(this._data, keys, value);
 
     this._notify();
 
-    // Store new hash.
-    this._dataHash = calcHash(this._data);
+    this._addDataHash();
 
     return value;
   }
@@ -143,10 +143,23 @@ export class Store {
 
     this._notify();
 
-    // Store new hash.
-    this._dataHash = calcHash(this._data);
+    this._addDataHash();
 
     return oldValue;
+  }
+  public push(keys: string, value: Value) {
+    const oldValue = this.get(keys);
+    if (!Array.isArray(oldValue)) {
+      throw new Error('is not an Array');
+    }
+
+    oldValue.push(value);
+
+    this._notify();
+
+    this._addDataHash();
+
+    return value;
   }
 
   public on(keys: string, callback: Subscriber): Value {

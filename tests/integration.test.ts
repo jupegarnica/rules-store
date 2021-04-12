@@ -1,6 +1,6 @@
 import { Store } from '../mod.ts';
 import { existsSync } from '../deps.ts';
-import { assertEquals } from '../test_deps.ts';
+import { assertEquals, assertThrows } from '../test_deps.ts';
 const testStorePath = '../test.store.json';
 
 Deno.test('Empty DB should not be persisted', async () => {
@@ -221,4 +221,23 @@ Deno.test('Deep complex subscription', () => {
     db.set('z', true);
     assertEquals(called, 4);
   }
+});
+
+Deno.test('push into an array', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b', []);
+
+  const B = db.push('a.b', 1);
+
+  assertEquals(B, 1);
+  assertEquals(db.get('a.b'), [1]);
+});
+
+Deno.test('push into an not array', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b', {});
+
+  assertThrows(() => {
+    db.push('a.b', 1);
+  });
 });

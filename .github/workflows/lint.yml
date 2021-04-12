@@ -1,13 +1,10 @@
 on: [push, pull_request]
-name: Test
+name: Lint
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        deno: [1.3, 1.4, 1.5, 1.6, 1.x]
-    name: Test with Deno ${{ matrix.deno }}
+    name: Lint
 
     steps:
       - uses: actions/checkout@master
@@ -15,10 +12,10 @@ jobs:
       - name: Setup Deno
         uses: denolib/setup-deno@master
         with:
-          deno-version: ${{ matrix.deno }}
+          deno-version: 1.x
 
       - name: Print deno version
         run: deno --version
 
-      - name: Run tests
-        run: deno test --unstable --allow-read --allow-write
+      - name: Lint
+        run: deno lint --unstable

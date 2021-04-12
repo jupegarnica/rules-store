@@ -1,11 +1,11 @@
-import { existsSync } from "./deps.ts";
+import { existsSync } from './deps.ts';
 import {
   calcHash,
   deepGet,
   deepSet,
   getKeys,
   isValidNumber,
-} from "./helpers.ts";
+} from './helpers.ts';
 
 type Subscriber = (data: unknown) => void;
 type Subscription = {
@@ -24,18 +24,6 @@ type Data = { [key: string]: Value };
  * Value type can be specified through generics.
  */
 export class Store {
-  // =====================    PROPS
-
-  /**
-   * Reference to the decoder which is used to load store files.
-   */
-  private _decoder: TextDecoder;
-
-  /**
-   * Reference to the encoder which is used to write store files.
-   */
-  private _encoder: TextEncoder;
-
   /**
    * The file path in which to store the data in.
    */
@@ -57,7 +45,6 @@ export class Store {
   private _lastKnownStoreHash: string;
 
   private _subscriptions: Subscription[] = [];
-  // =====================    CONSTRUCTOR
 
   /**
    * Create a new {Store} instance.
@@ -66,20 +53,17 @@ export class Store {
    * @param storePath A custom path where to write data
    */
   constructor(storePath?: string) {
-    this._decoder = new TextDecoder("utf-8");
-    this._encoder = new TextEncoder();
     this._storePath = storePath
       ? storePath
-      : `${new URL(".store.json", Deno.mainModule).pathname}`;
+      : `${new URL('.store.json', Deno.mainModule).pathname}`;
     this._data = {};
-    this._dataHash = "";
-    this._lastKnownStoreHash = "";
+    this._dataHash = '';
+    this._lastKnownStoreHash = '';
     this.load();
   }
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.
-   * // TODO: Store & Check file hash.
    *
    * @param storePath Custom file path used by read operation
    * @param force Ignore hash comparison and force read
@@ -90,7 +74,8 @@ export class Store {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    const decoded = JSON.parse(this._decoder.decode(data));
+    const decoder = new TextDecoder('utf-8');
+    const decoded = JSON.parse(decoder.decode(data));
 
     // Reload probably not necessary.
     if (!force && decoded._hash === this._dataHash) return;
@@ -118,20 +103,32 @@ export class Store {
     this._dataHash = calcHash(this._data);
   }
   /**
-   * Retrieves a value from database by specified key.
+   * Retrieves a value from database by specified path.
+   * The path can be an string delimited by . / or \
+   * As:
+   * 'a.b.c'
+   * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
+   * '\\a\\b\\c'  escaped \
    *
    * @param key The key
-   * @returns The value
+   * @returnss The value found or undefined if not found
    */
   public get(path: string) {
     return deepGet(this._data, path);
   }
 
   /**
-   * Set's a value in the database by the specified key.
+   * Sets a value in the database by the specified path.
+   * The path can be an string delimited by . / or \
+   * As:
+   * 'a.b.c'
+   * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
+   * '\\a\\b\\c'  escaped \
    *
-   * @param key The key
+   * @param path The path
    * @param value The new value
+   * @returns  The value added
+   *
    */
   public set(path: string, value: Value) {
     deepSet(this._data, path, value);
@@ -142,7 +139,16 @@ export class Store {
 
     return value;
   }
-  public remove(path: string) {
+
+  /**
+   * Remove a value in the database by the specified path.
+   * If pointing to an array item, the item will be remove, as array.splice(index,1)
+   *
+   * @param path The path
+   * @returns  The value removed
+   *
+   */
+  public remove(path: string): Value {
     const oldValue = this.get(path);
     const keys = getKeys(path);
     const lastKey = keys[keys.length - 1];
@@ -150,7 +156,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this.get(keys.join("."));
+      const parentValue = this.get(keys.join('.'));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -163,10 +169,18 @@ export class Store {
 
     return oldValue;
   }
-  public push(path: string, value: Value) {
+  /**
+   * Add a new item in an array
+   * It will throw an error if the path is not pointing to an array
+   *
+   * @param path The path
+   * @param value The value
+   * @returns  The value pushed
+   */
+  public push(path: string, value: Value): Value {
     const oldValue = this.get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error("is not an Array");
+      throw new Error('is not an Array');
     }
 
     oldValue.push(value);
@@ -177,7 +191,15 @@ export class Store {
 
     return value;
   }
-
+  /**
+   * Subscribe to changes in the path
+   * It will run the callback if the path value has changed
+   * Also runs the callback during subscription for the first time
+   *
+   * @param path The path
+   * @param callback A function to be called when the value has changed and during subscription
+   * @returns  The value changed
+   */
   public on(path: string, callback: Subscriber): Value {
     const value = this.get(path);
     this._subscriptions.push({
@@ -188,6 +210,14 @@ export class Store {
     callback(value);
     return value;
   }
+
+  /**
+   * Unsubscribe to changes in the path
+   *
+   * @param path The path
+   * @param callback A reference to the callback used in the subscription
+   */
+
   public off(path: string, callback: Subscriber): void {
     const oldLength = this._subscriptions.length;
 
@@ -200,7 +230,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error("no subscription found");
+      throw new Error('no subscription found');
     }
   }
 
@@ -208,7 +238,7 @@ export class Store {
    * Check whether a key is stored inside the database.
    *
    * @param key Lookup key
-   * @returns Whether the key is stored in the database
+   * @returnss Whether the key is stored in the database
    */
   // TODO: make it work with deep
   // public contains(key: string): boolean {
@@ -225,10 +255,7 @@ export class Store {
    * @param storePath Custom file path used by write operation
    * @param force Ignore hashe comparison and force write
    */
-  public write(
-    storePath?: string,
-    force = false,
-  ): void {
+  public write(storePath?: string, force = false): void {
     // Write probably not necessary.
     if (!force && this._lastKnownStoreHash === this._dataHash) {
       return;
@@ -240,10 +267,8 @@ export class Store {
       _hash: this._dataHash,
       data: this._data,
     });
-    return Deno.writeFileSync(
-      storePath,
-      this._encoder.encode(data),
-    );
+    const encoder = new TextEncoder();
+    return Deno.writeFileSync(storePath, encoder.encode(data));
   }
 
   /**

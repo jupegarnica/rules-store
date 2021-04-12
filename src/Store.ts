@@ -4,14 +4,9 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from './helpers.ts';
+} from "./helpers.ts";
 
-import type {
-  Data,
-  Subscriber,
-  Subscription,
-  Value,
-} from './types.ts';
+import type { Data, Subscriber, Subscription, Value } from "./types.ts";
 /**
  * A database in RAM without persistance.
  * For persistance use StoreJson
@@ -42,8 +37,8 @@ export class Store {
    */
   constructor() {
     this._data = {};
-    this._dataHash = '';
-    this._lastKnownStoreHash = '';
+    this._dataHash = "";
+    this._lastKnownStoreHash = "";
   }
   /**
    * Load stored data from disk into cache.
@@ -122,7 +117,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this.get(keys.join('.'));
+      const parentValue = this.get(keys.join("."));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -146,7 +141,7 @@ export class Store {
   public push(path: string, value: Value): Value {
     const oldValue = this.get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error('is not an Array');
+      throw new Error("is not an Array");
     }
 
     oldValue.push(value);
@@ -196,7 +191,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error('no subscription found');
+      throw new Error("no subscription found");
     }
   }
 }

@@ -1,42 +1,42 @@
-import { Store } from '../src/Store.ts';
-import { assertEquals, assertThrows } from './test_deps.ts';
+import { Store } from "../src/Store.ts";
+import { assertEquals, assertThrows } from "./test_deps.ts";
 
 // Non persistance Store
 ////////////////////////
 
-Deno.test('[Store] Simple set and get', () => {
+Deno.test("[Store] Simple set and get", () => {
   const db = new Store();
-  db.set('a', []);
-  const A = db.get('a');
+  db.set("a", []);
+  const A = db.get("a");
 
   assertEquals(A, []);
-  const B = db.get('a.b');
+  const B = db.get("a.b");
   assertEquals(B, undefined);
 });
 
-Deno.test('[Store] Deep remove', () => {
+Deno.test("[Store] Deep remove", () => {
   const db = new Store();
-  db.set('a.b.c', true);
+  db.set("a.b.c", true);
 
-  const B = db.remove('a.b');
+  const B = db.remove("a.b");
 
   assertEquals(B, { c: true });
-  assertEquals(db.get('a.b.c'), undefined);
+  assertEquals(db.get("a.b.c"), undefined);
 });
 
-Deno.test('[Store] Deep remove array child', () => {
+Deno.test("[Store] Deep remove array child", () => {
   const db = new Store();
-  db.set('a.b', [0, 1, 2]);
+  db.set("a.b", [0, 1, 2]);
 
-  const B = db.remove('a.b.1');
+  const B = db.remove("a.b.1");
 
   assertEquals(B, 1);
-  assertEquals(db.get('a.b'), [0, 2]);
+  assertEquals(db.get("a.b"), [0, 2]);
 });
 
-Deno.test('[Store] Deep remove with subscription', () => {
+Deno.test("[Store] Deep remove with subscription", () => {
   const db = new Store();
-  db.set('a.b.c', 1);
+  db.set("a.b.c", 1);
 
   let called = 0;
   const onChange = (data: unknown) => {
@@ -46,64 +46,64 @@ Deno.test('[Store] Deep remove with subscription', () => {
     } else if (called === 2) {
       assertEquals(data, undefined);
     } else {
-      throw new Error('should not be called');
+      throw new Error("should not be called");
     }
   };
-  const returned = db.on('a.b.c', onChange);
+  const returned = db.on("a.b.c", onChange);
 
   assertEquals(returned, 1);
   assertEquals(called, 1);
 
-  const B = db.remove('a.b');
+  const B = db.remove("a.b");
   assertEquals(called, 2);
 
   assertEquals(B, { c: 1 });
-  assertEquals(db.get('a.b.c'), undefined);
+  assertEquals(db.get("a.b.c"), undefined);
 });
 
-Deno.test('[Store] Deep set and get', () => {
+Deno.test("[Store] Deep set and get", () => {
   const db = new Store();
-  db.set('a.b.c', true);
-  const C = db.get('a.b.c');
+  db.set("a.b.c", true);
+  const C = db.get("a.b.c");
   assertEquals(C, true);
-  const B = db.get('a.b');
+  const B = db.get("a.b");
   assertEquals(B, { c: true });
 });
 
-Deno.test('[Store] Deep set and get undefined', () => {
+Deno.test("[Store] Deep set and get undefined", () => {
   const db = new Store();
-  db.set('a.b.c', true);
-  const C = db.get('a.c');
+  db.set("a.b.c", true);
+  const C = db.get("a.c");
   assertEquals(C, undefined);
-  const B = db.get('a.b.c.z.x.x');
+  const B = db.get("a.b.c.z.x.x");
   assertEquals(B, undefined);
 });
 
-Deno.test('[Store] DB subscription on', () => {
+Deno.test("[Store] DB subscription on", () => {
   const db = new Store();
 
-  db.set('A', 1);
+  db.set("A", 1);
   let called = 0;
   const onChange = (data: unknown) => {
     called++;
     assertEquals(data, called);
   };
-  const returned = db.on('A', onChange);
+  const returned = db.on("A", onChange);
 
   assertEquals(returned, 1);
   assertEquals(called, 1);
 
-  db.set('A', 2);
+  db.set("A", 2);
   assertEquals(called, 2);
 
-  db.set('A', 3);
+  db.set("A", 3);
   assertEquals(called, 3);
 });
 
-Deno.test('[Store] DB subscription off', () => {
+Deno.test("[Store] DB subscription off", () => {
   const db = new Store();
 
-  db.set('A', 1);
+  db.set("A", 1);
 
   let called = false;
   const onChange = (data: unknown) => {
@@ -111,16 +111,16 @@ Deno.test('[Store] DB subscription off', () => {
     assertEquals(data, 1);
   };
 
-  db.on('A', onChange);
+  db.on("A", onChange);
   assertEquals(called, true);
-  db.off('A', onChange);
+  db.off("A", onChange);
   called = false;
-  db.set('A', 3); // should not call onChange
+  db.set("A", 3); // should not call onChange
   assertEquals(called, false);
 
   let hasThrown = false;
   try {
-    db.off('A', onChange);
+    db.off("A", onChange);
   } catch (error) {
     hasThrown = true;
     assertEquals(error instanceof Error, true);
@@ -128,25 +128,25 @@ Deno.test('[Store] DB subscription off', () => {
   assertEquals(hasThrown, true);
 });
 
-Deno.test('[Store] Deep basic subscription ', () => {
+Deno.test("[Store] Deep basic subscription ", () => {
   const db = new Store();
-  db.set('a.b.c', true);
+  db.set("a.b.c", true);
 
   let called = false;
   const onChangeC = (data: unknown) => {
     called = true;
     assertEquals(data, true);
   };
-  const C = db.on('a.b.c', onChangeC);
+  const C = db.on("a.b.c", onChangeC);
   assertEquals(C, true);
 
   assertEquals(called, true);
 });
 
 // false &&
-Deno.test('[Store] Deep complex subscription', () => {
+Deno.test("[Store] Deep complex subscription", () => {
   const db = new Store();
-  db.set('a.b.c', true);
+  db.set("a.b.c", true);
 
   {
     let called = 0;
@@ -166,45 +166,45 @@ Deno.test('[Store] Deep complex subscription', () => {
       }
     };
 
-    const B = db.on('a.b', onChange);
+    const B = db.on("a.b", onChange);
 
     //  should be called
     assertEquals(B, { c: true });
     assertEquals(called, 1);
 
     // TODO make it work
-    db.set('a.b.c', 33);
-    assertEquals(db.get('a.b.c'), 33);
+    db.set("a.b.c", 33);
+    assertEquals(db.get("a.b.c"), 33);
     assertEquals(called, 2);
 
-    db.set('a.b.d', 34);
+    db.set("a.b.d", 34);
     assertEquals(called, 3);
 
-    db.set('a', 1);
+    db.set("a", 1);
     assertEquals(called, 4);
 
     //  should not be called
-    db.set('a.z', true);
-    db.set('z', true);
+    db.set("a.z", true);
+    db.set("z", true);
     assertEquals(called, 4);
   }
 });
 
-Deno.test('[Store] push into an array', () => {
+Deno.test("[Store] push into an array", () => {
   const db = new Store();
-  db.set('a.b', []);
+  db.set("a.b", []);
 
-  const B = db.push('a.b', 1);
+  const B = db.push("a.b", 1);
 
   assertEquals(B, 1);
-  assertEquals(db.get('a.b'), [1]);
+  assertEquals(db.get("a.b"), [1]);
 });
 
-Deno.test('[Store] push into an not array', () => {
+Deno.test("[Store] push into an not array", () => {
   const db = new Store();
-  db.set('a.b', {});
+  db.set("a.b", {});
 
   assertThrows(() => {
-    db.push('a.b', 1);
+    db.push("a.b", 1);
   });
 });

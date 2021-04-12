@@ -1,6 +1,6 @@
-import { existsSync } from './deps.ts';
+import { existsSync } from "./deps.ts";
 
-import { Store } from './Store.ts';
+import { Store } from "./Store.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -20,13 +20,13 @@ export class StoreJson extends Store {
     super();
     this._storePath = storePath
       ? storePath
-      : `${new URL('.store.json', Deno.mainModule).pathname}`;
+      : `${new URL(".store.json", Deno.mainModule).pathname}`;
     this.load();
   }
   /**
    * Return internal storePath.
    */
-   public get storePath(): string {
+  public get storePath(): string {
     return this._storePath;
   }
   /**
@@ -43,7 +43,7 @@ export class StoreJson extends Store {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    const decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder("utf-8");
     const decoded = JSON.parse(decoder.decode(data));
 
     // Reload probably not necessary.

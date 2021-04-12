@@ -4,7 +4,7 @@ scripts:
   #   cmd: vr test
   #   watch: true
   lint: deno lint --unstable
-  format: deno fmt  *.ts
+  format: deno fmt
   update:
     cmd: deno run -A https://deno.land/x/udd@0.4.0/main.ts deps.ts
     watch: false

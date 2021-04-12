@@ -1,14 +1,11 @@
-import { existsSync } from './deps.ts';
+import { existsSync } from "./deps.ts";
 import {
-    parse,
-    stringify,
-  } from "https://deno.land/std@0.92.0/encoding/yaml.ts";
-import { Store } from './Store.ts';
+  parse,
+  stringify,
+} from "https://deno.land/std@0.92.0/encoding/yaml.ts";
+import { Store } from "./Store.ts";
 
-
-import type {
-    Value,
-  } from './types.ts';
+import type { Value } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -28,13 +25,13 @@ export class StoreYaml extends Store {
     super();
     this._storePath = storePath
       ? storePath
-      : `${new URL('.store.yaml', Deno.mainModule).pathname}`;
+      : `${new URL(".store.yaml", Deno.mainModule).pathname}`;
     this.load();
   }
   /**
    * Return internal storePath.
    */
-   public get storePath(): string {
+  public get storePath(): string {
     return this._storePath;
   }
   /**
@@ -51,7 +48,7 @@ export class StoreYaml extends Store {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    const decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder("utf-8");
     const decoded: Value = parse(decoder.decode(data));
 
     // Reload probably not necessary.

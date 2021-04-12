@@ -3,7 +3,7 @@ import { existsSync } from '../deps.ts';
 import { assertEquals } from '../test_deps.ts';
 const testStorePath = '../test.store.json';
 
-Deno.test('Empty DB', async () => {
+Deno.test('Empty DB should not be persisted', async () => {
   const db = new Store(testStorePath);
   await db.write();
 
@@ -22,6 +22,68 @@ Deno.test('write DB', async () => {
 
   await Deno.remove(db.storePath);
 });
+
+Deno.test('DB load / write / delete store', async () => {
+  const db = new Store(testStorePath);
+
+  db.set('number5', 5);
+  db.set('number10', 10);
+
+  await db.write(testStorePath);
+
+  const db2 = new Store(testStorePath);
+
+  assertEquals(db2.get('number5'), 5);
+
+  assertEquals(existsSync(db.storePath), true);
+
+  await db.deleteStore();
+  // await db2.deleteStore();
+
+  // Make sure to clean up first in case of assert failure.
+  const x = existsSync(db.storePath);
+  // if (x) await Deno.remove(db.storePath);
+
+  assertEquals(x, false);
+});
+
+
+Deno.test('Simple set and get', () => {
+  const db = new Store(testStorePath);
+  db.set('a', []);
+  const A = db.get('a');
+
+  assertEquals(A, []);
+  const B = db.get('a.b');
+  assertEquals(B, undefined);
+});
+Deno.test('Deep set and get', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+  const C = db.get('a.b.c');
+  assertEquals(C, true);
+  const B = db.get('a.b');
+  assertEquals(B, { c: true });
+});
+
+Deno.test('Deep set and get undefined', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+  const C = db.get('a.c');
+  assertEquals(C, undefined);
+  const B = db.get('a.b.c.z.x.x');
+  assertEquals(B, undefined);
+});
+
+// Deno.test('Deep set and get override', () => {
+//   const db = new Store(testStorePath);
+//   db.set('a.b.c', true, false);
+
+//   const C = db.set('a.c', true);
+
+//   assertEquals(C, undefined);
+
+// });
 
 Deno.test('DB subscription on', () => {
   const db = new Store(testStorePath);
@@ -71,67 +133,6 @@ Deno.test('DB subscription off', () => {
   }
   assertEquals(hasThrown, true);
 });
-
-Deno.test('DB load / write / delete store', async () => {
-  const db = new Store(testStorePath);
-
-  db.set('number5', 5);
-  db.set('number10', 10);
-
-  await db.write(testStorePath);
-
-  const db2 = new Store(testStorePath);
-
-  assertEquals(db2.get('number5'), 5);
-
-  assertEquals(existsSync(db.storePath), true);
-
-  await db.deleteStore();
-  // await db2.deleteStore();
-
-  // Make sure to clean up first in case of assert failure.
-  const x = existsSync(db.storePath);
-  // if (x) await Deno.remove(db.storePath);
-
-  assertEquals(x, false);
-});
-
-Deno.test('Simple set and get', () => {
-  const db = new Store(testStorePath);
-  db.set('a', []);
-  const A = db.get('a');
-
-  assertEquals(A, []);
-  const B = db.get('a.b');
-  assertEquals(B, undefined);
-});
-Deno.test('Deep set and get', () => {
-  const db = new Store(testStorePath);
-  db.set('a.b.c', true);
-  const C = db.get('a.b.c');
-  assertEquals(C, true);
-  const B = db.get('a.b');
-  assertEquals(B, { c: true });
-});
-
-Deno.test('Deep set and get undefined', () => {
-  const db = new Store(testStorePath);
-  db.set('a.b.c', true);
-  const C = db.get('a.c');
-  assertEquals(C, undefined);
-  const B = db.get('a.b.c.z.x.x');
-  assertEquals(B, undefined);
-});
-
-// Deno.test('Deep set and get override', () => {
-//   const db = new Store(testStorePath);
-//   db.set('a.b.c', true, false);
-
-//   const C = db.set('a.c', true);
-
-//   assertEquals(C, undefined);
-
-// });
 
 Deno.test('Deep basic subscription ', () => {
   const db = new Store(testStorePath);

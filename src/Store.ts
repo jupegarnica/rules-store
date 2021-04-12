@@ -13,9 +13,8 @@ import type {
   Value,
 } from './types.ts';
 /**
- * A super simple key-value database.
- * Keys always are strings.
- * Value type can be specified through generics.
+ * A database in RAM without persistance.
+ * For persistance use StoreJson
  */
 export class Store {
   /**

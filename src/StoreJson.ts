@@ -2,9 +2,8 @@ import { existsSync } from './deps.ts';
 
 import { Store } from './Store.ts';
 /**
- * A super simple key-value database.
- * Keys always are strings.
- * Value type can be specified through generics.
+ * A database in RAM with persistance plain text as JSON.
+ * For non persistance use Store
  */
 export class StoreJson extends Store {
   /**

@@ -1,6 +1,6 @@
-import { Store } from '../mod.ts';
-import { existsSync } from '../deps.ts';
-import { assertEquals, assertThrows } from '../test_deps.ts';
+import { Store } from '../src/Store.ts';
+import { existsSync } from '../src/deps.ts';
+import { assertEquals, assertThrows } from './test_deps.ts';
 const testStorePath = '../test.store.json';
 
 Deno.test('Empty DB should not be persisted',  () => {

@@ -1,17 +1,17 @@
-import { Store } from "../src/Store.ts";
+import { StoreJson } from "../src/StoreJson.ts";
 import { existsSync } from "../src/deps.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 const testStorePath = "../test.store.json";
 
 Deno.test("Empty DB should not be persisted", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.write();
 
   assertEquals(existsSync(db.storePath), false);
 });
 
 Deno.test("write DB", async () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
 
   db.set("number", 5);
   assertEquals(db.get("number"), 5);
@@ -24,14 +24,14 @@ Deno.test("write DB", async () => {
 });
 
 Deno.test("DB load / write / delete store", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
 
   db.set("number5", 5);
   db.set("number10", 10);
 
   db.write(testStorePath);
 
-  const db2 = new Store(testStorePath);
+  const db2 = new StoreJson(testStorePath);
 
   assertEquals(db2.get("number5"), 5);
 
@@ -48,7 +48,7 @@ Deno.test("DB load / write / delete store", () => {
 });
 
 Deno.test("Simple set and get", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a", []);
   const A = db.get("a");
 
@@ -58,7 +58,7 @@ Deno.test("Simple set and get", () => {
 });
 
 Deno.test("Deep remove", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b.c", true);
 
   const B = db.remove("a.b");
@@ -68,7 +68,7 @@ Deno.test("Deep remove", () => {
 });
 
 Deno.test("Deep remove array child", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b", [0, 1, 2]);
 
   const B = db.remove("a.b.1");
@@ -78,7 +78,7 @@ Deno.test("Deep remove array child", () => {
 });
 
 Deno.test("Deep remove with subscription", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b.c", 1);
 
   let called = 0;
@@ -105,7 +105,7 @@ Deno.test("Deep remove with subscription", () => {
 });
 
 Deno.test("Deep set and get", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b.c", true);
   const C = db.get("a.b.c");
   assertEquals(C, true);
@@ -114,7 +114,7 @@ Deno.test("Deep set and get", () => {
 });
 
 Deno.test("Deep set and get undefined", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b.c", true);
   const C = db.get("a.c");
   assertEquals(C, undefined);
@@ -123,7 +123,7 @@ Deno.test("Deep set and get undefined", () => {
 });
 
 Deno.test("DB subscription on", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
 
   db.set("A", 1);
   let called = 0;
@@ -144,7 +144,7 @@ Deno.test("DB subscription on", () => {
 });
 
 Deno.test("DB subscription off", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
 
   db.set("A", 1);
 
@@ -172,7 +172,7 @@ Deno.test("DB subscription off", () => {
 });
 
 Deno.test("Deep basic subscription ", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b.c", true);
 
   let called = false;
@@ -188,7 +188,7 @@ Deno.test("Deep basic subscription ", () => {
 
 // false &&
 Deno.test("Deep complex subscription", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b.c", true);
 
   {
@@ -234,7 +234,7 @@ Deno.test("Deep complex subscription", () => {
 });
 
 Deno.test("push into an array", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b", []);
 
   const B = db.push("a.b", 1);
@@ -244,7 +244,7 @@ Deno.test("push into an array", () => {
 });
 
 Deno.test("push into an not array", () => {
-  const db = new Store(testStorePath);
+  const db = new StoreJson(testStorePath);
   db.set("a.b", {});
 
   assertThrows(() => {

@@ -3,9 +3,9 @@ import { existsSync } from '../deps.ts';
 import { assertEquals, assertThrows } from '../test_deps.ts';
 const testStorePath = '../test.store.json';
 
-Deno.test('Empty DB should not be persisted', async () => {
+Deno.test('Empty DB should not be persisted',  () => {
   const db = new Store(testStorePath);
-  await db.write();
+  db.write();
 
   assertEquals(existsSync(db.storePath), false);
 });
@@ -16,20 +16,20 @@ Deno.test('write DB', async () => {
   db.set('number', 5);
   assertEquals(db.get('number'), 5);
 
-  await db.write();
+  db.write();
 
   assertEquals(existsSync(db.storePath), true);
 
   await Deno.remove(db.storePath);
 });
 
-Deno.test('DB load / write / delete store', async () => {
+Deno.test('DB load / write / delete store',  () => {
   const db = new Store(testStorePath);
 
   db.set('number5', 5);
   db.set('number10', 10);
 
-  await db.write(testStorePath);
+  db.write(testStorePath);
 
   const db2 = new Store(testStorePath);
 
@@ -37,8 +37,8 @@ Deno.test('DB load / write / delete store', async () => {
 
   assertEquals(existsSync(db.storePath), true);
 
-  await db.deleteStore();
-  // await db2.deleteStore();
+   db.deleteStore();
+  // db2.deleteStore();
 
   // Make sure to clean up first in case of assert failure.
   const x = existsSync(db.storePath);

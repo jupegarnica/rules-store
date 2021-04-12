@@ -225,10 +225,10 @@ export class Store {
    * @param storePath Custom file path used by write operation
    * @param force Ignore hashe comparison and force write
    */
-  public async write(
+  public write(
     storePath?: string,
     force = false,
-  ): Promise<void> {
+  ): void {
     // Write probably not necessary.
     if (!force && this._lastKnownStoreHash === this._dataHash)
       return;
@@ -239,7 +239,7 @@ export class Store {
       _hash: this._dataHash,
       data: this._data,
     });
-    return await Deno.writeFile(
+    return Deno.writeFileSync(
       storePath,
       this._encoder.encode(data),
     );
@@ -250,11 +250,11 @@ export class Store {
    *
    * @param storePath Custom path used by delete operation. Defaults to the default storage file path
    */
-  public async deleteStore(storePath?: string): Promise<void> {
+  public deleteStore(storePath?: string): void {
     if (!storePath) storePath = this._storePath;
     if (!existsSync(storePath))
       throw new Error(`${storePath} not exists`);
-    return await Deno.remove(storePath);
+    return  Deno.removeSync(storePath);
   }
 
   // =====================    GETTER & SETTER

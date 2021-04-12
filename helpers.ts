@@ -1,16 +1,15 @@
-import { createHash } from "./deps.ts";
-
+import { createHash } from './deps.ts';
+import type { Value, Data } from './types.ts';
 function isObject(obj: unknown): boolean {
-  return typeof obj === "object" && obj !== null;
+  return typeof obj === 'object' && obj !== null;
 }
 export function getKeys(path: string): string[] {
   return path.split(/[\\\\/\.]/).filter((key) => key); // match "\" "/" o "."
 }
-// deno-lint-ignore no-explicit-any
-export function calcHash(data: any): string {
-  const hasher = createHash("sha1");
+export function calcHash(data: Value): string {
+  const hasher = createHash('sha1');
   if (data === undefined) {
-    hasher.update("");
+    hasher.update('');
   } else {
     hasher.update(JSON.stringify(data.valueOf()));
   }
@@ -20,10 +19,8 @@ export function isValidNumber(key: string): boolean {
   const maybeNumber = Number(key);
   return maybeNumber >= 0;
 }
-// deno-lint-ignore no-explicit-any
-type Objectish = { [key: string]: any };
 
-export const deepGet = (object: Objectish, path: string) => {
+export const deepGet = (object: Data, path: string) => {
   const keys = getKeys(path);
   return keys.reduce(
     (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
@@ -32,10 +29,9 @@ export const deepGet = (object: Objectish, path: string) => {
 };
 
 export const deepSet = (
-  obj: Objectish,
+  obj: Data,
   path: string,
-  // deno-lint-ignore no-explicit-any
-  value: any,
+  value: Value,
   create = true,
 ) => {
   const keys = getKeys(path);
@@ -60,11 +56,10 @@ export const deepSet = (
 
 export const affectedKeys = (
   path: string,
-  // deno-lint-ignore no-explicit-any
-  value: any,
+  value: Value,
   create = true,
 ) => {
-  const obj: Objectish = {};
+  const obj: Data = {};
   const keys = getKeys(path);
   let currentObject = obj;
   while (keys.length) {

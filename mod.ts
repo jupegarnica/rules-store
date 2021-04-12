@@ -7,17 +7,12 @@ import {
   isValidNumber,
 } from './helpers.ts';
 
-type Subscriber = (data: unknown) => void;
-type Subscription = {
-  callback: Subscriber;
-  hash: string;
-  path: string;
-};
-
-// deno-lint-ignore no-explicit-any
-type Value = any;
-type Data = { [key: string]: Value };
-
+import type {
+  Subscriber,
+  Subscription,
+  Value,
+  Data,
+} from './types.ts';
 /**
  * A super simple key-value database.
  * Keys always are strings.

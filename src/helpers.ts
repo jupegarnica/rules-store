@@ -54,28 +54,28 @@ export const deepSet = (
   return obj;
 };
 
-export const affectedKeys = (
-  path: string,
-  value: Value,
-  create = true,
-) => {
-  const obj: Data = {};
-  const keys = getKeys(path);
-  let currentObject = obj;
-  while (keys.length) {
-    const key = keys.shift();
-    if (!key) break;
-    if (!currentObject) break;
+// export const affectedKeys = (
+//   path: string,
+//   value: Value,
+//   create = true,
+// ) => {
+//   const obj: Data = {};
+//   const keys = getKeys(path);
+//   let currentObject = obj;
+//   while (keys.length) {
+//     const key = keys.shift();
+//     if (!key) break;
+//     if (!currentObject) break;
 
-    if (!isObject(currentObject[key]) && create) {
-      currentObject[key] = {};
-    }
+//     if (!isObject(currentObject[key]) && create) {
+//       currentObject[key] = {};
+//     }
 
-    if (!keys.length) {
-      currentObject[key] = value;
-    }
-    currentObject = currentObject[key];
-  }
+//     if (!keys.length) {
+//       currentObject[key] = value;
+//     }
+//     currentObject = currentObject[key];
+//   }
 
-  return obj;
-};
+//   return obj;
+// };

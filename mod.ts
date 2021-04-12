@@ -1,11 +1,11 @@
-import { existsSync } from './deps.ts';
+import { existsSync } from "./deps.ts";
 import {
-  deepSet,
-  deepGet,
   calcHash,
+  deepGet,
+  deepSet,
   getKeys,
   isValidNumber,
-} from './helpers.ts';
+} from "./helpers.ts";
 
 type Subscriber = (data: unknown) => void;
 type Subscription = {
@@ -66,14 +66,14 @@ export class Store {
    * @param storePath A custom path where to write data
    */
   constructor(storePath?: string) {
-    this._decoder = new TextDecoder('utf-8');
+    this._decoder = new TextDecoder("utf-8");
     this._encoder = new TextEncoder();
     this._storePath = storePath
       ? storePath
-      : `${new URL('.store.json', Deno.mainModule).pathname}`;
+      : `${new URL(".store.json", Deno.mainModule).pathname}`;
     this._data = {};
-    this._dataHash = '';
-    this._lastKnownStoreHash = '';
+    this._dataHash = "";
+    this._lastKnownStoreHash = "";
     this.load();
   }
   /**
@@ -150,7 +150,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this.get(keys.join('.'));
+      const parentValue = this.get(keys.join("."));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -166,7 +166,7 @@ export class Store {
   public push(path: string, value: Value) {
     const oldValue = this.get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error('is not an Array');
+      throw new Error("is not an Array");
     }
 
     oldValue.push(value);
@@ -200,7 +200,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error('no subscription found');
+      throw new Error("no subscription found");
     }
   }
 
@@ -230,8 +230,9 @@ export class Store {
     force = false,
   ): void {
     // Write probably not necessary.
-    if (!force && this._lastKnownStoreHash === this._dataHash)
+    if (!force && this._lastKnownStoreHash === this._dataHash) {
       return;
+    }
     if (!storePath) storePath = this._storePath;
 
     // Write data.
@@ -252,9 +253,10 @@ export class Store {
    */
   public deleteStore(storePath?: string): void {
     if (!storePath) storePath = this._storePath;
-    if (!existsSync(storePath))
+    if (!existsSync(storePath)) {
       throw new Error(`${storePath} not exists`);
-    return  Deno.removeSync(storePath);
+    }
+    return Deno.removeSync(storePath);
   }
 
   // =====================    GETTER & SETTER

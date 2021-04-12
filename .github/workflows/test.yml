@@ -1,5 +1,5 @@
 on: [push, pull_request]
-
+name: Test
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,16 +17,11 @@ jobs:
         with:
           deno-version: ${{ matrix.deno }}
 
-      # - name: Setup Node
-      #   uses: actions/setup-node@master
-      #   with:
-      #     node-version: 12
-
       - name: Print deno version
         run: deno --version
 
-      #- name: Check format
-      #  run: deno fmt --check **/*.ts
-
       - name: Run tests
         run: deno test --unstable --allow-read --allow-write
+
+      - name: Lint
+        run: deno lint --unstable

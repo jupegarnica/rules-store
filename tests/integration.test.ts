@@ -57,17 +57,28 @@ Deno.test('Simple set and get', () => {
   assertEquals(B, undefined);
 });
 
-Deno.test('Deep delete', () => {
+Deno.test('Deep remove', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', true);
 
-  const B = db.delete('a.b');
+  const B = db.remove('a.b');
 
   assertEquals(B, { c: true });
   assertEquals(db.get('a.b.c'), undefined);
 });
 
-Deno.test('Deep delete with subscription', () => {
+
+Deno.test('Deep remove array child', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b', [0,1,2]);
+
+  const B = db.remove('a.b.1');
+
+  assertEquals(B, 1);
+  assertEquals(db.get('a.b'), [0,2]);
+});
+
+Deno.test('Deep remove with subscription', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', 1);
 
@@ -87,7 +98,7 @@ Deno.test('Deep delete with subscription', () => {
   assertEquals(returned, 1);
   assertEquals(called, 1);
 
-  const B = db.delete('a.b');
+  const B = db.remove('a.b');
   assertEquals(called, 2);
 
   assertEquals(B, { c: 1 });

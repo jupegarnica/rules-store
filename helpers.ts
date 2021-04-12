@@ -3,7 +3,7 @@ import { createHash } from './deps.ts';
 function isObject(obj: unknown): boolean {
   return typeof obj === 'object' && obj !== null;
 }
-function getKeys(path: string): string[] {
+export function getKeys(path: string): string[] {
   return path.split(/[\\\\/\.]/).filter((key) => key); // match "\" "/" o "."
 }
 // deno-lint-ignore no-explicit-any

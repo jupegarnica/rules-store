@@ -1,11 +1,17 @@
 import { existsSync } from './deps.ts';
-import { deepSet, deepGet, calcHash } from './helpers.ts';
+import {
+  deepSet,
+  deepGet,
+  calcHash,
+  getKeys,
+  isValidNumber,
+} from './helpers.ts';
 
 type Subscriber = (data: unknown) => void;
 type Subscription = {
   callback: Subscriber;
   hash: string;
-  keys: string;
+  path: string;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -98,8 +104,8 @@ export class Store {
 
   private _notify() {
     for (const subscription of this._subscriptions) {
-      const { keys, callback } = subscription;
-      const value = this.get(keys);
+      const { path, callback } = subscription;
+      const value = this.get(path);
 
       const newHash = calcHash(value);
       if (newHash !== subscription.hash) {
@@ -117,8 +123,8 @@ export class Store {
    * @param key The key
    * @returns The value
    */
-  public get(keys: string) {
-    return deepGet(this._data, keys);
+  public get(path: string) {
+    return deepGet(this._data, path);
   }
 
   /**
@@ -127,8 +133,8 @@ export class Store {
    * @param key The key
    * @param value The new value
    */
-  public set(keys: string, value: Value) {
-    deepSet(this._data, keys, value);
+  public set(path: string, value: Value) {
+    deepSet(this._data, path, value);
 
     this._notify();
 
@@ -136,10 +142,20 @@ export class Store {
 
     return value;
   }
-  public delete(keys: string) {
-    const oldValue = this.get(keys);
+  public remove(path: string) {
+    const oldValue = this.get(path);
+    const keys = getKeys(path);
+    const lastKey = keys[keys.length - 1];
 
-    deepSet(this._data, keys, undefined);
+    if (isValidNumber(lastKey)) {
+      // remove array child
+      keys.pop();
+      const parentValue = this.get(keys.join('.'));
+      parentValue.splice(Number(lastKey), 1);
+    } else {
+      // remove object key
+      deepSet(this._data, path, undefined);
+    }
 
     this._notify();
 
@@ -147,8 +163,8 @@ export class Store {
 
     return oldValue;
   }
-  public push(keys: string, value: Value) {
-    const oldValue = this.get(keys);
+  public push(path: string, value: Value) {
+    const oldValue = this.get(path);
     if (!Array.isArray(oldValue)) {
       throw new Error('is not an Array');
     }
@@ -162,23 +178,23 @@ export class Store {
     return value;
   }
 
-  public on(keys: string, callback: Subscriber): Value {
-    const value = this.get(keys);
+  public on(path: string, callback: Subscriber): Value {
+    const value = this.get(path);
     this._subscriptions.push({
       callback,
       hash: calcHash(value),
-      keys,
+      path,
     });
     callback(value);
     return value;
   }
-  public off(keys: string, callback: Subscriber): void {
+  public off(path: string, callback: Subscriber): void {
     const oldLength = this._subscriptions.length;
 
     this._subscriptions = this._subscriptions.filter(
       (subscription) =>
         !(
-          subscription.keys === keys &&
+          subscription.path === path &&
           subscription.callback === callback
         ),
     );

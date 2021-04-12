@@ -210,9 +210,10 @@ export class Store {
    * @param key Lookup key
    * @returns Whether the key is stored in the database
    */
-  public contains(key: string): boolean {
-    return key in this._data;
-  }
+  // TODO: make it work with deep
+  // public contains(key: string): boolean {
+  //   return key in this._data;
+  // }
 
   // =====================    MANAGEMENT
 

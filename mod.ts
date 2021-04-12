@@ -126,11 +126,6 @@ export class Store {
    * @param value The new value
    */
   public set(keys: string, value: Value) {
-    // const oldValue = this.get(keys);
-
-    // // Prevent override.
-    // if (oldValue !== undefined && !override)
-    //   throw new Error('Override not allowed');
 
     deepSet(this._data, keys, value);
 
@@ -140,6 +135,18 @@ export class Store {
     this._dataHash = calcHash(this._data);
 
     return value;
+  }
+  public delete(keys: string) {
+    const oldValue = this.get(keys);
+
+    deepSet(this._data, keys, undefined);
+
+    this._notify();
+
+    // Store new hash.
+    this._dataHash = calcHash(this._data);
+
+    return oldValue;
   }
 
   public on(keys: string, callback: Subscriber): Value {

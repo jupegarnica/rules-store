@@ -47,7 +47,6 @@ Deno.test('DB load / write / delete store', async () => {
   assertEquals(x, false);
 });
 
-
 Deno.test('Simple set and get', () => {
   const db = new Store(testStorePath);
   db.set('a', []);
@@ -57,6 +56,44 @@ Deno.test('Simple set and get', () => {
   const B = db.get('a.b');
   assertEquals(B, undefined);
 });
+
+Deno.test('Deep delete', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', true);
+
+  const B = db.delete('a.b');
+
+  assertEquals(B, { c: true });
+  assertEquals(db.get('a.b.c'), undefined);
+});
+
+Deno.test('Deep delete with subscription', () => {
+  const db = new Store(testStorePath);
+  db.set('a.b.c', 1);
+
+  let called = 0;
+  const onChange = (data: unknown) => {
+    called++;
+    if (called === 1) {
+      assertEquals(data, called);
+    } else if (called === 2) {
+      assertEquals(data, undefined);
+    } else {
+      throw new Error('should not be called');
+    }
+  };
+  const returned = db.on('a.b.c', onChange);
+
+  assertEquals(returned, 1);
+  assertEquals(called, 1);
+
+  const B = db.delete('a.b');
+  assertEquals(called, 2);
+
+  assertEquals(B, { c: 1 });
+  assertEquals(db.get('a.b.c'), undefined);
+});
+
 Deno.test('Deep set and get', () => {
   const db = new Store(testStorePath);
   db.set('a.b.c', true);
@@ -74,16 +111,6 @@ Deno.test('Deep set and get undefined', () => {
   const B = db.get('a.b.c.z.x.x');
   assertEquals(B, undefined);
 });
-
-// Deno.test('Deep set and get override', () => {
-//   const db = new Store(testStorePath);
-//   db.set('a.b.c', true, false);
-
-//   const C = db.set('a.c', true);
-
-//   assertEquals(C, undefined);
-
-// });
 
 Deno.test('DB subscription on', () => {
   const db = new Store(testStorePath);
@@ -180,7 +207,7 @@ Deno.test('Deep complex subscription', () => {
 
     // TODO make it work
     db.set('a.b.c', 33);
-    assertEquals(db.get('a.b.c'),33);
+    assertEquals(db.get('a.b.c'), 33);
     assertEquals(called, 2);
 
     db.set('a.b.d', 34);

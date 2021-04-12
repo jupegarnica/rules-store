@@ -1,15 +1,15 @@
-import { createHash } from './deps.ts';
-import type { Value, Data } from './types.ts';
+import { createHash } from "./deps.ts";
+import type { Data, Value } from "./types.ts";
 function isObject(obj: unknown): boolean {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 export function getKeys(path: string): string[] {
   return path.split(/[\\\\/\.]/).filter((key) => key); // match "\" "/" o "."
 }
 export function calcHash(data: Value): string {
-  const hasher = createHash('sha1');
+  const hasher = createHash("sha1");
   if (data === undefined) {
-    hasher.update('');
+    hasher.update("");
   } else {
     hasher.update(JSON.stringify(data.valueOf()));
   }

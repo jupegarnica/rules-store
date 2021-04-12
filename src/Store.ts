@@ -1,28 +1,12 @@
-import { existsSync } from './deps.ts';
-import {
-  calcHash,
-  deepGet,
-  deepSet,
-  getKeys,
-  isValidNumber,
-} from './helpers.ts';
+import { existsSync } from "./deps.ts";
 
-import type {
-  Subscriber,
-  Subscription,
-  Value,
-  Data,
-} from './types.ts';
-
-
-import {BaseStore} from './BaseStore.ts';
+import { BaseStore } from "./BaseStore.ts";
 /**
  * A super simple key-value database.
  * Keys always are strings.
  * Value type can be specified through generics.
  */
 export class Store extends BaseStore {
-
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.
@@ -37,7 +21,7 @@ export class Store extends BaseStore {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    const decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder("utf-8");
     const decoded = JSON.parse(decoder.decode(data));
 
     // Reload probably not necessary.
@@ -49,7 +33,6 @@ export class Store extends BaseStore {
 
     return;
   }
-
 
   /**
    * Writes cached data to disk.
@@ -87,5 +70,4 @@ export class Store extends BaseStore {
     }
     return Deno.removeSync(storePath);
   }
-
 }

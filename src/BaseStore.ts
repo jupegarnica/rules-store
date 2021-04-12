@@ -4,14 +4,9 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from './helpers.ts';
+} from "./helpers.ts";
 
-import type {
-  Subscriber,
-  Subscription,
-  Value,
-  Data,
-} from './types.ts';
+import type { Data, Subscriber, Subscription, Value } from "./types.ts";
 /**
  * A super simple key-value database.
  * Keys always are strings.
@@ -49,10 +44,10 @@ export class BaseStore {
   constructor(storePath?: string) {
     this._storePath = storePath
       ? storePath
-      : `${new URL('.store.json', Deno.mainModule).pathname}`;
+      : `${new URL(".store.json", Deno.mainModule).pathname}`;
     this._data = {};
-    this._dataHash = '';
-    this._lastKnownStoreHash = '';
+    this._dataHash = "";
+    this._lastKnownStoreHash = "";
     this.load();
   }
   /**
@@ -62,7 +57,6 @@ export class BaseStore {
    * @param storePath Custom file path used by read operation
    * @param force Ignore hash comparison and force read
    */
-
 
   protected _notify() {
     for (const subscription of this._subscriptions) {
@@ -133,7 +127,7 @@ export class BaseStore {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this.get(keys.join('.'));
+      const parentValue = this.get(keys.join("."));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -157,7 +151,7 @@ export class BaseStore {
   public push(path: string, value: Value): Value {
     const oldValue = this.get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error('is not an Array');
+      throw new Error("is not an Array");
     }
 
     oldValue.push(value);
@@ -207,7 +201,7 @@ export class BaseStore {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error('no subscription found');
+      throw new Error("no subscription found");
     }
   }
 
@@ -234,7 +228,6 @@ export class BaseStore {
    */
   public write(storePath?: string, force = false): void {
     throw new Error("not implemented");
-
   }
 
   /**
@@ -244,11 +237,9 @@ export class BaseStore {
    */
   public deleteStore(storePath?: string): void {
     throw new Error("not implemented");
-
   }
   protected load(storePath?: string, force = false): void {
     throw new Error("not implemented");
-
   }
 
   // =====================    GETTER & SETTER

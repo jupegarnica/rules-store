@@ -10,6 +10,7 @@
 - [ ] write performance benchmarks
 - [ ] bundle StoreLocalStorage
 - [ ] Rethink hashes for subscriptions
+- [ ] Set using a function. Ej.  db.set('a', oldData => oldData + 1)
 
 
 #

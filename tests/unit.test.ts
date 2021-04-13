@@ -1,7 +1,7 @@
 import { deepGet, deepSet, isValidNumber } from "../src/helpers.ts";
 import { assertEquals } from "./test_deps.ts";
 
-Deno.test("deepSet", () => {
+Deno.test("[Helpers] deepSet", () => {
   const data = {};
 
   deepSet(data, "a", true);
@@ -14,7 +14,7 @@ Deno.test("deepSet", () => {
   assertEquals(data, { a: { b: true }, x: { y: { z: true } } });
 });
 
-Deno.test("deepSet array", () => {
+Deno.test("[Helpers] deepSet array", () => {
   const data = {};
 
   const arr = [];
@@ -29,7 +29,7 @@ Deno.test("deepSet array", () => {
   assertEquals(deepSet([], "1", true), arr);
 });
 
-Deno.test("deepGet", () => {
+Deno.test("[Helpers] deepGet", () => {
   const data = { a: { b: true }, x: { y: { z: true } } };
 
   const a = deepGet(data, "a");
@@ -56,7 +56,7 @@ Deno.test("deepGet", () => {
   assertEquals(undef2, undefined);
 });
 
-Deno.test("deepGet array", () => {
+Deno.test("[Helpers] deepGet array", () => {
   const array = [{ a: true }, { y: { z: true } }];
 
   const a = deepGet(array, "0.a");
@@ -71,7 +71,7 @@ Deno.test("deepGet array", () => {
   assertEquals(_1, null);
 });
 
-Deno.test("isValidNumber", () => {
+Deno.test("[Helpers] isValidNumber", () => {
   assertEquals(isValidNumber("3"), true);
   assertEquals(isValidNumber("3e3"), true);
 
@@ -81,7 +81,3 @@ Deno.test("isValidNumber", () => {
   assertEquals(isValidNumber("z"), false);
   assertEquals(isValidNumber("z"), false);
 });
-
-// Deno.test('keyIsAffected', () => {
-//   assertEquals(keyIsAffected('a.b.c', 'a.b.c'), true);
-// });

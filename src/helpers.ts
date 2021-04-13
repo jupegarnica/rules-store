@@ -4,7 +4,12 @@ function isObject(obj: unknown): boolean {
   return typeof obj === "object" && obj !== null;
 }
 export function getKeys(path: string): string[] {
-  return path.split(/[\\\\/\.]/).filter((key) => key); // match "\" "/" o "."
+  // match "\" "/" o "."
+  const keys = path.split(/[\\\\/\.]/).filter((key) => key);
+  if (!path) {
+    throw new Error("Invalid path");
+  }
+  return keys
 }
 export function calcHash(data: Value): string {
   const hasher = createHash("sha1");

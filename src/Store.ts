@@ -93,7 +93,6 @@ export class Store {
    */
   public set(path: string, value: Value) {
     deepSet(this._data, path, value);
-
     this._notify();
 
     this._addDataHash();

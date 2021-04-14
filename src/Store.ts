@@ -74,7 +74,7 @@ export class Store {
    * @param key The key
    * @returnss The value found or undefined if not found
    */
-  public get(path: string) {
+  public get(path: string): Value {
     return deepGet(this._data, path);
   }
 
@@ -91,7 +91,7 @@ export class Store {
    * @returns  The value added
    *
    */
-  public set(path: string, value: Value) {
+  public set(path: string, value: Value):Value {
     deepSet(this._data, path, value);
     this._notify();
 

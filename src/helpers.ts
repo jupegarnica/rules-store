@@ -1,20 +1,20 @@
-import { createHash } from "./deps.ts";
-import type { Data, Value } from "./types.ts";
+import { createHash } from './deps.ts';
+import type { Data, Value } from './types.ts';
 function isObject(obj: unknown): boolean {
-  return typeof obj === "object" && obj !== null;
+  return typeof obj === 'object' && obj !== null;
 }
 export function getKeys(path: string): string[] {
   // match "\" "/" o "."
   const keys = path.split(/[\\\\/\.]/).filter((key) => key);
   if (!path) {
-    throw new Error("Invalid path");
+    throw new Error('Invalid path');
   }
-  return keys
+  return keys;
 }
 export function calcHash(data: Value): string {
-  const hasher = createHash("sha1");
+  const hasher = createHash('sha1');
   if (data === undefined) {
-    hasher.update("");
+    hasher.update('');
   } else {
     hasher.update(JSON.stringify(data.valueOf()));
   }
@@ -25,7 +25,7 @@ export function isValidNumber(key: string): boolean {
   return maybeNumber >= 0;
 }
 
-export const deepGet = (object: Data, path: string) => {
+export const deepGet = (object: Data, path: string): Value => {
   const keys = getKeys(path);
   return keys.reduce(
     (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
@@ -38,7 +38,7 @@ export const deepSet = (
   path: string,
   value: Value,
   create = true,
-) => {
+): Value => {
   const keys = getKeys(path);
   let currentObject = obj;
   while (keys.length) {

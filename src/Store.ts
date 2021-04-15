@@ -4,9 +4,15 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from "./helpers.ts";
+  deepClone,
+} from './helpers.ts';
 
-import type { Data, Subscriber, Subscription, Value } from "./types.ts";
+import type {
+  Data,
+  Subscriber,
+  Subscription,
+  Value,
+} from './types.ts';
 /**
  * A database in RAM without persistance.
  * For persistance use StoreJson
@@ -37,8 +43,8 @@ export class Store {
    */
   constructor() {
     this._data = {};
-    this._dataHash = "";
-    this._lastKnownStoreHash = "";
+    this._dataHash = '';
+    this._lastKnownStoreHash = '';
   }
   /**
    * Load stored data from disk into cache.
@@ -51,7 +57,7 @@ export class Store {
   protected _notify() {
     for (const subscription of this._subscriptions) {
       const { path, callback } = subscription;
-      const value = this.get(path);
+      const value = this._get(path);
 
       const newHash = calcHash(value);
       if (newHash !== subscription.hash) {
@@ -74,8 +80,13 @@ export class Store {
    * @param key The key
    * @returnss The value found or undefined if not found
    */
-  public get(path: string): Value {
+  private _get(path: string): Value {
     return deepGet(this._data, path);
+  }
+  public get(path: string): Value {
+    const v = this._get(path);
+    const c = deepClone(v);
+    return c;
   }
 
   /**
@@ -91,13 +102,14 @@ export class Store {
    * @returns  The value added
    *
    */
-  public set(path: string, value: Value):Value {
-    deepSet(this._data, path, value);
+  public set(path: string, value: Value): Value {
+    const cloned = deepClone(value);
+    deepSet(this._data, path, cloned);
     this._notify();
 
     this._addDataHash();
 
-    return value;
+    return cloned;
   }
 
   /**
@@ -109,14 +121,14 @@ export class Store {
    *
    */
   public remove(path: string): Value {
-    const oldValue = this.get(path);
+    const oldValue = this._get(path);
     const keys = getKeys(path);
     const lastKey = keys[keys.length - 1];
 
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this.get(keys.join("."));
+      const parentValue = this._get(keys.join('.'));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -138,18 +150,19 @@ export class Store {
    * @returns  The value pushed
    */
   public push(path: string, value: Value): Value {
-    const oldValue = this.get(path);
+    const cloned = deepClone(value);
+    const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error("is not an Array");
+      throw new Error('is not an Array');
     }
 
-    oldValue.push(value);
+    oldValue.push(cloned);
 
     this._notify();
 
     this._addDataHash();
 
-    return value;
+    return cloned;
   }
   /**
    * Subscribe to changes in the path
@@ -161,7 +174,7 @@ export class Store {
    * @returns  The value changed
    */
   public on(path: string, callback: Subscriber): Value {
-    const value = this.get(path);
+    const value = this._get(path);
     this._subscriptions.push({
       callback,
       hash: calcHash(value),
@@ -190,7 +203,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error("no subscription found");
+      throw new Error('no subscription found');
     }
   }
 }

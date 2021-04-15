@@ -20,13 +20,31 @@ export function calcHash(data: Value): string {
   }
   return hasher.toString();
 }
+export const deepClone = (obj: Value) => {
+  if (!isObject(obj)) {
+    return obj;
+  }
+  const initialShape = Array.isArray(obj) ? [] : {}
+  const clone = Object.assign(initialShape, obj);
+  Object.keys(clone).forEach(
+    (key) =>
+      (clone[key] = isObject(obj[key])
+        ? deepClone(obj[key])
+        : obj[key]),
+  );
+  return clone
+};
+
 export function isValidNumber(key: string): boolean {
   const maybeNumber = Number(key);
-  return maybeNumber >= 0;
+  return (
+    maybeNumber >= 0 && maybeNumber <= Number.MAX_SAFE_INTEGER
+  );
 }
 
 export const deepGet = (object: Data, path: string): Value => {
   const keys = getKeys(path);
+
   return keys.reduce(
     (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
     object,
@@ -37,50 +55,29 @@ export const deepSet = (
   obj: Data,
   path: string,
   value: Value,
-  create = true,
 ): Value => {
   const keys = getKeys(path);
-  let currentObject = obj;
-  while (keys.length) {
-    const key = keys.shift();
+  let worker = obj;
+  const lastIndex = keys.length - 1;
+  let index = 0;
+  for (const key of keys) {
     if (!key) break;
-    if (!currentObject) break;
-
-    if (!isObject(currentObject[key]) && create) {
-      currentObject[key] = isValidNumber(key) ? [] : {};
+    if (!worker) break;
+    if (!isObject(worker[key])) {
+      worker[key] = isValidNumber(keys[index + 1]) ? [] : {};
+    }
+    if (index === lastIndex) {
+      worker[key] = value;
     }
 
-    if (!keys.length) {
-      currentObject[key] = value;
-    }
-    currentObject = currentObject[key];
+    worker = worker[key];
+    index++;
   }
 
   return obj;
 };
 
-// export const affectedKeys = (
-//   path: string,
-//   value: Value,
-//   create = true,
-// ) => {
-//   const obj: Data = {};
-//   const keys = getKeys(path);
-//   let currentObject = obj;
-//   while (keys.length) {
-//     const key = keys.shift();
-//     if (!key) break;
-//     if (!currentObject) break;
-
-//     if (!isObject(currentObject[key]) && create) {
-//       currentObject[key] = {};
-//     }
-
-//     if (!keys.length) {
-//       currentObject[key] = value;
-//     }
-//     currentObject = currentObject[key];
-//   }
-
-//   return obj;
-// };
+// const data = {} as any;
+//   deepSet(data,'d.1.1.1', 1);
+//   console.log(deepClone(data.d) );
+//   console.log([, [, [, 1]]]);

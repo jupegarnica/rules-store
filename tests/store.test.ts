@@ -22,6 +22,7 @@ Deno.test('[Store] setting arrays', () => {
 
   db.set('b.0.a', 1);
   const B = db.get('b');
+
   assertEquals(B, [{ a: 1 }]);
 
   db.set('c.0.0', 1);
@@ -30,13 +31,12 @@ Deno.test('[Store] setting arrays', () => {
 
   db.set('d.1.1.1', 1);
   const D = db.get('d');
-  assertEquals(D, [,[,[,1]]]);
-
+  assertEquals(D, [, [, [, 1]]]);
 
   db.set('e', [0]);
   db.set('e.1.1.1', 1);
   const E = db.get('e');
-  assertEquals(E, [0,[,[,1]]]);
+  assertEquals(E, [0, [, [, 1]]]);
 });
 
 Deno.test('[Store] invalid path', () => {
@@ -183,46 +183,43 @@ Deno.test('[Store] Deep complex subscription', () => {
   const db = new Store();
   db.set('a.b.c', true);
 
-  {
-    let called = 0;
-    const onChange = (data: unknown) => {
-      called++;
-      if (called === 1) {
-        assertEquals(data, { c: true });
-      }
-      if (called === 2) {
-        assertEquals(data, { c: 33 });
-      }
-      if (called === 3) {
-        assertEquals(data, { c: 33, d: 34 });
-      }
-      if (called === 4) {
-        assertEquals(data, undefined);
-      }
-    };
+  let called = 0;
+  const onChange = (data: unknown) => {
+    called++;
+    if (called === 1) {
+      assertEquals(data, { c: true });
+    }
+    if (called === 2) {
+      assertEquals(data, { c: 33 });
+    }
+    if (called === 3) {
+      assertEquals(data, { c: 33, d: 34 });
+    }
+    if (called === 4) {
+      assertEquals(data, undefined);
+    }
+  };
 
-    const B = db.on('a.b', onChange);
+  const B = db.on('a.b', onChange);
 
-    //  should be called
-    assertEquals(B, { c: true });
-    assertEquals(called, 1);
+  //  should be called
+  assertEquals(B, { c: true });
+  assertEquals(called, 1);
 
-    // TODO make it work
-    db.set('a.b.c', 33);
-    assertEquals(db.get('a.b.c'), 33);
-    assertEquals(called, 2);
+  db.set('a.b.c', 33);
+  assertEquals(db.get('a.b.c'), 33);
+  assertEquals(called, 2);
 
-    db.set('a.b.d', 34);
-    assertEquals(called, 3);
+  db.set('a.b.d', 34);
+  assertEquals(called, 3);
 
-    db.set('a', 1);
-    assertEquals(called, 4);
+  db.set('a', 1);
+  assertEquals(called, 4);
 
-    //  should not be called
-    db.set('a.z', true);
-    db.set('z', true);
-    assertEquals(called, 4);
-  }
+  //  should not be called
+  db.set('a.z', true);
+  db.set('z', true);
+  assertEquals(called, 4);
 });
 
 Deno.test('[Store] push into an array', () => {
@@ -242,4 +239,25 @@ Deno.test('[Store] push into an not array', () => {
   assertThrows(() => {
     db.push('a.b', 1);
   });
+});
+
+Deno.test('[Store] Set inmutable behavior', () => {
+  const db = new Store();
+  const obj = { b: 1 };
+  db.set('a', obj);
+  obj.b = 2;
+
+  const B = db.get('a.b');
+  assertEquals(B, 1);
+});
+
+Deno.test('[Store] Get inmutable behavior', () => {
+  const db = new Store();
+  db.set('a', { b: 1 });
+
+  const A = db.get('a');
+  A.b = 2;
+
+  const B = db.get('a.b');
+  assertEquals(B, 1);
 });

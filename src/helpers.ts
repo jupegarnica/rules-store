@@ -76,8 +76,3 @@ export const deepSet = (
 
   return obj;
 };
-
-// const data = {} as any;
-//   deepSet(data,'d.1.1.1', 1);
-//   console.log(deepClone(data.d) );
-//   console.log([, [, [, 1]]]);

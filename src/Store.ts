@@ -149,20 +149,20 @@ export class Store {
    * @param value The value
    * @returns  The value pushed
    */
-  public push(path: string, value: Value): Value {
-    const cloned = deepClone(value);
+  public push(path: string, ...values: Value): Value {
+    const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
       throw new Error('is not an Array');
     }
 
-    oldValue.push(cloned);
+    oldValue.push(...cloned);
 
     this._notify();
 
     this._addDataHash();
 
-    return cloned;
+    return cloned.length > 1 ? cloned : cloned[0];
   }
   /**
    * Subscribe to changes in the path

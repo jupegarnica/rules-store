@@ -230,6 +230,12 @@ Deno.test('[Store] push into an array', () => {
 
   assertEquals(B, 1);
   assertEquals(db.get('a.b'), [1]);
+  const B2 = db.push('a.b', 2,3,4);
+  assertEquals(B2, [2,3,4]);
+  assertEquals(db.get('a.b'), [1,2,3,4]);
+
+
+
 });
 
 Deno.test('[Store] push into an not array', () => {

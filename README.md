@@ -5,8 +5,8 @@
 - [ ] .subscribe()
 - [ ] add Rules inspired from firebase
 - [ ] add config to instantiation:  dbName, dbDir,autoSave
-- [ ] inmutable get and set
-- [ ] push multiple items
+- [x] inmutable get and set
+- [x] push multiple items
 - [ ] find, findOne, findAndRemove, findOneAndRemove
 - [ ] maybe .sort(fn)
 - [ ] write performance benchmarks

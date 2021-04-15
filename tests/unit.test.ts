@@ -21,6 +21,7 @@ Deno.test('[Helpers] deepSet', () => {
 });
 
 Deno.test('[Helpers] deepSet array', () => {
+  // deno-lint-ignore no-explicit-any
   const data = {} as any;
 
   const arr = [];

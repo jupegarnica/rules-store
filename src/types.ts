@@ -8,3 +8,5 @@ export type Subscription = {
 // deno-lint-ignore no-explicit-any
 export type Value = any;
 export type Data = { [key: string]: Value };
+
+export type ValueOrFunction = Value | ((value: Value) => Value);

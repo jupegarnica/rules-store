@@ -39,7 +39,7 @@ Deno.test('[Store] setting arrays', () => {
   assertEquals(E, [0, [, [, 1]]]);
 });
 
-Deno.test('[Store] invalid path', () => {
+Deno.test('[Store] invalid root path', () => {
   const db = new Store();
   assertThrows(() => {
     db.set('', []);
@@ -266,4 +266,14 @@ Deno.test('[Store] Get inmutable behavior', () => {
 
   const B = db.get('a.b');
   assertEquals(B, 1);
+});
+
+
+Deno.test('[Store] Set with a function', () => {
+  const db = new Store();
+  db.set('a', { b: 1 });
+  // deno-lint-ignore no-explicit-any
+  const B = db.set('a.b', (oldValue: any) => oldValue + 1);
+
+  assertEquals(B, 2);
 });

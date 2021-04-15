@@ -12,6 +12,7 @@ import type {
   Subscriber,
   Subscription,
   Value,
+  ValueOrFunction
 } from './types.ts';
 /**
  * A database in RAM without persistance.
@@ -102,14 +103,23 @@ export class Store {
    * @returns  The value added
    *
    */
-  public set(path: string, value: Value): Value {
-    const cloned = deepClone(value);
-    deepSet(this._data, path, cloned);
+
+  public set(path: string, valueOrFunction: ValueOrFunction ) : Value {
+    let newValue;
+    if (typeof valueOrFunction === 'function') {
+      const oldValue = this._get(path);
+      newValue = valueOrFunction(oldValue);
+    } else {
+      newValue = valueOrFunction;
+
+    }
+    newValue = deepClone(newValue);
+    deepSet(this._data, path, newValue);
     this._notify();
 
     this._addDataHash();
 
-    return cloned;
+    return newValue;
   }
 
   /**

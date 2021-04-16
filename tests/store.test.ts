@@ -399,28 +399,24 @@ Deno.test("[Store] findAndRemove by value in array", () => {
   assertEquals(db.get("arr"), [1]);
 });
 
-
 Deno.test("[Store] findAndRemove by key in array", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);
   const removed = db.findAndRemove(
     "arr",
-    (_,key: string)=> Number(key) % 2 === 0,
+    (_, key: string) => Number(key) % 2 === 0,
   );
 
   assertEquals(removed, [["0", 1], ["2", 3]]);
   assertEquals(db.get("arr"), [2]);
 });
 
-
 Deno.test("[Store] findOneAndRemove in a object", () => {
   const db = new Store();
   db.set("obj", { a: 1, b: 2, c: 3 });
   const removed = db.findOneAndRemove("obj", (value) => value > 1);
   assertEquals(removed, ["b", 2]);
-  assertEquals(db.get("obj"), { a: 1, c:3});
-
-
+  assertEquals(db.get("obj"), { a: 1, c: 3 });
 });
 
 Deno.test("[Store] findOneAndRemove in a array", () => {
@@ -428,6 +424,5 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
   db.set("arr", [1, 2, 3]);
   const removed = db.findOneAndRemove("arr", (value) => value > 1);
   assertEquals(removed, ["1", 2]);
-  assertEquals(db.get("arr"), [1,3]);
-
+  assertEquals(db.get("arr"), [1, 3]);
 });

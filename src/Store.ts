@@ -4,9 +4,9 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from './helpers.ts';
+} from "./helpers.ts";
 
-import { equal } from './deps.ts';
+import { equal } from "./deps.ts";
 import type {
   Data,
   Finder,
@@ -14,7 +14,7 @@ import type {
   Subscription,
   Value,
   ValueOrFunction,
-} from './types.ts';
+} from "./types.ts";
 /**
  * A database in RAM without persistance.
  * For persistance use StoreJson
@@ -28,12 +28,12 @@ export class Store {
   /**
    * The hashed value of currently cached data.
    */
-  protected _dataHash = '';
+  protected _dataHash = "";
 
   /**
    * Stores the last known hash from store file.
    */
-  protected _lastKnownStoreHash = '';
+  protected _lastKnownStoreHash = "";
 
   protected _subscriptions: Subscription[] = [];
 
@@ -92,7 +92,7 @@ export class Store {
     valueOrFunction: ValueOrFunction,
   ): Value {
     let newValue;
-    if (typeof valueOrFunction === 'function') {
+    if (typeof valueOrFunction === "function") {
       const oldValue = this._get(path);
       newValue = valueOrFunction(oldValue);
     } else {
@@ -120,7 +120,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this._get(keys.join('.'));
+      const parentValue = this._get(keys.join("."));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -146,7 +146,7 @@ export class Store {
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error('is not an Array');
+      throw new Error("is not an Array");
     }
 
     oldValue.push(...cloned);
@@ -216,7 +216,7 @@ export class Store {
     const results = this.find(path, finder);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
-      const pathToRemove = [...getKeys(path), key].join('.');
+      const pathToRemove = [...getKeys(path), key].join(".");
       this.remove(pathToRemove);
     }
 
@@ -238,7 +238,7 @@ export class Store {
     const result = this.findOne(path, finder);
     if (result) {
       const pathToRemove = [...getKeys(path), result[0]].join(
-        '.',
+        ".",
       );
       this.remove(pathToRemove);
     }
@@ -298,7 +298,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error('no subscription found');
+      throw new Error("no subscription found");
     }
   }
 }

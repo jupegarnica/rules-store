@@ -163,27 +163,27 @@ export class Store {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
         const value = target[key];
         if (finder(value, key)) {
-          results.push(value);
+          results.push([key, value]);
         }
       }
     }
     return results;
   }
 
-   /**
+  /**
    * find
    */
-    public findOne(path: string, finder: Finder): Value {
-      const target = this.get(path);
-      for (const key in target) {
-        if (Object.prototype.hasOwnProperty.call(target, key)) {
-          const value = target[key];
-          if (finder(value, key)) {
-            return value
-          }
+  public findOne(path: string, finder: Finder): Value {
+    const target = this.get(path);
+    for (const key in target) {
+      if (Object.prototype.hasOwnProperty.call(target, key)) {
+        const value = target[key];
+        if (finder(value, key)) {
+          return [key, value];
         }
       }
     }
+  }
   /**
    * Subscribe to changes in the path
    * It will run the callback only if the path value has changed

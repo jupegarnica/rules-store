@@ -298,56 +298,80 @@ Deno.test('[Store] Set with a function', () => {
 Deno.test('[Store] find in a object', () => {
   const db = new Store();
   db.set('obj', { a: 1, b: 2, c: 3 });
-  const odd = db.find('obj', (value: any) => value % 2 === 0);
-  assertEquals(odd, [2]);
+  const results = db.find(
+    'obj',
+    (value: any) => value % 2 === 0,
+  );
+
+  const [[key, value]] = results;
+  assertEquals(results.length, 1);
+  assertEquals(value, 2);
+  assertEquals(key, 'b');
+
+  assertEquals(Object.fromEntries(results), { b: 2 });
 });
 
 Deno.test('[Store] find in a array', () => {
   const db = new Store();
   db.set('arr', [1, 2, 3]);
-  const odd = db.find('arr', (value: any) => value % 2 !== 0);
-  assertEquals(odd, [1, 3]);
+  const results = db.find(
+    'arr',
+    (value: any) => value % 2 !== 0,
+  );
+  const [[key, value]] = results;
+  assertEquals(results, [
+    ['0', 1],
+    ['2', 3],
+  ]);
+  assertEquals(results.length, 2);
+  assertEquals(value, 1);
+  assertEquals(key, '0');
+
+  assertEquals(Object.fromEntries(results), { '0': 1, '2': 3 });
 });
 
 Deno.test('[Store] find without result', () => {
   const db = new Store();
   db.set('arr', [1, 2, 3]);
-  const odd = db.find('arr', (value: any) => value === 0);
-  assertEquals(odd, []);
+  const result = db.find('arr', (value: any) => value === 0);
+  assertEquals(result, []);
 });
 
 Deno.test('[Store] find by key in object', () => {
   const db = new Store();
   db.set('obj', { a: 1, b: 2, c: 3 });
 
-  const odd = db.find('obj', (_, key: string) => key === 'a');
-  assertEquals(odd, [1]);
+  const result = db.find('obj', (_, key: string) => key === 'a');
+  assertEquals(result, [['a', 1]]);
 });
 
 Deno.test('[Store] find by key in array', () => {
   const db = new Store();
   db.set('arr', [1, 2, 3]);
-  const odd = db.find('arr', (_, key: string) => key === '1');
-  assertEquals(odd, [2]);
+  const result = db.find('arr', (_, key: string) => key === '1');
+  assertEquals(result, [['1', 2]]);
 });
 
 Deno.test('[Store] findOne in a object', () => {
   const db = new Store();
   db.set('obj', { a: 1, b: 2, c: 3 });
-  const odd = db.findOne('obj', (value) => value > 0);
-  assertEquals(odd, 1);
+  const result = db.findOne('obj', (value) => value > 0);
+  assertEquals(result, ['a', 1]);
 });
 
 Deno.test('[Store] findOne in a array', () => {
   const db = new Store();
   db.set('arr', [1, 2, 3]);
-  const odd = db.findOne('arr', (value) => value > 0);
-  assertEquals(odd, 1);
+  const result = db.findOne('arr', (value) => value > 0);
+  assertEquals(result, ['0',1]);
 });
 
 Deno.test('[Store] findOne by key in array', () => {
   const db = new Store();
   db.set('arr', [1, 2, 3]);
-  const odd = db.findOne('arr', (_, key: string) => Number(key) > 1);
-  assertEquals(odd, 3);
+  const result = db.findOne(
+    'arr',
+    (_, key: string) => Number(key) > 1,
+  );
+  assertEquals(result, ['2',3]);
 });

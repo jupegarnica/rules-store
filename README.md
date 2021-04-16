@@ -4,7 +4,7 @@
 - [x] push multiple items
 - [x] Set using a function. Ej. db.set('a', oldData => oldData + 1)
 - [x] add config to instantiation: filename, folder, autoSave
-- [ ] .subscribe()
+- [x] .subscribe()
 - [ ] add Rules inspired from firebase
 - [ ] find, findOne, findAndRemove, findOneAndRemove
 - [ ] maybe .sort(fn)

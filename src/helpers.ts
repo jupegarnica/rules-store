@@ -54,7 +54,8 @@ export const deepSet = (
       worker[key] = isValidNumber(keys[index + 1]) ? [] : {};
     }
     if (index === lastIndex) {
-      worker[key] = value;
+      if (value === undefined) delete worker[key];
+      else worker[key] = value;
     }
 
     worker = worker[key];

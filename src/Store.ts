@@ -9,11 +9,11 @@ import {
 import { equal } from './deps.ts';
 import type {
   Data,
+  Finder,
   Subscriber,
   Subscription,
   Value,
   ValueOrFunction,
-  Finder,
 } from './types.ts';
 /**
  * A database in RAM without persistance.
@@ -171,7 +171,7 @@ export class Store {
   }
 
   /**
-   * find
+   * findOne
    */
   public findOne(path: string, finder: Finder): Value {
     const target = this.get(path);
@@ -183,6 +183,20 @@ export class Store {
         }
       }
     }
+  }
+
+  /**
+   * findAndRemove
+   */
+  public findAndRemove(path: string, finder: Finder): Value[] {
+    const results = this.find(path, finder);
+    for (let index = results.length - 1; index >= 0; index--) {
+      const [key] = results[index];
+      const pathToRemove = [...getKeys(path), key].join('.');
+      this.remove(pathToRemove);
+    }
+
+    return results;
   }
   /**
    * Subscribe to changes in the path

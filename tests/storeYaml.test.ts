@@ -95,7 +95,6 @@ Deno.test("[StoreYaml] autoSave config on remove", () => {
   assertEquals(existsSync(db.storePath), false);
 });
 
-
 Deno.test("[StoreYaml] set and get null", () => {
   const db = new StoreYaml();
   db.set("a.b.c", null);
@@ -104,5 +103,4 @@ Deno.test("[StoreYaml] set and get null", () => {
   db.load();
   assertEquals(db.get("a.b.c"), null);
   db.deleteStore();
-
 });

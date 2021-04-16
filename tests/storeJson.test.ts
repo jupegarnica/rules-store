@@ -113,5 +113,4 @@ Deno.test("[StoreJson] set and get null", () => {
   db.load();
   assertEquals(db.get("a.b.c"), null);
   db.deleteStore();
-
 });

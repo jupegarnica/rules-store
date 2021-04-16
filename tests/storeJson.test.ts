@@ -6,14 +6,14 @@ const testStorePath = "../test.store.json";
 // Persistance StoreJson
 ////////////////////////
 Deno.test("[StoreJson] Empty DB should not be persisted", () => {
-  const db = new StoreJson("./not-exiting.json");
+  const db = new StoreJson({filename: "./not-exiting.json"});
   db.write();
 
   assertEquals(existsSync(db.storePath), false);
 });
 
 Deno.test("[StoreJson] Write DB", async () => {
-  const db = new StoreJson(testStorePath);
+  const db = new StoreJson({filename:testStorePath});
 
   db.set("number", 5);
   assertEquals(db.get("number"), 5);
@@ -26,14 +26,14 @@ Deno.test("[StoreJson] Write DB", async () => {
 });
 
 Deno.test("[StoreJson] DB load / write / delete store", () => {
-  const db = new StoreJson(testStorePath);
+  const db = new StoreJson({filename:testStorePath});
 
   db.set("number5", 5);
   db.set("number10", 10);
 
   db.write(testStorePath);
 
-  const db2 = new StoreJson(testStorePath);
+  const db2 = new StoreJson({filename:testStorePath});
 
   assertEquals(db2.get("number5"), 5);
 
@@ -47,3 +47,12 @@ Deno.test("[StoreJson] DB load / write / delete store", () => {
   const exists = existsSync(db.storePath);
   assertEquals(exists, false);
 });
+
+// Deno.test("[StoreJson] Set storePath should fail", () => {
+//   const db = new StoreJson({filename:testStorePath});
+
+//   assertThrows(() => {
+//     db.storePath = './ups.json';
+//   });
+
+// });

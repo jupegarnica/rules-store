@@ -1,6 +1,7 @@
 import { existsSync } from "./deps.ts";
 
 import { Store } from "./Store.ts";
+import { JsonConfig } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -16,10 +17,10 @@ export class StoreJson extends Store {
    *
    * @param storePath A custom path where to write data
    */
-  constructor(storePath?: string) {
-    super();
-    this._storePath = storePath
-      ? storePath
+  constructor(config?: JsonConfig) {
+    super(config);
+    this._storePath = config?.filename
+      ? config.filename
       : `${new URL(".store.json", Deno.mainModule).pathname}`;
     this.load();
   }
@@ -62,7 +63,7 @@ export class StoreJson extends Store {
    * matches the current cache hash.
    *
    * @param storePath Custom file path used by write operation
-   * @param force Ignore hashe comparison and force write
+   * @param force Ignore hash comparison and force write
    */
   public write(storePath?: string, force = false): void {
     // Write probably not necessary.

@@ -12,7 +12,8 @@ import type {
   Subscriber,
   Subscription,
   Value,
-  ValueOrFunction
+  ValueOrFunction,
+  StoreConfig,
 } from './types.ts';
 /**
  * A database in RAM without persistance.
@@ -22,17 +23,18 @@ export class Store {
   /**
    * The actual data cache.
    */
-  protected _data: Data;
+  protected _data: Data = {};
 
   /**
    * The hashed value of currently cached data.
    */
-  protected _dataHash: string;
+  protected _dataHash: string = '';
 
   /**
    * Stores the last known hash from store file.
    */
-  protected _lastKnownStoreHash: string;
+  protected _lastKnownStoreHash: string = '';
+  protected _autoSave: boolean = false;
 
   protected _subscriptions: Subscription[] = [];
 
@@ -42,10 +44,8 @@ export class Store {
    *
    * @param storePath A custom path where to write data
    */
-  constructor() {
-    this._data = {};
-    this._dataHash = '';
-    this._lastKnownStoreHash = '';
+  constructor(config?: StoreConfig) {
+    this._autoSave = config?.autoSave ?? false;
   }
   /**
    * Load stored data from disk into cache.
@@ -104,14 +104,16 @@ export class Store {
    *
    */
 
-  public set(path: string, valueOrFunction: ValueOrFunction ) : Value {
+  public set(
+    path: string,
+    valueOrFunction: ValueOrFunction,
+  ): Value {
     let newValue;
     if (typeof valueOrFunction === 'function') {
       const oldValue = this._get(path);
       newValue = valueOrFunction(oldValue);
     } else {
       newValue = valueOrFunction;
-
     }
     newValue = deepClone(newValue);
     deepSet(this._data, path, newValue);

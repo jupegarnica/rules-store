@@ -6,14 +6,14 @@ const testStorePath = "../test.store.yaml";
 // Persistance StoreYaml
 ////////////////////////
 Deno.test("[StoreYaml] Empty DB should not be persisted", () => {
-  const db = new StoreYaml("./not-exiting.yaml");
+  const db = new StoreYaml({filename:"./not-exiting.yaml"});
   db.write();
 
   assertEquals(existsSync(db.storePath), false);
 });
 
 Deno.test("[StoreYaml] Write DB", async () => {
-  const db = new StoreYaml("testStorePath");
+  const db = new StoreYaml({filename:testStorePath});
 
   db.set("number", 5);
   assertEquals(db.get("number"), 5);
@@ -26,14 +26,14 @@ Deno.test("[StoreYaml] Write DB", async () => {
 });
 
 Deno.test("[StoreYaml] DB load / write / delete store", () => {
-  const db = new StoreYaml(testStorePath);
+  const db = new StoreYaml({filename:testStorePath});
 
   db.set("number5", 5);
   db.set("number10", 10);
 
   db.write(testStorePath);
 
-  const db2 = new StoreYaml(testStorePath);
+  const db2 = new StoreYaml({filename:testStorePath});
 
   assertEquals(db2.get("number5"), 5);
 

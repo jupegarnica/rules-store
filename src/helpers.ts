@@ -10,15 +10,6 @@ export function getKeys(path: string): string[] {
   }
   return keys;
 }
-// export function calcHash(data: Value): string {
-//   const hasher = createHash('sha1');
-//   if (data === undefined) {
-//     hasher.update('');
-//   } else {
-//     hasher.update(JSON.stringify(data.valueOf()));
-//   }
-//   return hasher.toString();
-// }
 export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {
     return obj;

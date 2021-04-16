@@ -22,9 +22,7 @@ Deno.test("[StoreYaml] Write DB", async () => {
 Deno.test("[StoreYaml] load DB with filename", () => {
   const db = new StoreYaml({
     filename: "./tests/test.json",
-    // folder: './tests',
   });
-  console.log(db.storePath);
 
   assertEquals(db.get("arr.0"), 1);
   assertEquals(db.get("arr.1"), 2);
@@ -38,7 +36,6 @@ Deno.test("[StoreYaml] load DB with folder", () => {
     filename: "test.json",
     folder: "./tests",
   });
-  console.log(db.storePath);
 
   assertEquals(db.get("arr.0"), 1);
   assertEquals(db.get("arr.1"), 2);

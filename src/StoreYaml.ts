@@ -28,12 +28,7 @@ export class StoreYaml extends StoreFile {
     const decoder = new TextDecoder("utf-8");
     const decoded: Value = parse(decoder.decode(data));
 
-    // Reload probably not necessary.
-    if ( decoded._hash === this._dataHash) return;
-
-    // Store new data.
-    this._data = decoded.data;
-    this._lastKnownStoreHash = decoded._hash;
+    this._data = decoded;
 
     return;
   }
@@ -47,19 +42,10 @@ export class StoreYaml extends StoreFile {
    * @param force Ignore hashe comparison and force write
    */
   public write(): void {
-    // Write probably not necessary.
-    if (this._lastKnownStoreHash === this._dataHash) {
-      return;
-    }
-    const storePath = this._storePath;
 
-    // Write data.
-    const data = stringify({
-      _hash: this._dataHash,
-      data: this._data,
-    });
+    const data = stringify( this._data);
     const encoder = new TextEncoder();
-    return Deno.writeFileSync(storePath, encoder.encode(data));
+    return Deno.writeFileSync(this.storePath, encoder.encode(data));
   }
 
 }

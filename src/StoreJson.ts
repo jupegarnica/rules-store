@@ -24,12 +24,9 @@ export class StoreJson extends StoreFile {
     const decoder = new TextDecoder('utf-8');
     const decoded = JSON.parse(decoder.decode(data));
 
-    // Reload probably not necessary.
-    if (decoded._hash === this._dataHash) return;
 
     // Store new data.
-    this._data = decoded.data;
-    this._lastKnownStoreHash = decoded._hash;
+    this._data = decoded;
 
     return;
   }
@@ -41,16 +38,7 @@ export class StoreJson extends StoreFile {
    *
    */
   public write(): void {
-    // Write probably not necessary.
-    if (this._lastKnownStoreHash === this._dataHash) {
-      return;
-    }
-
-    // Write data.
-    const data = JSON.stringify({
-      _hash: this._dataHash,
-      data: this._data,
-    });
+    const data = JSON.stringify(this._data);
     const encoder = new TextEncoder();
     return Deno.writeFileSync(
       this._storePath,

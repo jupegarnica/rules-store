@@ -1,5 +1,4 @@
 import {
-  calcHash,
   deepGet,
   deepSet,
   getKeys,
@@ -7,6 +6,7 @@ import {
   deepClone,
 } from './helpers.ts';
 
+import { equal } from "./deps.ts";
 import type {
   Data,
   Subscriber,
@@ -55,17 +55,15 @@ export class Store {
   protected _notify() {
     for (const subscription of this._subscriptions) {
       const { path, callback } = subscription;
-      const value = this._get(path);
-
-      const newHash = calcHash(value);
-      if (newHash !== subscription.hash) {
+      const value = this.get(path);
+      if (!equal(value, subscription.value)) {
         callback(value);
-        subscription.hash = newHash;
+        subscription.value = value;
       }
     }
   }
-  protected _addDataHash() {
-    this._dataHash = calcHash(this._data);
+  private _get(path: string): Value {
+    return deepGet(this._data, path);
   }
   /**
    * Retrieves a value from database by specified path.
@@ -75,12 +73,10 @@ export class Store {
    * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
    * '\\a\\b\\c'  escaped \
    *
-   * @param key The key
-   * @returnss The value found or undefined if not found
+   * @param path The path
+   * @returns The cloned value found or undefined if not found
    */
-  private _get(path: string): Value {
-    return deepGet(this._data, path);
-  }
+
   public get(path: string): Value {
     const v = this._get(path);
     const c = deepClone(v);
@@ -96,8 +92,8 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    *
    * @param path The path
-   * @param value The new value
-   * @returns  The value added
+   * @param valueOrFunction The new value or a function to run with the oldValue
+   * @returns  The cloned value added
    *
    */
 
@@ -115,9 +111,6 @@ export class Store {
     newValue = deepClone(newValue);
     deepSet(this._data, path, newValue);
     this._notify();
-
-    this._addDataHash();
-
     return newValue;
   }
 
@@ -146,8 +139,6 @@ export class Store {
 
     this._notify();
 
-    this._addDataHash();
-
     return oldValue;
   }
   /**
@@ -169,8 +160,6 @@ export class Store {
 
     this._notify();
 
-    this._addDataHash();
-
     return cloned.length > 1 ? cloned : cloned[0];
   }
   /**
@@ -183,10 +172,10 @@ export class Store {
    * @returns  The value changed
    */
   public on(path: string, callback: Subscriber): Value {
-    const value = this._get(path);
+    const value = this.get(path);
     this._subscriptions.push({
       callback,
-      hash: calcHash(value),
+      value: value,
       path,
     });
     callback(value);

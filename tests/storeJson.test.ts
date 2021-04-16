@@ -5,12 +5,7 @@ const testStorePath = '../test.store.json';
 
 // Persistance StoreJson
 ////////////////////////
-Deno.test('[StoreJson] Empty DB should not be persisted', () => {
-  const db = new StoreJson({ filename: './not-exiting.json' });
-  db.write();
 
-  assertEquals(existsSync(db.storePath), false);
-});
 
 Deno.test('[StoreJson] Write DB', async () => {
   const db = new StoreJson({ filename: testStorePath });

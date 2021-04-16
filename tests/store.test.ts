@@ -219,6 +219,12 @@ Deno.test('[Store] Deep complex subscription', () => {
   //  should not be called
   db.set('a.z', true);
   db.set('z', true);
+  console.log(
+   db.get('a'),
+   db.get('7'),
+
+  );
+
   assertEquals(called, 4);
 });
 

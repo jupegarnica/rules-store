@@ -1,7 +1,6 @@
 import { existsSync } from './deps.ts';
 
 import { StoreFile } from './StoreFile.ts';
-import { Config } from './types.ts';
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store

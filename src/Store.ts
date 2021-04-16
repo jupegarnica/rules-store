@@ -27,12 +27,12 @@ export class Store {
   /**
    * The hashed value of currently cached data.
    */
-  protected _dataHash: string = '';
+  protected _dataHash = '';
 
   /**
    * Stores the last known hash from store file.
    */
-  protected _lastKnownStoreHash: string = '';
+  protected _lastKnownStoreHash = '';
 
   protected _subscriptions: Subscription[] = [];
 

@@ -6,7 +6,7 @@ scripts:
   lint: deno lint --unstable
   format: deno fmt
   update:
-    cmd: deno run -A https://deno.land/x/udd@0.4.0/main.ts deps.ts
+    cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts src/deps.ts tests/test_deps.ts
     watch: false
 
 watcher:

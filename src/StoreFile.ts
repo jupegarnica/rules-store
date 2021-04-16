@@ -11,7 +11,7 @@ export abstract class StoreFile extends Store {
    * The file path in which to store the data in.
    */
   protected _storePath: string;
-  protected _autoSave: boolean = false;
+  protected _autoSave = false;
 
   /**
    * Create a new {Store} instance.

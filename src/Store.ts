@@ -158,7 +158,7 @@ export class Store {
    * @param value The value
    * @returns  The value pushed
    */
-  public push(path: string, ...values: Value): Value {
+  public push(path: string, ...values: Value[]): Value {
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {

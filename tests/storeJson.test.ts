@@ -31,7 +31,7 @@ Deno.test("[StoreJson] DB load / write / delete store", () => {
   db.set("number5", 5);
   db.set("number10", 10);
 
-  db.write(testStorePath);
+  db.write();
 
   const db2 = new StoreJson({filename:testStorePath});
 
@@ -48,11 +48,37 @@ Deno.test("[StoreJson] DB load / write / delete store", () => {
   assertEquals(exists, false);
 });
 
-// Deno.test("[StoreJson] Set storePath should fail", () => {
-//   const db = new StoreJson({filename:testStorePath});
+Deno.test("[StoreJson] autoSave config on set", () => {
+  const db = new StoreJson({filename:testStorePath, autoSave:true});
+  db.set("number5", 5);
 
-//   assertThrows(() => {
-//     db.storePath = './ups.json';
-//   });
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore()
+  assertEquals(existsSync(db.storePath), false);
 
-// });
+
+});
+
+Deno.test("[StoreJson] autoSave config on push", () => {
+  const db = new StoreJson({filename:testStorePath, autoSave:true});
+  db.set("arr", []);
+  Deno.removeSync(testStorePath);
+  db.push('arr',1,2)
+
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore()
+  assertEquals(existsSync(db.storePath), false);
+
+
+});
+Deno.test("[StoreJson] autoSave config on remove", () => {
+  const db = new StoreJson({filename:testStorePath, autoSave:true});
+  db.set("arr", [1,2]);
+  Deno.removeSync(testStorePath);
+  db.remove('arr.0')
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore()
+  assertEquals(existsSync(db.storePath), false);
+
+
+});

@@ -5,7 +5,7 @@ import {
 } from "https://deno.land/std@0.92.0/encoding/yaml.ts";
 import { Store } from "./Store.ts";
 
-import type { Value,Config } from "./types.ts";
+import type { Value,Config,ValueOrFunction } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -37,6 +37,32 @@ export class StoreYaml extends Store {
   public get storePath(): string {
     return this._storePath;
   }
+
+  public set(
+    path: string,
+    valueOrFunction: ValueOrFunction,
+  ): Value {
+    const returned = super.set(path, valueOrFunction);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+  public push(path: string, ...values: Value[]): Value {
+    const returned = super.push(path, ...values);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+  public remove(path: string): Value {
+    const returned = super.remove(path);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.

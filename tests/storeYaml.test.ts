@@ -47,3 +47,39 @@ Deno.test("[StoreYaml] DB load / write / delete store", () => {
   const exists = existsSync(db.storePath);
   assertEquals(exists, false);
 });
+
+
+Deno.test("[StoreYaml] autoSave config on set", () => {
+  const db = new StoreYaml({filename:testStorePath, autoSave:true});
+  db.set("number5", 5);
+
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore()
+  assertEquals(existsSync(db.storePath), false);
+
+
+});
+
+Deno.test("[StoreYaml] autoSave config on push", () => {
+  const db = new StoreYaml({filename:testStorePath, autoSave:true});
+  db.set("arr", []);
+  Deno.removeSync(testStorePath);
+  db.push('arr',1,2)
+
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore()
+  assertEquals(existsSync(db.storePath), false);
+
+
+});
+Deno.test("[StoreYaml] autoSave config on remove", () => {
+  const db = new StoreYaml({filename:testStorePath, autoSave:true});
+  db.set("arr", [1,2]);
+  Deno.removeSync(testStorePath);
+  db.remove('arr.0')
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore()
+  assertEquals(existsSync(db.storePath), false);
+
+
+});

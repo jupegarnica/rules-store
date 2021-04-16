@@ -1,7 +1,7 @@
-import { existsSync } from "./deps.ts";
+import { existsSync } from './deps.ts';
 
-import { Store } from "./Store.ts";
-import { Config } from "./types.ts";
+import { Store } from './Store.ts';
+import { Config ,ValueOrFunction, Value} from './types.ts';
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -24,7 +24,7 @@ export class StoreJson extends Store {
     this._autoSave = config?.autoSave ?? false;
     this._storePath = config?.filename
       ? config.filename
-      : `${new URL(".store.json", Deno.mainModule).pathname}`;
+      : `${new URL('.store.json', Deno.mainModule).pathname}`;
     this.load();
   }
   /**
@@ -32,6 +32,30 @@ export class StoreJson extends Store {
    */
   public get storePath(): string {
     return this._storePath;
+  }
+  public set(
+    path: string,
+    valueOrFunction: ValueOrFunction,
+  ): Value {
+    const returned = super.set(path, valueOrFunction);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+  public push(path: string, ...values: Value[]): Value {
+    const returned = super.push(path, ...values);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+  public remove(path: string): Value {
+    const returned = super.remove(path);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
   }
   /**
    * Load stored data from disk into cache.
@@ -47,7 +71,7 @@ export class StoreJson extends Store {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    const decoder = new TextDecoder("utf-8");
+    const decoder = new TextDecoder('utf-8');
     const decoded = JSON.parse(decoder.decode(data));
 
     // Reload probably not necessary.
@@ -65,15 +89,12 @@ export class StoreJson extends Store {
    * Won't perform write if the last known hash from the store file
    * matches the current cache hash.
    *
-   * @param storePath Custom file path used by write operation
-   * @param force Ignore hash comparison and force write
    */
-  public write(storePath?: string, force = false): void {
+  public write(): void {
     // Write probably not necessary.
-    if (!force && this._lastKnownStoreHash === this._dataHash) {
+    if (this._lastKnownStoreHash === this._dataHash) {
       return;
     }
-    if (!storePath) storePath = this._storePath;
 
     // Write data.
     const data = JSON.stringify({
@@ -81,7 +102,10 @@ export class StoreJson extends Store {
       data: this._data,
     });
     const encoder = new TextEncoder();
-    return Deno.writeFileSync(storePath, encoder.encode(data));
+    return Deno.writeFileSync(
+      this._storePath,
+      encoder.encode(data),
+    );
   }
 
   /**
@@ -89,8 +113,8 @@ export class StoreJson extends Store {
    *
    * @param storePath Custom path used by delete operation. Defaults to the default storage file path
    */
-  public deleteStore(storePath?: string): void {
-    if (!storePath) storePath = this._storePath;
+  public deleteStore(): void {
+    const storePath = this._storePath;
     if (!existsSync(storePath)) {
       throw new Error(`${storePath} not exists`);
     }

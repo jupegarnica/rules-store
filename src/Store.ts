@@ -139,7 +139,10 @@ export class Store {
    * @param values The values
    * @returns  The value pushed or and array with all the value pushed
    */
-  public push(path: string, ...values: Value[]): Value {
+  public push(
+    path: string,
+    ...values: Value[]
+  ): Value | Value[] {
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
@@ -154,11 +157,16 @@ export class Store {
   }
 
   /**
-   * find
+   * Find some children
+   *
+   * @param path The path to the target to perform the search
+   * @param finder If the finder returns a truthy value that key (or item in an array) will be returned
+   * (value: any, key: string) => any
+   * @returns  An array of pairs [key,value] found
    */
-  public find(path: string, finder: Finder): Value[] {
+  public find(path: string, finder: Finder): [string, Value][] {
     const target = this.get(path);
-    const results = [] as Value[];
+    const results = [] as [string, Value][];
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
         const value = target[key];
@@ -171,9 +179,17 @@ export class Store {
   }
 
   /**
-   * findOne
+   * Find one child
+   *
+   * @param path The path to the target to perform the search
+   * @param finder If the finder returns a truthy value that key (or item in an array) will be returned
+   * (value: any, key: string) => any
+   * @returns  A pair [key,value] returned
    */
-  public findOne(path: string, finder: Finder): Value {
+  public findOne(
+    path: string,
+    finder: Finder,
+  ): [string, Value] | void {
     const target = this.get(path);
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
@@ -186,9 +202,17 @@ export class Store {
   }
 
   /**
-   * findAndRemove
+   * Find some children and remove it
+   *
+   * @param path The path to the target to perform the search
+   * @param finder If the finder returns a truthy value that key (or item in an array) will be remove
+   * (value: any, key: string) => any
+   * @returns  An array of pairs [key,value] removed
    */
-  public findAndRemove(path: string, finder: Finder): Value[] {
+  public findAndRemove(
+    path: string,
+    finder: Finder,
+  ): [string, Value][] {
     const results = this.find(path, finder);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
@@ -200,26 +224,37 @@ export class Store {
   }
 
   /**
-   * findOneAndRemove
+   * Find one child and remove it
+   *
+   * @param path The path to the target to perform the search
+   * @param finder If the finder returns a truthy value that key (or item in an array) will be remove
+   * (value: any, key: string) => any
+   * @returns  A pair [key,value] removed
    */
-   public findOneAndRemove(path: string, finder: Finder): Value[] {
-    const results = this.findOne(path, finder);
-    const pathToRemove = [...getKeys(path), results[0]].join('.');
-    this.remove(pathToRemove);
+  public findOneAndRemove(
+    path: string,
+    finder: Finder,
+  ): [string, Value] | void {
+    const result = this.findOne(path, finder);
+    if (result) {
+      const pathToRemove = [...getKeys(path), result[0]].join(
+        '.',
+      );
+      this.remove(pathToRemove);
+    }
 
-
-    return results;
+    return result;
   }
   /**
    * Subscribe to changes in the path
    * It will run the callback only if the path value has changed
-
-    * @param path The path
+   *
+   * @param path The path
    * @param callback A function to be called when the value has changed and during subscription
    * @returns  The value
    */
 
-  public subscribe(path: string, callback: Subscriber) {
+  public subscribe(path: string, callback: Subscriber): Value {
     const value = this.get(path);
     this._subscriptions.push({
       callback,

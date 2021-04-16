@@ -1,5 +1,5 @@
-import { existsSync } from './deps.ts';
-import { Store } from './Store.ts';
+import { existsSync,resolve ,dirname,fromFileUrl} from './deps.ts';
+import { Store ,} from './Store.ts';
 
 import type { Value, Config, ValueOrFunction } from './types.ts';
 /**
@@ -22,9 +22,9 @@ export abstract class StoreFile extends Store {
   constructor(config?: Config) {
     super();
     this._autoSave = config?.autoSave ?? false;
-    this._storePath = config?.filename
-      ? config.filename
-      : `${new URL('.store.db', Deno.mainModule).pathname}`;
+    const filename = config?.filename || '.store.db';
+    const folder = config?.folder ||  fromFileUrl(dirname(Deno.mainModule)) ;
+    this._storePath = resolve(folder,filename);
     this.load();
   }
   /**

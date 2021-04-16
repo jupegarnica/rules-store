@@ -25,7 +25,34 @@ Deno.test("[StoreYaml] Write DB", async () => {
   await Deno.remove(db.storePath);
 });
 
-Deno.test("[StoreYaml] DB load / write / delete store", () => {
+Deno.test('[StoreYaml] load DB with filename', () => {
+  const db = new StoreYaml({
+    filename: './tests/test.json',
+    // folder: './tests',
+  });
+  console.log(db.storePath);
+
+  assertEquals(db.get('arr.0'), 1);
+  assertEquals(db.get('arr.1'), 2);
+  assertEquals(db.get('obj.a'), 1);
+
+  assertEquals(existsSync(db.storePath), true);
+});
+
+Deno.test('[StoreYaml] load DB with folder', () => {
+  const db = new StoreYaml({
+    filename: 'test.json',
+    folder: './tests',
+  });
+  console.log(db.storePath);
+
+  assertEquals(db.get('arr.0'), 1);
+  assertEquals(db.get('arr.1'), 2);
+  assertEquals(db.get('obj.a'), 1);
+
+  assertEquals(existsSync(db.storePath), true);
+});
+Deno.test("[StoreYaml] DB write and delete store", () => {
   const db = new StoreYaml({filename:testStorePath});
 
   db.set("number5", 5);

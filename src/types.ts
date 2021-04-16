@@ -11,14 +11,8 @@ export type Data = { [key: string]: Value };
 
 export type ValueOrFunction = Value | ((value: Value) => Value);
 
-export type StoreConfig = {
+export type Config = {
     autoSave?: boolean;
+    filename?: string;
+    folder?: string;
 }
-
-export type JsonConfig = StoreConfig & {
-  filename?: string;
-  folder?: string;
-
-}
-
-export type YamlConfig = JsonConfig

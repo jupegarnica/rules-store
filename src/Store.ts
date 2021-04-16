@@ -13,7 +13,6 @@ import type {
   Subscription,
   Value,
   ValueOrFunction,
-  StoreConfig,
 } from './types.ts';
 /**
  * A database in RAM without persistance.
@@ -34,7 +33,6 @@ export class Store {
    * Stores the last known hash from store file.
    */
   protected _lastKnownStoreHash: string = '';
-  protected _autoSave: boolean = false;
 
   protected _subscriptions: Subscription[] = [];
 
@@ -44,8 +42,7 @@ export class Store {
    *
    * @param storePath A custom path where to write data
    */
-  constructor(config?: StoreConfig) {
-    this._autoSave = config?.autoSave ?? false;
+  constructor() {
   }
   /**
    * Load stored data from disk into cache.

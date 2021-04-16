@@ -5,7 +5,7 @@ import {
 } from "https://deno.land/std@0.92.0/encoding/yaml.ts";
 import { Store } from "./Store.ts";
 
-import type { Value,YamlConfig } from "./types.ts";
+import type { Value,Config } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -15,14 +15,17 @@ export class StoreYaml extends Store {
    * The file path in which to store the data in.
    */
   private _storePath: string;
+  private _autoSave: boolean = false;
+
   /**
    * Create a new {Store} instance.
    * If no custom path is given, it defaults to mainModulePath/.store.yaml
    *
    * @param storePath A custom path where to write data
    */
-  constructor(config?: YamlConfig) {
-    super(config);
+  constructor(config?: Config) {
+    super();
+    this._autoSave = config?.autoSave ?? false;
     this._storePath = config?.filename
       ? config.filename
       : `${new URL(".store.yaml", Deno.mainModule).pathname}`;

@@ -198,6 +198,18 @@ export class Store {
 
     return results;
   }
+
+  /**
+   * findOneAndRemove
+   */
+   public findOneAndRemove(path: string, finder: Finder): Value[] {
+    const results = this.findOne(path, finder);
+    const pathToRemove = [...getKeys(path), results[0]].join('.');
+    this.remove(pathToRemove);
+
+
+    return results;
+  }
   /**
    * Subscribe to changes in the path
    * It will run the callback only if the path value has changed

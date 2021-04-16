@@ -1,7 +1,7 @@
-import { existsSync,resolve ,dirname,fromFileUrl} from './deps.ts';
-import { Store ,} from './Store.ts';
+import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
+import { Store } from "./Store.ts";
 
-import type { Value, Config, ValueOrFunction } from './types.ts';
+import type { Config, Value, ValueOrFunction } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -22,9 +22,9 @@ export abstract class StoreFile extends Store {
   constructor(config?: Config) {
     super();
     this._autoSave = config?.autoSave ?? false;
-    const filename = config?.filename || '.store.db';
-    const folder = config?.folder ||  fromFileUrl(dirname(Deno.mainModule)) ;
-    this._storePath = resolve(folder,filename);
+    const filename = config?.filename || ".store.db";
+    const folder = config?.folder || fromFileUrl(dirname(Deno.mainModule));
+    this._storePath = resolve(folder, filename);
     this.load();
   }
   /**
@@ -64,14 +64,14 @@ export abstract class StoreFile extends Store {
    * Won't update cache values if hash in store file matches current cache file.
    *
    */
-    abstract load(): void
+  abstract load(): void;
   /**
    * Writes cached data to disk.
    * Won't perform write if the last known hash from the store file
    * matches the current cache hash.
    *
    */
-   abstract write(): void
+  abstract write(): void;
 
   /**
    * Deletes a store file / directory.

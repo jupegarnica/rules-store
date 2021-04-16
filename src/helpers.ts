@@ -1,12 +1,12 @@
-import type { Data, Value } from './types.ts';
+import type { Data, Value } from "./types.ts";
 function isObject(obj: unknown): boolean {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 export function getKeys(path: string): string[] {
   // match "\" "/" o "."
   const keys = path.split(/[\\\\/\.]/).filter((key) => key);
   if (!path) {
-    throw new Error('Invalid path');
+    throw new Error("Invalid path");
   }
   return keys;
 }
@@ -23,15 +23,12 @@ export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {
     return obj;
   }
-  const initialShape = Array.isArray(obj) ? [] : {}
+  const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
   Object.keys(clone).forEach(
-    (key) =>
-      (clone[key] = isObject(obj[key])
-        ? deepClone(obj[key])
-        : obj[key]),
+    (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
   );
-  return clone
+  return clone;
 };
 
 export function isValidNumber(key: string): boolean {

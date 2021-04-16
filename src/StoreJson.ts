@@ -1,14 +1,11 @@
-import { existsSync } from './deps.ts';
+import { existsSync } from "./deps.ts";
 
-import { StoreFile } from './StoreFile.ts';
+import { StoreFile } from "./StoreFile.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
  */
 export class StoreJson extends StoreFile {
-
-
-
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.
@@ -20,9 +17,8 @@ export class StoreJson extends StoreFile {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    const decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder("utf-8");
     const decoded = JSON.parse(decoder.decode(data));
-
 
     // Store new data.
     this._data = decoded;
@@ -44,5 +40,4 @@ export class StoreJson extends StoreFile {
       encoder.encode(data),
     );
   }
-
 }

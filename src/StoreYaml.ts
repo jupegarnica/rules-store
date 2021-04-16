@@ -11,7 +11,6 @@ import { StoreFile } from "./StoreFile.ts";
  * For non persistance use Store
  */
 export class StoreYaml extends StoreFile {
-
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.
@@ -19,7 +18,7 @@ export class StoreYaml extends StoreFile {
    * @param storePath Custom file path used by read operation
    * @param force Ignore hash comparison and force read
    */
-   public load(): void {
+  public load(): void {
     const storePath = this._storePath;
     if (!existsSync(storePath)) return;
 
@@ -42,10 +41,8 @@ export class StoreYaml extends StoreFile {
    * @param force Ignore hashe comparison and force write
    */
   public write(): void {
-
-    const data = stringify( this._data);
+    const data = stringify(this._data);
     const encoder = new TextEncoder();
     return Deno.writeFileSync(this.storePath, encoder.encode(data));
   }
-
 }

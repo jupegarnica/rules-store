@@ -114,7 +114,28 @@ Deno.test("[Store] Deep set and get undefined", () => {
   assertEquals(B, undefined);
 });
 
-Deno.test("[Store] DB subscription on", () => {
+
+Deno.test("[Store] DB subscription with .subscribe", () => {
+  const db = new Store();
+
+  db.set("A", 0);
+  let called = 0;
+  const onChange = (data: unknown) => {
+    called++;
+    assertEquals(data, called);
+  };
+  const returned = db.subscribe("A", onChange);
+
+  assertEquals(returned, 0);
+  assertEquals(called, 0);
+
+  db.set("A", 1);
+  assertEquals(called, 1);
+
+  db.set("A", 2);
+  assertEquals(called, 2);
+});
+Deno.test("[Store] DB subscription with .on", () => {
   const db = new Store();
 
   db.set("A", 1);

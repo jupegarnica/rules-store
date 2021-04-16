@@ -4,22 +4,21 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from "./helpers.ts";
+} from './helpers.ts';
 
-import { equal } from "./deps.ts";
+import { equal } from './deps.ts';
 import type {
   Data,
   Subscriber,
   Subscription,
   Value,
   ValueOrFunction,
-} from "./types.ts";
+} from './types.ts';
 /**
  * A database in RAM without persistance.
  * For persistance use StoreJson
  */
 export class Store {
-
   /**
    * The actual data cache.
    */
@@ -28,12 +27,12 @@ export class Store {
   /**
    * The hashed value of currently cached data.
    */
-  protected _dataHash = "";
+  protected _dataHash = '';
 
   /**
    * Stores the last known hash from store file.
    */
-  protected _lastKnownStoreHash = "";
+  protected _lastKnownStoreHash = '';
 
   protected _subscriptions: Subscription[] = [];
 
@@ -41,8 +40,7 @@ export class Store {
    * Create a new {Store} instance without persistance.
    *
    */
-  constructor() {
-  }
+  constructor() {}
 
   protected _notify() {
     for (const subscription of this._subscriptions) {
@@ -93,7 +91,7 @@ export class Store {
     valueOrFunction: ValueOrFunction,
   ): Value {
     let newValue;
-    if (typeof valueOrFunction === "function") {
+    if (typeof valueOrFunction === 'function') {
       const oldValue = this._get(path);
       newValue = valueOrFunction(oldValue);
     } else {
@@ -121,7 +119,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this._get(keys.join("."));
+      const parentValue = this._get(keys.join('.'));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -144,7 +142,7 @@ export class Store {
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error("is not an Array");
+      throw new Error('is not an Array');
     }
 
     oldValue.push(...cloned);
@@ -154,24 +152,36 @@ export class Store {
     return cloned.length > 1 ? cloned : cloned[0];
   }
 
-
-
-  /**
+    /**
    * Subscribe to changes in the path
-   * It will run the callback if the path value has changed
-   * Also runs the callback during subscription for the first time
-   *
-   * @param path The path
+   * It will run the callback only if the path value has changed
+
+    * @param path The path
    * @param callback A function to be called when the value has changed and during subscription
-   * @returns  The value changed
+   * @returns  The value
    */
-  public on(path: string, callback: Subscriber): Value {
+
+  public subscribe(path: string, callback: Subscriber) {
     const value = this.get(path);
     this._subscriptions.push({
       callback,
       value: value,
       path,
     });
+    return value
+  }
+
+  /**
+   * Subscribe to changes in the path
+   * It will run the callback if the path value has changed
+   * Also runs the callback on the first time
+   *
+   * @param path The path
+   * @param callback A function to be called when the value has changed and during subscription
+   * @returns  The value
+   */
+  public on(path: string, callback: Subscriber): Value {
+    const value = this.subscribe(path, callback);
     callback(value);
     return value;
   }
@@ -195,7 +205,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error("no subscription found");
+      throw new Error('no subscription found');
     }
   }
 }

@@ -107,3 +107,14 @@ Deno.test("[StoreJson] autoSave config on remove", () => {
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
+
+Deno.test("[StoreJson] set and get null", () => {
+  const db = new StoreJson();
+  db.set("a.b.c", null);
+  assertEquals(db.get("a.b.c"), null);
+  db.write();
+  db.load();
+  assertEquals(db.get("a.b.c"), null);
+  db.deleteStore();
+
+});

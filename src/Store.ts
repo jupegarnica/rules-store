@@ -19,6 +19,7 @@ import type {
  * For persistance use StoreJson
  */
 export class Store {
+
   /**
    * The actual data cache.
    */
@@ -37,20 +38,11 @@ export class Store {
   protected _subscriptions: Subscription[] = [];
 
   /**
-   * Create a new {Store} instance.
-   * If no custom path is given, it defaults to mainModulePath/.store.json
+   * Create a new {Store} instance without persistance.
    *
-   * @param storePath A custom path where to write data
    */
   constructor() {
   }
-  /**
-   * Load stored data from disk into cache.
-   * Won't update cache values if hash in store file matches current cache file.
-   *
-   * @param storePath Custom file path used by read operation
-   * @param force Ignore hash comparison and force read
-   */
 
   protected _notify() {
     for (const subscription of this._subscriptions) {
@@ -67,13 +59,12 @@ export class Store {
   }
   /**
    * Retrieves a value from database by specified path.
-   * The path can be an string delimited by . / or \
+   *
+   * @param path The path can be an string delimited by . / or \
    * As:
    * 'a.b.c'
    * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
    * '\\a\\b\\c'  escaped \
-   *
-   * @param path The path
    * @returns The cloned value found or undefined if not found
    */
 
@@ -85,13 +76,13 @@ export class Store {
 
   /**
    * Sets a value in the database by the specified path.
-   * The path can be an string delimited by . / or \
+   *
+   * @param path  The path can be an string delimited by . / or \
    * As:
    * 'a.b.c'
    * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
    * '\\a\\b\\c'  escaped \
    *
-   * @param path The path
    * @param valueOrFunction The new value or a function to run with the oldValue
    * @returns  The cloned value added
    *
@@ -146,8 +137,8 @@ export class Store {
    * It will throw an error if the path is not pointing to an array
    *
    * @param path The path
-   * @param value The value
-   * @returns  The value pushed
+   * @param values The values
+   * @returns  The value pushed or and array with all the value pushed
    */
   public push(path: string, ...values: Value[]): Value {
     const cloned = deepClone(values);
@@ -162,6 +153,9 @@ export class Store {
 
     return cloned.length > 1 ? cloned : cloned[0];
   }
+
+
+
   /**
    * Subscribe to changes in the path
    * It will run the callback if the path value has changed

@@ -300,6 +300,7 @@ Deno.test("[Store] find in a object", () => {
   db.set("obj", { a: 1, b: 2, c: 3 });
   const results = db.find(
     "obj",
+    // deno-lint-ignore no-explicit-any
     (value: any) => value % 2 === 0,
   );
 
@@ -316,6 +317,7 @@ Deno.test("[Store] find in a array", () => {
   db.set("arr", [1, 2, 3]);
   const results = db.find(
     "arr",
+    // deno-lint-ignore no-explicit-any
     (value: any) => value % 2 !== 0,
   );
   const [[key, value]] = results;
@@ -333,6 +335,7 @@ Deno.test("[Store] find in a array", () => {
 Deno.test("[Store] find without result", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);
+  // deno-lint-ignore no-explicit-any
   const result = db.find("arr", (value: any) => value === 0);
   assertEquals(result, []);
 });
@@ -381,6 +384,7 @@ Deno.test("[Store] findAndRemove by key in obj", () => {
   db.set("obj", { a: 1, b: 2, c: 3 });
   const removed = db.findAndRemove(
     "obj",
+    // deno-lint-ignore no-explicit-any
     (value: any) => value > 1,
   );
   assertEquals(removed, [["b", 2], ["c", 3]]);
@@ -392,6 +396,7 @@ Deno.test("[Store] findAndRemove by value in array", () => {
   db.set("arr", [1, 2, 3]);
   const removed = db.findAndRemove(
     "arr",
+    // deno-lint-ignore no-explicit-any
     (value: any) => value > 1,
   );
 

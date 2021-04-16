@@ -296,3 +296,18 @@ Deno.test("[Store] Set with a function", () => {
 
   assertEquals(B, 2);
 });
+
+
+Deno.test("[Store] find in a object", () => {
+  const db = new Store();
+  db.set("obj", { a: 1, b: 2, c: 3 });
+  const odd = db.find("obj", (value) => value % 2 === 0);
+  assertEquals(odd, [2]);
+});
+
+Deno.test("[Store] find in a array", () => {
+  const db = new Store();
+  db.set("arr", [1,2,3]);
+  const odd = db.find("arr", (value) => value % 2 === 0);
+  assertEquals(odd, [2]);
+});

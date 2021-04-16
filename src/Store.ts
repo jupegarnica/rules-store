@@ -4,16 +4,17 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from "./helpers.ts";
+} from './helpers.ts';
 
-import { equal } from "./deps.ts";
+import { equal } from './deps.ts';
 import type {
   Data,
   Subscriber,
   Subscription,
   Value,
   ValueOrFunction,
-} from "./types.ts";
+  Finder,
+} from './types.ts';
 /**
  * A database in RAM without persistance.
  * For persistance use StoreJson
@@ -27,12 +28,12 @@ export class Store {
   /**
    * The hashed value of currently cached data.
    */
-  protected _dataHash = "";
+  protected _dataHash = '';
 
   /**
    * Stores the last known hash from store file.
    */
-  protected _lastKnownStoreHash = "";
+  protected _lastKnownStoreHash = '';
 
   protected _subscriptions: Subscription[] = [];
 
@@ -91,7 +92,7 @@ export class Store {
     valueOrFunction: ValueOrFunction,
   ): Value {
     let newValue;
-    if (typeof valueOrFunction === "function") {
+    if (typeof valueOrFunction === 'function') {
       const oldValue = this._get(path);
       newValue = valueOrFunction(oldValue);
     } else {
@@ -119,7 +120,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this._get(keys.join("."));
+      const parentValue = this._get(keys.join('.'));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -142,7 +143,7 @@ export class Store {
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error("is not an Array");
+      throw new Error('is not an Array');
     }
 
     oldValue.push(...cloned);
@@ -152,6 +153,23 @@ export class Store {
     return cloned.length > 1 ? cloned : cloned[0];
   }
 
+  /**
+   * find
+   */
+  public find(path: string, finder: Finder): Value[] {
+    const target = this.get(path);
+    const results = [] as Value[];
+    for (const key in target) {
+      if (Object.prototype.hasOwnProperty.call(target, key)) {
+        const value = target[key];
+        const found = finder(value, key);
+        if (found) {
+          results.push(value);
+        }
+      }
+    }
+    return results;
+  }
   /**
    * Subscribe to changes in the path
    * It will run the callback only if the path value has changed
@@ -205,7 +223,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error("no subscription found");
+      throw new Error('no subscription found');
     }
   }
 }

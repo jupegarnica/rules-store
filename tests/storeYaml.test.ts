@@ -31,7 +31,7 @@ Deno.test("[StoreYaml] DB load / write / delete store", () => {
   db.set("number5", 5);
   db.set("number10", 10);
 
-  db.write(testStorePath);
+  db.write();
 
   const db2 = new StoreYaml({filename:testStorePath});
 

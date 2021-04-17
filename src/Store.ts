@@ -3,7 +3,7 @@ import {
   deepGet,
   deepSet,
   getKeys,
-  addChildToPath,
+  addChildToKeys,
   isObject,
   isValidNumber,
 } from './helpers.ts';
@@ -18,6 +18,8 @@ import type {
   ValueOrFunction,
   BaseConfig,
   Rules,
+  Rule,
+  Params,
 } from './types.ts';
 
 const defaultRules = {};
@@ -46,8 +48,8 @@ export class Store {
     this._rules = config?.rules ?? defaultRules;
   }
 
-  private _get(path: string): Value {
-    return deepGet(this._data, path);
+  private _get(keys: string[]): Value {
+    return deepGet(this._data, keys);
   }
   /**
    * Retrieves a value from database by specified path.
@@ -61,10 +63,9 @@ export class Store {
    */
 
   public get(path: string): Value {
-    this._checkReadRules(path);
-    const v = this._get(path);
-    const c = deepClone(v);
-    return c;
+    const keys = getKeys(path);
+    this._checkReadRules(keys);
+    return deepClone(this._get(keys));
   }
 
   /**
@@ -85,20 +86,21 @@ export class Store {
     path: string,
     valueOrFunction: ValueOrFunction,
   ): Value {
-    if (getKeys(path).length === 0) {
+    const keys = getKeys(path);
+    if (keys.length === 0) {
       throw new Error('Root path cannot be set');
     }
-    this._checkWriteRules(path);
+    this._checkWriteRules(keys);
 
     let newValue;
     if (typeof valueOrFunction === 'function') {
-      const oldValue = this._get(path);
+      const oldValue = this._get(keys);
       newValue = valueOrFunction(oldValue);
     } else {
       newValue = valueOrFunction;
     }
     newValue = deepClone(newValue);
-    deepSet(this._data, path, newValue);
+    deepSet(this._data, keys, newValue);
     this._notify();
     return newValue;
   }
@@ -112,20 +114,20 @@ export class Store {
    *
    */
   public remove(path: string): Value {
-    this._checkWriteRules(path);
-    this._checkReadRules(path);
-    const oldValue = this._get(path);
     const keys = getKeys(path);
+    this._checkWriteRules(keys);
+    this._checkReadRules(keys);
+    const oldValue = this._get(keys);
     const lastKey = keys[keys.length - 1];
 
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this._get(keys.join('.'));
+      const parentValue = this._get(keys);
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
-      deepSet(this._data, path, undefined);
+      deepSet(this._data, keys, undefined);
     }
 
     this._notify();
@@ -144,9 +146,10 @@ export class Store {
     path: string,
     ...values: Value[]
   ): Value | Value[] {
-    this._checkWriteRules(path);
+    const keys = getKeys(path);
+    this._checkWriteRules(keys);
     const cloned = deepClone(values);
-    const oldValue = this._get(path);
+    const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
       throw new Error('is not an Array');
     }
@@ -167,7 +170,8 @@ export class Store {
    * @returns  An array of pairs [key,value] found
    */
   public find(path: string, finder: Finder): [string, Value][] {
-    let target = this._get(path);
+    const keys = getKeys(path);
+    let target = this._get(keys);
     if (!isObject(target)) {
       throw new Error('Target not object or array');
     }
@@ -175,7 +179,7 @@ export class Store {
     const results = [] as [string, Value][];
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkReadRules(addChildToPath(path, key));
+        this._checkReadRules(addChildToKeys(keys, key));
         const value = target[key];
         if (finder(value, key)) {
           results.push([key, value]);
@@ -202,10 +206,10 @@ export class Store {
       throw new Error('Target not object or array');
     }
     target = deepClone(target);
-
+    const keys = getKeys(path);
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkReadRules(addChildToPath(path, key));
+        this._checkReadRules(addChildToKeys(keys, key));
         const value = target[key];
         if (finder(value, key)) {
           return [key, value];
@@ -330,29 +334,40 @@ export class Store {
 
   // RULES
   ////////
-  private _getRule(path: string): Function | void {
-    return deepGet(this._rules, path);
+  private _getRule(
+    keys: string[],
+  ): any {
+    const params: Params = {};
+    const rule = deepGet(this._rules, keys);
+    console.log(keys);
+
+    // let worker = this._rules;
+    // for (const key of keys) {
+    //   if (!key) break;
+    //   if (!worker) break;
+
+    //   worker = worker[key];
+    //   index++;
+    // }
+
+    return { rule, params };
   }
 
   private _checkRule(
     ruleType: '_read' | '_write',
-    path: string,
+    keys: string[],
   ) {
-    const keys = getKeys(path);
     // check rules from bottom to top
     for (let index = keys.length; index >= 0; index--) {
       const currentPath = keys.slice(0, index);
 
-      const rulePath = addChildToPath(
-        currentPath.join('.'),
-        ruleType,
-      );
-      const rule = this._getRule(rulePath);
+      const rulePath = addChildToKeys(currentPath, ruleType);
+      const { rule, params } = this._getRule(rulePath);
 
       if (typeof rule === 'function') {
         try {
-          const data = this._get(currentPath.join('.'));
-          const allowed = rule({ data });
+          const data = this._get(currentPath);
+          const allowed = rule({ data, params });
 
           if (!allowed) {
             throw new Error(
@@ -369,11 +384,11 @@ export class Store {
       }
     }
   }
-  protected _checkReadRules(path: string): void {
-    this._checkRule('_read', path);
+  protected _checkReadRules(keys: string[]): void {
+    this._checkRule('_read', keys);
   }
 
-  protected _checkWriteRules(path: string): void {
-    this._checkRule('_write', path);
+  protected _checkWriteRules(keys: string[]): void {
+    this._checkRule('_write', keys);
   }
 }

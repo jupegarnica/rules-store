@@ -22,9 +22,10 @@ export type Subscription = {
   path: string;
 };
 
+export type Params = { [key: string]: string };
 export type RuleContext = {
   data: Value;
-  params: { [key: string]: string };
+  params: Params;
 };
 
 // deno-lint-ignore no-explicit-any

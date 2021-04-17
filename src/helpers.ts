@@ -10,11 +10,8 @@ export function getKeys(path: string): string[] {
   return keys;
 }
 
-export function addChildToPath(path: string, key:string): string {
-  // match "\" "/" o "."
-  const keys = getKeys(path);
-
-  return [...keys,key].join('.');
+export function addChildToKeys(keys: string[], key:string): string[] {
+  return [...keys,key];
 }
 export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {
@@ -35,8 +32,7 @@ export function isValidNumber(key: string): boolean {
   );
 }
 
-export const deepGet = (object: Data, path: string): Value => {
-  const keys = getKeys(path);
+export const deepGet = (object: Data, keys: string[]): Value => {
 
   return keys.reduce(
     (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
@@ -46,10 +42,9 @@ export const deepGet = (object: Data, path: string): Value => {
 
 export const deepSet = (
   obj: Data,
-  path: string,
+  keys: string[],
   value: Value,
 ): Value => {
-  const keys = getKeys(path);
   let worker = obj;
   const lastIndex = keys.length - 1;
   let index = 0;

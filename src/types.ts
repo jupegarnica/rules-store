@@ -1,5 +1,14 @@
 // deno-lint-ignore no-explicit-any
 export type Value = any;
+// TODO
+// export type Value =
+//   | string
+//   | number
+//   | null
+//   | undefined
+//   | { [key: string]: Value }
+//   | Value[];
+
 export type Data = { [key: string]: Value };
 
 export type ValueOrFunction = Value | ((value: Value) => Value);

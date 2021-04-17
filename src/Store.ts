@@ -6,6 +6,7 @@ import {
   addChildToKeys,
   isObject,
   isValidNumber,
+findParam,
 } from './helpers.ts';
 
 import { equal } from './deps.ts';
@@ -338,19 +339,17 @@ export class Store {
     keys: string[],
   ): any {
     const params: Params = {};
-    const rule = deepGet(this._rules, keys);
-    console.log(keys);
+    // const rule = deepGet(this._rules, keys);
+    let worker = this._rules as any;
 
-    // let worker = this._rules;
-    // for (const key of keys) {
-    //   if (!key) break;
-    //   if (!worker) break;
+    for (const key of keys) {
+      const params = findParam(worker);
+      let child = worker[key];
 
-    //   worker = worker[key];
-    //   index++;
-    // }
 
-    return { rule, params };
+    }
+
+    // return { rule, params };
   }
 
   private _checkRule(

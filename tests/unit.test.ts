@@ -2,103 +2,107 @@ import {
   deepClone,
   deepGet,
   deepSet,
+  findParam,
   getKeys,
   isValidNumber,
-} from "../src/helpers.ts";
-import { assertEquals } from "./test_deps.ts";
+} from '../src/helpers.ts';
+import { assertEquals } from './test_deps.ts';
 
-Deno.test("[Helpers] deepSet", () => {
+Deno.test('[Helpers] deepSet', () => {
   const data = {};
 
-  deepSet(data, "a".split('.'), true);
+  deepSet(data, 'a'.split('.'), true);
   assertEquals(data, { a: true });
 
-  deepSet(data, "a.b".split('.'), true);
+  deepSet(data, 'a.b'.split('.'), true);
   assertEquals(data, { a: { b: true } });
 
-  deepSet(data, "x.y.z".split('.'), true);
+  deepSet(data, 'x.y.z'.split('.'), true);
   assertEquals(data, { a: { b: true }, x: { y: { z: true } } });
 });
 
-Deno.test("[Helpers] deepSet array", () => {
+Deno.test('[Helpers] deepSet array', () => {
   // deno-lint-ignore no-explicit-any
   const data = {} as any;
 
   const arr = [];
   arr[1] = true;
 
-  deepSet(data, "a.1".split('.'), true);
+  deepSet(data, 'a.1'.split('.'), true);
   assertEquals(Array.isArray(data.a), true);
 
   assertEquals(data, { a: arr });
 
-  deepSet(data, "a.0".split('.'), true);
+  deepSet(data, 'a.0'.split('.'), true);
   assertEquals(data, { a: [true, true] });
 
-  assertEquals(deepSet([], "1".split('.'), true), arr);
+  assertEquals(deepSet([], '1'.split('.'), true), arr);
 
-  deepSet(data, "b.0.a".split('.'), 1);
+  deepSet(data, 'b.0.a'.split('.'), 1);
   assertEquals(Array.isArray(data.b), true);
   assertEquals(data.b, [{ a: 1 }]);
 });
 
-Deno.test("[Helpers] deepGet", () => {
+Deno.test('[Helpers] deepGet', () => {
   const data = { a: { b: true }, x: { y: { z: true } } };
 
   assertEquals(deepGet(data, []), data);
-  const a = deepGet(data, ["a"]);
+  const a = deepGet(data, ['a']);
   assertEquals(a, { b: true });
 
-  const undef = deepGet(data, ["c"]);
+  const undef = deepGet(data, ['c']);
   assertEquals(undef, undefined);
 
-  const undef2 = deepGet(data, "c.d.e".split('.'));
+  const undef2 = deepGet(data, 'c.d.e'.split('.'));
   assertEquals(undef2, undefined);
 });
 
-Deno.test("[Helpers] deepGet array", () => {
+Deno.test('[Helpers] deepGet array', () => {
   const array = [{ a: true }, { y: { z: true } }];
 
-  const a = deepGet(array, "0.a".split('.'));
+  const a = deepGet(array, '0.a'.split('.'));
   assertEquals(a, true);
 
   const obj = { a: [{ b: true }, null] };
 
-  const b = deepGet(obj, "a.0.b".split('.'));
+  const b = deepGet(obj, 'a.0.b'.split('.'));
   assertEquals(b, true);
-  const _1 = deepGet(obj, "a.1".split('.'));
+  const _1 = deepGet(obj, 'a.1'.split('.'));
   assertEquals(_1, null);
-  assertEquals(deepGet(obj, "a".split('.')), [{ b: true }, null]);
+  assertEquals(deepGet(obj, 'a'.split('.')), [
+    { b: true },
+    null,
+  ]);
 });
 
-Deno.test("[Helpers] getKeys", () => {
-  assertEquals(getKeys("x.y.z"), ["x", "y", "z"]);
-  assertEquals(getKeys("x/y/z"), ["x", "y", "z"]);
-  assertEquals(getKeys("/x/y/z"), ["x", "y", "z"]);
-  assertEquals(getKeys("x/y/z/"), ["x", "y", "z"]);
-  assertEquals(getKeys("/x/y/z/"), ["x", "y", "z"]);
-  assertEquals(getKeys("\\x\\y\\z\\"), ["x", "y", "z"]);
-  assertEquals(getKeys("\\x.y/z\\"), ["x", "y", "z"]);
+Deno.test('[Helpers] getKeys', () => {
+  assertEquals(getKeys('x.y.z'), ['x', 'y', 'z']);
+  assertEquals(getKeys('x/y/z'), ['x', 'y', 'z']);
+  assertEquals(getKeys('/x/y/z'), ['x', 'y', 'z']);
+  assertEquals(getKeys('x/y/z/'), ['x', 'y', 'z']);
+  assertEquals(getKeys('/x/y/z/'), ['x', 'y', 'z']);
+  assertEquals(getKeys('\\x\\y\\z\\'), ['x', 'y', 'z']);
+  assertEquals(getKeys('\\x.y/z\\'), ['x', 'y', 'z']);
 });
 
-Deno.test("[Helpers] isValidNumber", () => {
-  assertEquals(isValidNumber("0"), true);
-  assertEquals(isValidNumber("3"), true);
-  assertEquals(isValidNumber("3e3"), true);
+Deno.test('[Helpers] isValidNumber', () => {
+  assertEquals(isValidNumber('0'), true);
+  assertEquals(isValidNumber('3'), true);
+  assertEquals(isValidNumber('3e3'), true);
 
-  assertEquals(isValidNumber("a3"), false);
-  assertEquals(isValidNumber("3a3"), false);
-  assertEquals(isValidNumber("-3"), false);
-  assertEquals(isValidNumber("z"), false);
-  assertEquals(isValidNumber("z"), false);
+  assertEquals(isValidNumber('a3'), false);
+  assertEquals(isValidNumber('3a3'), false);
+  assertEquals(isValidNumber('-3'), false);
+  assertEquals(isValidNumber('z'), false);
+  assertEquals(isValidNumber('z'), false);
   assertEquals(
     isValidNumber(`${Number.MAX_SAFE_INTEGER + 100}`),
     false,
   );
 });
 
-Deno.test("[Helpers] deepClone", () => {
-  const a = { foo: "bar", obj: { a: [], b: 2 } };
+Deno.test('[Helpers] deepClone', () => {
+  const a = { foo: 'bar', obj: { a: [], b: 2 } };
   const b = deepClone(a);
   assertEquals(a, b);
   assertEquals(a !== b, true);
@@ -114,5 +118,20 @@ Deno.test("[Helpers] deepClone", () => {
   assertEquals(c[0].a === d[0].a, false);
   assertEquals(deepClone(undefined), undefined);
   assertEquals(deepClone(null), null);
-  assertEquals(deepClone("a"), "a");
+  assertEquals(deepClone('a'), 'a');
+});
+
+Deno.test('[Helpers] findParam', () => {
+  const obj = {
+    $: false,
+    x: false,
+    x$y: false,
+    z$: false,
+    $a: true,
+    $b: true,
+    $c: true,
+  };
+  const cloned = deepClone(obj);
+  assertEquals(cloned, obj);
+  assertEquals(findParam(obj), '$a');
 });

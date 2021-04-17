@@ -1,7 +1,7 @@
-import type { Data, Value } from "./types.ts";
+import type { Data, Value } from './types.ts';
 
 export function isObject(obj: unknown): boolean {
-  return typeof obj === "object" && obj !== null;
+  return typeof obj === 'object' && obj !== null;
 }
 export function getKeys(path: string): string[] {
   // match "\" "/" o "."
@@ -10,8 +10,21 @@ export function getKeys(path: string): string[] {
   return keys;
 }
 
-export function addChildToKeys(keys: string[], key:string): string[] {
-  return [...keys,key];
+const paramRegex = /^\$.+/;
+export function findParam(
+  // deno-lint-ignore no-explicit-any
+  obj: Object | Array<any>,
+): string | void {
+  for (const key in obj) {
+    if (key.match(paramRegex)) return key;
+  }
+}
+
+export function addChildToKeys(
+  keys: string[],
+  key: string,
+): string[] {
+  return [...keys, key];
 }
 export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {
@@ -20,7 +33,10 @@ export const deepClone = (obj: Value) => {
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
   Object.keys(clone).forEach(
-    (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
+    (key) =>
+      (clone[key] = isObject(obj[key])
+        ? deepClone(obj[key])
+        : obj[key]),
   );
   return clone;
 };
@@ -33,7 +49,6 @@ export function isValidNumber(key: string): boolean {
 }
 
 export const deepGet = (object: Data, keys: string[]): Value => {
-
   return keys.reduce(
     (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
     object,

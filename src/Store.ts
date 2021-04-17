@@ -1,27 +1,25 @@
 import {
+  addChildToKeys,
   deepClone,
   deepGet,
   deepSet,
+  findRuleAndParams,
   getKeys,
-  addChildToKeys,
   isObject,
   isValidNumber,
-  findRuleAndParams,
-} from './helpers.ts';
+} from "./helpers.ts";
 
-import { equal } from './deps.ts';
+import { equal } from "./deps.ts";
 import type {
+  BaseConfig,
   Data,
   Finder,
+  Rules,
   Subscriber,
   Subscription,
   Value,
   ValueOrFunction,
-  BaseConfig,
-  Rules,
-  Rule,
-  Params,
-} from './types.ts';
+} from "./types.ts";
 
 const defaultRules = {};
 
@@ -89,12 +87,12 @@ export class Store {
   ): Value {
     const keys = getKeys(path);
     if (keys.length === 0) {
-      throw new Error('Root path cannot be set');
+      throw new Error("Root path cannot be set");
     }
     this._checkWriteRules(keys);
 
     let newValue;
-    if (typeof valueOrFunction === 'function') {
+    if (typeof valueOrFunction === "function") {
       const oldValue = this._get(keys);
       newValue = valueOrFunction(oldValue);
     } else {
@@ -152,7 +150,7 @@ export class Store {
     const cloned = deepClone(values);
     const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
-      throw new Error('is not an Array');
+      throw new Error("is not an Array");
     }
 
     oldValue.push(...cloned);
@@ -174,7 +172,7 @@ export class Store {
     const keys = getKeys(path);
     let target = this._get(keys);
     if (!isObject(target)) {
-      throw new Error('Target not object or array');
+      throw new Error("Target not object or array");
     }
     target = deepClone(target);
     const results = [] as [string, Value][];
@@ -204,7 +202,7 @@ export class Store {
   ): [string, Value] | void {
     let target = this.get(path);
     if (!isObject(target)) {
-      throw new Error('Target not object or array');
+      throw new Error("Target not object or array");
     }
     target = deepClone(target);
     const keys = getKeys(path);
@@ -234,7 +232,7 @@ export class Store {
     const results = this.find(path, finder);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
-      const pathToRemove = [...getKeys(path), key].join('.');
+      const pathToRemove = [...getKeys(path), key].join(".");
       this.remove(pathToRemove);
     }
 
@@ -256,7 +254,7 @@ export class Store {
     const result = this.findOne(path, finder);
     if (result) {
       const pathToRemove = [...getKeys(path), result[0]].join(
-        '.',
+        ".",
       );
       this.remove(pathToRemove);
     }
@@ -329,7 +327,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error('no subscription found');
+      throw new Error("no subscription found");
     }
   }
 
@@ -337,7 +335,7 @@ export class Store {
   ////////
 
   private _checkRule(
-    ruleType: '_read' | '_write',
+    ruleType: "_read" | "_write",
     keys: string[],
   ) {
     // check rules from bottom to top
@@ -345,20 +343,22 @@ export class Store {
       const currentPath = keys.slice(0, index);
 
       const rulePath = addChildToKeys(currentPath, ruleType);
-      const ruleAndParams = findRuleAndParams(rulePath,ruleType, this._rules);
+      const ruleAndParams = findRuleAndParams(rulePath, ruleType, this._rules);
       const rule = ruleAndParams[ruleType];
-      const params = ruleAndParams.params
-      if (typeof rule === 'function') {
+      const params = ruleAndParams.params;
+      if (typeof rule === "function") {
         try {
           const data = this._get(currentPath);
           const allowed = rule({ data, params });
 
           if (!allowed) {
             throw new Error(
-              `${ruleType.replace(
-                '_',
-                '',
-              )} disallowed at path /${currentPath.join('/')}`,
+              `${
+                ruleType.replace(
+                  "_",
+                  "",
+                )
+              } disallowed at path /${currentPath.join("/")}`,
             );
           }
           return;
@@ -369,10 +369,10 @@ export class Store {
     }
   }
   protected _checkReadRules(keys: string[]): void {
-    this._checkRule('_read', keys);
+    this._checkRule("_read", keys);
   }
 
   protected _checkWriteRules(keys: string[]): void {
-    this._checkRule('_write', keys);
+    this._checkRule("_write", keys);
   }
 }

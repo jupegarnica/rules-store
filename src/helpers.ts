@@ -1,13 +1,7 @@
-import type {
-  Data,
-  Value,
-  Rules,
-  Params,
-  Rule,
-} from './types.ts';
+import type { Data, ObjectKind, Params, Rule, Rules, Value } from "./types.ts";
 
 export function isObject(obj: unknown): boolean {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 export function getKeys(path: string): string[] {
   // match "\" "/" o "."
@@ -17,9 +11,9 @@ export function getKeys(path: string): string[] {
 }
 
 const paramRegex = /^\$.+/;
+
 export function findParam(
-  // deno-lint-ignore no-explicit-any
-  obj: Object | Array<any>,
+  obj: ObjectKind,
 ): string | void {
   for (const key in obj) {
     if (key.match(paramRegex)) return key;
@@ -39,10 +33,7 @@ export const deepClone = (obj: Value) => {
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
   Object.keys(clone).forEach(
-    (key) =>
-      (clone[key] = isObject(obj[key])
-        ? deepClone(obj[key])
-        : obj[key]),
+    (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
   );
   return clone;
 };
@@ -91,10 +82,11 @@ export function findRuleAndParams(
   keys: string[],
   ruleType: string,
   rules: Rules,
-): {params: Params} & { [rule: string]: (Rule  | undefined) } {
-
+): { params: Params } & { [rule: string]: (Rule | undefined) } {
   const params: Params = {};
+  // deno-lint-ignore no-explicit-any
   let worker = rules as any;
+  // deno-lint-ignore no-explicit-any
   let rule: Rule | any;
 
   for (const key of keys) {
@@ -108,7 +100,7 @@ export function findRuleAndParams(
       if (maybeRule) rule = maybeRule;
     } else {
       if (maybeParam) {
-        params[maybeParam.replace('$', '')] = key;
+        params[maybeParam.replace("$", "")] = key;
         worker = worker[maybeParam];
       } else {
         break;

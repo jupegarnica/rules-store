@@ -9,6 +9,8 @@ export type Value = any;
 //   | { [key: string]: Value }
 //   | Value[];
 
+// deno-lint-ignore no-explicit-any
+export type ObjectKind = { [key: string]: any } | any[];
 export type Data = { [key: string]: Value };
 
 export type ValueOrFunction = Value | ((value: Value) => Value);
@@ -30,13 +32,13 @@ export type RuleContext = {
 };
 
 // deno-lint-ignore no-explicit-any
-export type Rule =  (context: RuleContext) => any;
+export type Rule = (context: RuleContext) => any;
 
 export type Rules = {
-  '.read'?: Rule;
-  '.write'?: Rule;
-  '.validate'?: Rule;
-  '.transform'?: Rule;
+  ".read"?: Rule;
+  ".write"?: Rule;
+  ".validate"?: Rule;
+  ".transform"?: Rule;
   [key: string]: Rules | Rule | undefined;
 };
 

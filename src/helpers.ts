@@ -1,4 +1,10 @@
-import type { Data, Value } from './types.ts';
+import type {
+  Data,
+  Value,
+  Rules,
+  Params,
+  Rule,
+} from './types.ts';
 
 export function isObject(obj: unknown): boolean {
   return typeof obj === 'object' && obj !== null;
@@ -80,3 +86,34 @@ export const deepSet = (
 
   return obj;
 };
+
+export function findRuleAndParams(
+  keys: string[],
+  ruleType: string,
+  rules: Rules,
+): {params: Params} & { [rule: string]: (Rule  | undefined) } {
+
+  const params: Params = {};
+  let worker = rules as any;
+  let rule: Rule | any;
+
+  for (const key of keys) {
+    const child = worker[key];
+    const maybeParam = findParam(worker);
+    let maybeRule = worker[ruleType];
+    if (maybeRule) rule = maybeRule;
+    if (isObject(child)) {
+      worker = child;
+      maybeRule = worker[ruleType];
+      if (maybeRule) rule = maybeRule;
+    } else {
+      if (maybeParam) {
+        params[maybeParam.replace('$', '')] = key;
+        worker = worker[maybeParam];
+      } else {
+        break;
+      }
+    }
+  }
+  return { params, [ruleType]: rule };
+}

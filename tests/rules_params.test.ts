@@ -1,52 +1,28 @@
-import { findParam, isObject } from '../src/helpers.ts';
+import { findRuleAndParams } from '../src/helpers.ts';
 import { Store } from '../src/Store.ts';
 import { RuleContext } from '../src/types.ts';
 import { assertEquals } from './test_deps.ts';
 
-function findRuleAndParams(keys: string[], ruleType: string, rules: any) {
-  const params: any = {};
-  let worker = rules as any;
-  let rule: any;
-
-  for (const key of keys) {
-    const child = worker[key];
-    const maybeParam = findParam(worker);
-    let maybeRule = worker[ruleType];
-    if (maybeRule) rule = maybeRule;
-    if (isObject(child)) {
-      worker = child;
-      maybeRule = worker[ruleType];
-      if (maybeRule) rule = maybeRule;
-    } else {
-      if (maybeParam) {
-        params[maybeParam.replace('$', '')] = key;
-        worker = worker[maybeParam];
-      } else {
-        break;
-      }
-    }
-  }
-  return { params, [ruleType]: rule };
-}
+const context = {data:'bar', params: {}}
 
 Deno.test('[Rules params] get', () => {
   let calls = 0;
+
   const rules = {
     people: {
       $name: {
         _read: (context: RuleContext) => {
           calls++;
           assertEquals(context.params.name, 'garn');
+          return true;
         },
       },
     },
   };
   const db = new Store({ rules });
   db.set('people', { garn: { age: 1 }, pepe: { age: 2 } });
-
   assertEquals(db.get('people.garn.age'), 1);
   assertEquals(calls, 1);
-  // throw new Error("ups");
 });
 
 Deno.test('[Rules params] findRuleAndParams basic', () => {
@@ -63,10 +39,9 @@ Deno.test('[Rules params] findRuleAndParams basic', () => {
     rules,
   );
 
-  console.log({ found });
 
   assertEquals(found.params.name, 'garn');
-  assertEquals(found._read(), true);
+  assertEquals(found._read?.(context), true);
 });
 
 Deno.test('[Rules params] findRuleAndParams not found', () => {
@@ -106,7 +81,7 @@ Deno.test('[Rules params] findRuleAndParams multiple rules', () => {
     '_read',
     rules,
   );
-  assertEquals(found._read(), 3);
+  assertEquals(found._read?.(context), 3);
   assertEquals(found.params, { name: 'garn' });
 });
 
@@ -128,7 +103,7 @@ Deno.test('[Rules params] findRuleAndParams root rule', () => {
     '_read',
     rules,
   );
-  assertEquals(found._read(), 0);
+  assertEquals(found._read?.(context), 0);
   assertEquals(found.params, { name: 'garn' });
 });
 
@@ -147,19 +122,19 @@ Deno.test('[Rules params] findRuleAndParams two ways', () => {
       },
     },
   };
-  const found = findRuleAndParams(
+  const first = findRuleAndParams(
     ['providers', 'garn', 'age'],
     '_read',
     rules,
   );
 
-  assertEquals(found.params, { name: 'garn' });
-  assertEquals(found._read(), 1);
-  const notFound = findRuleAndParams(
+  assertEquals(first.params, { name: 'garn' });
+  assertEquals(first._read?.(context), 1);
+  const second = findRuleAndParams(
     ['clients', 'garn', 'age'],
     '_read',
     rules,
   );
-  assertEquals(notFound.params, { foo: 'clients', bar: 'garn' });
-  assertEquals(notFound._read(), 2);
+  assertEquals(second.params, { foo: 'clients', bar: 'garn' });
+  assertEquals(second._read?.(context), 2);
 });

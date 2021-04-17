@@ -6,7 +6,7 @@ import {
   addChildToKeys,
   isObject,
   isValidNumber,
-findParam,
+  findRuleAndParams,
 } from './helpers.ts';
 
 import { equal } from './deps.ts';
@@ -335,22 +335,6 @@ export class Store {
 
   // RULES
   ////////
-  private _getRule(
-    keys: string[],
-  ): any {
-    const params: Params = {};
-    // const rule = deepGet(this._rules, keys);
-    let worker = this._rules as any;
-
-    for (const key of keys) {
-      const params = findParam(worker);
-      let child = worker[key];
-
-
-    }
-
-    // return { rule, params };
-  }
 
   private _checkRule(
     ruleType: '_read' | '_write',
@@ -361,8 +345,9 @@ export class Store {
       const currentPath = keys.slice(0, index);
 
       const rulePath = addChildToKeys(currentPath, ruleType);
-      const { rule, params } = this._getRule(rulePath);
-
+      const ruleAndParams = findRuleAndParams(rulePath,ruleType, this._rules);
+      const rule = ruleAndParams[ruleType];
+      const params = ruleAndParams.params
       if (typeof rule === 'function') {
         try {
           const data = this._get(currentPath);

@@ -330,6 +330,9 @@ export class Store {
 
   // RULES
   ////////
+  private _getRule(path: string): Function | void {
+    return deepGet(this._rules, path);
+  }
 
   private _checkRule(
     ruleType: '_read' | '_write',
@@ -340,8 +343,11 @@ export class Store {
     for (let index = keys.length; index >= 0; index--) {
       const currentPath = keys.slice(0, index);
 
-      const rulePath = [...currentPath, ruleType].join('.');
-      const rule = deepGet(this._rules, rulePath);
+      const rulePath = addChildToPath(
+        currentPath.join('.'),
+        ruleType,
+      );
+      const rule = this._getRule(rulePath);
 
       if (typeof rule === 'function') {
         try {

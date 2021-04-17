@@ -2,7 +2,7 @@ import { Store } from '../src/Store.ts';
 import { StoreJson } from '../src/StoreJson.ts';
 import { assertEquals, assertThrows } from './test_deps.ts';
 
-Deno.test('[Rules] _read', () => {
+Deno.test('[Rules] _red]', () => {
   const rules = {
     readAllowed: {
       _read: () => true,
@@ -20,7 +20,7 @@ Deno.test('[Rules] _read', () => {
   });
 });
 
-Deno.test('[Rules] _read root', () => {
+Deno.test('[Rules _read] root', () => {
   const rules = {
     _read: () => false,
   };
@@ -42,7 +42,7 @@ Deno.test('[Rules] _read root', () => {
   );
 });
 
-Deno.test('[Rules] _read overlapping rules', () => {
+Deno.test('[Rules _read] overlapping rules', () => {
   const rules = {
     _read: () => false,
     a: { _read: () => true },
@@ -59,7 +59,7 @@ Deno.test('[Rules] _read overlapping rules', () => {
   });
 });
 
-Deno.test('[Rules] _read overlapping rules', () => {
+Deno.test('[Rules _read] overlapping rules', () => {
   const rules = {
     _read: () => true,
     a: { _read: () => false },
@@ -85,7 +85,7 @@ Deno.test('[Rules] _read overlapping rules', () => {
 });
 
 Deno.test(
-  '[Rules] _read access protected data from parent',
+  '[Rules _read] access protected data from parent',
   () => {
     const rules = {
       // _read: () => true,
@@ -105,7 +105,7 @@ Deno.test(
   },
 );
 
-Deno.test('[Rules] _read protecting the root', () => {
+Deno.test('[Rules _read] protecting the root', () => {
   const rules = {
     _read: () => false,
     a: { _read: () => false },
@@ -122,7 +122,7 @@ Deno.test('[Rules] _read protecting the root', () => {
   );
 });
 
-Deno.test('[Rules] _read depending the data', () => {
+Deno.test('[Rules _read] depending the data', () => {
   const rules = {
     // deno-lint-ignore no-explicit-any
     a: { _read: (context: any) => context.data === 1 },
@@ -136,7 +136,7 @@ Deno.test('[Rules] _read depending the data', () => {
   });
 });
 
-Deno.test('[Rules] _read with find', () => {
+Deno.test('[Rules _read] with find', () => {
   const rules = {
     arr: { _read: () => false },
   };
@@ -155,7 +155,7 @@ Deno.test('[Rules] _read with find', () => {
   });
 });
 
-Deno.test('[Rules] _read with findAndRemove', () => {
+Deno.test('[Rules _read] with findAndRemove', () => {
   const rules = {
     arr: { _read: () => false },
   };
@@ -175,7 +175,7 @@ Deno.test('[Rules] _read with findAndRemove', () => {
 });
 
 
-Deno.test('[Rules] _read with findOne', () => {
+Deno.test('[Rules _read] with findOne', () => {
   const rules = {
     arr: { _read: () => false },
   };
@@ -195,7 +195,7 @@ Deno.test('[Rules] _read with findOne', () => {
 });
 
 
-Deno.test('[Rules] _read with findOneAndRemove', () => {
+Deno.test('[Rules _read] with findOneAndRemove', () => {
   const rules = {
     arr: { _read: () => false },
   };

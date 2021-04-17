@@ -3,6 +3,8 @@ import {
   deepGet,
   deepSet,
   getKeys,
+  addChildToPath,
+  isObject,
   isValidNumber,
 } from './helpers.ts';
 
@@ -42,40 +44,6 @@ export class Store {
    */
   constructor(config?: BaseConfig) {
     this._rules = config?.rules ?? defaultRules;
-  }
-
-  protected _checkReadRules(path: string): void {
-    const keys = getKeys(path);
-
-
-
-    // check rules from bottom to top
-
-    for (let index = keys.length ; index >= 0; index--) {
-
-      const currentPath = keys.slice(0, index);
-
-      const readRulePath = [...currentPath, '_read'].join('.');
-      const readRule = deepGet(this._rules, readRulePath);
-
-      if (typeof readRule === 'function') {
-        try {
-          const data = this._get(currentPath.join('.'))
-          const allowed = readRule({data});
-
-          if (!allowed) {
-            throw new Error(
-              `read disallowed at path /${currentPath.join(
-                '/',
-              )}`,
-            );
-          }
-          return;
-        } catch (error) {
-          throw error;
-        }
-      }
-    }
   }
 
   private _get(path: string): Value {
@@ -120,6 +88,7 @@ export class Store {
     if (getKeys(path).length === 0) {
       throw new Error('Root path cannot be set');
     }
+    this._checkWriteRules(path);
 
     let newValue;
     if (typeof valueOrFunction === 'function') {
@@ -143,6 +112,8 @@ export class Store {
    *
    */
   public remove(path: string): Value {
+    this._checkWriteRules(path);
+    this._checkReadRules(path);
     const oldValue = this._get(path);
     const keys = getKeys(path);
     const lastKey = keys[keys.length - 1];
@@ -173,6 +144,7 @@ export class Store {
     path: string,
     ...values: Value[]
   ): Value | Value[] {
+    this._checkWriteRules(path);
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
@@ -195,10 +167,15 @@ export class Store {
    * @returns  An array of pairs [key,value] found
    */
   public find(path: string, finder: Finder): [string, Value][] {
-    const target = this.get(path);
+    let target = this._get(path);
+    if (!isObject(target)) {
+      throw new Error('Target not object or array');
+    }
+    target = deepClone(target);
     const results = [] as [string, Value][];
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
+        this._checkReadRules(addChildToPath(path, key));
         const value = target[key];
         if (finder(value, key)) {
           results.push([key, value]);
@@ -220,9 +197,15 @@ export class Store {
     path: string,
     finder: Finder,
   ): [string, Value] | void {
-    const target = this.get(path);
+    let target = this.get(path);
+    if (!isObject(target)) {
+      throw new Error('Target not object or array');
+    }
+    target = deepClone(target);
+
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
+        this._checkReadRules(addChildToPath(path, key));
         const value = target[key];
         if (finder(value, key)) {
           return [key, value];
@@ -343,5 +326,48 @@ export class Store {
     if (oldLength === this._subscriptions.length) {
       throw new Error('no subscription found');
     }
+  }
+
+  // RULES
+  ////////
+
+  private _checkRule(
+    ruleType: '_read' | '_write',
+    path: string,
+  ) {
+    const keys = getKeys(path);
+    // check rules from bottom to top
+    for (let index = keys.length; index >= 0; index--) {
+      const currentPath = keys.slice(0, index);
+
+      const rulePath = [...currentPath, ruleType].join('.');
+      const rule = deepGet(this._rules, rulePath);
+
+      if (typeof rule === 'function') {
+        try {
+          const data = this._get(currentPath.join('.'));
+          const allowed = rule({ data });
+
+          if (!allowed) {
+            throw new Error(
+              `${ruleType.replace(
+                '_',
+                '',
+              )} disallowed at path /${currentPath.join('/')}`,
+            );
+          }
+          return;
+        } catch (error) {
+          throw error;
+        }
+      }
+    }
+  }
+  protected _checkReadRules(path: string): void {
+    this._checkRule('_read', path);
+  }
+
+  protected _checkWriteRules(path: string): void {
+    this._checkRule('_write', path);
   }
 }

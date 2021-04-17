@@ -15,9 +15,7 @@ Deno.test('[Rules] _red]', () => {
   const A = db.get('readAllowed');
   assertEquals(A, undefined);
 
-  assertThrows(() => {
-    db.get('readForbidden.a.b.c');
-  });
+  assertThrows(() => db.get('readForbidden.a.b.c'));
 });
 
 Deno.test('[Rules _read] root', () => {
@@ -26,17 +24,13 @@ Deno.test('[Rules _read] root', () => {
   };
   const db = new Store({ rules });
   assertThrows(
-    () => {
-      db.get('a');
-    },
+    () => db.get('a'),
     Error,
     'read disallowed at path /',
   );
 
   assertThrows(
-    () => {
-      db.get('b');
-    },
+    () => db.get('b'),
     Error,
     'read disallowed at path /',
   );
@@ -51,12 +45,8 @@ Deno.test('[Rules _read] overlapping rules', () => {
 
   assertEquals(db.get('a'), undefined);
   assertEquals(db.get('a.z'), undefined);
-  assertThrows(() => {
-    db.get('c');
-  });
-  assertThrows(() => {
-    db.get('b');
-  });
+  assertThrows(() => db.get('c'));
+  assertThrows(() => db.get('b'));
 });
 
 Deno.test('[Rules _read] overlapping rules', () => {
@@ -69,16 +59,12 @@ Deno.test('[Rules _read] overlapping rules', () => {
   assertEquals(db.get('b'), undefined);
 
   assertThrows(
-    () => {
-      db.get('a');
-    },
+    () => db.get('a'),
     Error,
     'read disallowed at path /a',
   );
   assertThrows(
-    () => {
-      db.get('a.b');
-    },
+    () => db.get('a.b'),
     Error,
     'read disallowed at path /a',
   );
@@ -96,9 +82,7 @@ Deno.test(
     assertEquals(db.get(''), { a: 1 });
 
     assertThrows(
-      () => {
-        db.get('a');
-      },
+      () => db.get('a'),
       Error,
       'read disallowed at path /a',
     );
@@ -114,9 +98,7 @@ Deno.test('[Rules _read] protecting the root', () => {
   db.set('a', 1);
 
   assertThrows(
-    () => {
-      assertEquals(db.get(''), { a: 1 });
-    },
+    () => assertEquals(db.get(''), { a: 1 }),
     Error,
     'read disallowed at path /',
   );
@@ -131,9 +113,7 @@ Deno.test('[Rules _read] depending the data', () => {
   db.set('a', 1);
   assertEquals(db.get('a'), 1);
   db.set('a', 2);
-  assertThrows(() => {
-    db.get('a');
-  });
+  assertThrows(() => db.get('a'));
 });
 
 Deno.test('[Rules _read] with find', () => {
@@ -145,14 +125,9 @@ Deno.test('[Rules _read] with find', () => {
     filename: './tests/test.json',
   });
 
-  db.find('', ()=>true)
-
-  assertThrows(() => {
-    db.find('arr', ()=>true);
-  });
-  assertThrows(() => {
-    db.find('arr.0', ()=>true);
-  });
+  assertThrows(() => db.find('', () => true));
+  assertThrows(() => db.find('arr', () => true));
+  assertThrows(() => db.find('arr.0', () => true));
 });
 
 Deno.test('[Rules _read] with findAndRemove', () => {
@@ -164,16 +139,10 @@ Deno.test('[Rules _read] with findAndRemove', () => {
     filename: './tests/test.json',
   });
 
-  db.find('', ()=>true)
-
-  assertThrows(() => {
-    db.find('arr', ()=>true);
-  });
-  assertThrows(() => {
-    db.find('arr.0', ()=>true);
-  });
+  assertThrows(() => db.find('', () => true));
+  assertThrows(() => db.find('arr', () => true));
+  assertThrows(() => db.find('arr.0', () => true));
 });
-
 
 Deno.test('[Rules _read] with findOne', () => {
   const rules = {
@@ -184,16 +153,10 @@ Deno.test('[Rules _read] with findOne', () => {
     filename: './tests/test.json',
   });
 
-  db.findOne('', ()=>true)
-
-  assertThrows(() => {
-    db.findOne('arr', ()=>true);
-  });
-  assertThrows(() => {
-    db.findOne('arr.0', ()=>true);
-  });
+  assertThrows(() => db.findOne('', () => true), Error, '/arr');
+  assertThrows(() => db.findOne('arr', () => true));
+  assertThrows(() => db.findOne('arr.0', () => true));
 });
-
 
 Deno.test('[Rules _read] with findOneAndRemove', () => {
   const rules = {
@@ -203,13 +166,39 @@ Deno.test('[Rules _read] with findOneAndRemove', () => {
     rules,
     filename: './tests/test.json',
   });
+  assertThrows(() => db.findOneAndRemove('', () => true));
+  assertThrows(() => db.findOneAndRemove('arr', () => true));
+  assertThrows(() => db.findOneAndRemove('arr.0', () => true));
+});
 
-  db.findOneAndRemove('', ()=>true)
+Deno.test('[Rules _read] find with one child not allowed', () => {
+  const rules = {
+    arr: { _read: () => true, '1': { _read: () => false } },
+  };
+  const db = new StoreJson({
+    rules,
+    filename: './tests/test.json',
+  });
 
-  assertThrows(() => {
-    db.findOneAndRemove('arr', ()=>true);
+  assertThrows(
+    () => db.find('arr', () => true),
+    Error,
+    '/arr/1',
+  );
+});
+
+Deno.test('[Rules _read]  findOn with one child not allowed', () => {
+  const rules = {
+    arr: { _read: () => true, '0': { _read: () => false } },
+  };
+  const db = new StoreJson({
+    rules,
+    filename: './tests/test.json',
   });
-  assertThrows(() => {
-    db.findOneAndRemove('arr.0', ()=>true);
-  });
+
+  assertThrows(
+    () => db.findOne('arr', () => true),
+    Error,
+    '/arr/0',
+  );
 });

@@ -1,5 +1,6 @@
 import type { Data, Value } from "./types.ts";
-function isObject(obj: unknown): boolean {
+
+export function isObject(obj: unknown): boolean {
   return typeof obj === "object" && obj !== null;
 }
 export function getKeys(path: string): string[] {
@@ -7,6 +8,13 @@ export function getKeys(path: string): string[] {
   const keys = path.split(/[\\\\/\.]/).filter((key) => key);
 
   return keys;
+}
+
+export function addChildToPath(path: string, key:string): string {
+  // match "\" "/" o "."
+  const keys = getKeys(path);
+
+  return [...keys,key].join('.');
 }
 export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {

@@ -1,7 +1,7 @@
 import { findRuleAndParams } from '../src/helpers.ts';
 import { Store } from '../src/Store.ts';
 import { RuleContext } from '../src/types.ts';
-import { assertEquals } from './test_deps.ts';
+import { assertEquals, assertThrows } from './test_deps.ts';
 
 const context = {data:'bar', params: {}}
 
@@ -13,8 +13,8 @@ Deno.test('[Rules params] get', () => {
       $name: {
         _read: (context: RuleContext) => {
           calls++;
-          assertEquals(context.params.name, 'garn');
-          return true;
+          assertEquals(typeof context.data, 'number');
+          return calls === 1;
         },
       },
     },
@@ -23,6 +23,8 @@ Deno.test('[Rules params] get', () => {
   db.set('people', { garn: { age: 1 }, pepe: { age: 2 } });
   assertEquals(db.get('people.garn.age'), 1);
   assertEquals(calls, 1);
+  assertThrows(() => db.get('people.pepe.age'), Error, 'read disallowed')
+
 });
 
 Deno.test('[Rules params] findRuleAndParams basic', () => {

@@ -45,6 +45,7 @@ Deno.test("[Helpers] deepSet array", () => {
 Deno.test("[Helpers] deepGet", () => {
   const data = { a: { b: true }, x: { y: { z: true } } };
 
+  assertEquals(deepGet(data, ""), data);
   const a = deepGet(data, "a");
   assertEquals(a, { b: true });
 

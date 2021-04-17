@@ -4,9 +4,9 @@ import {
   deepSet,
   getKeys,
   isValidNumber,
-} from "./helpers.ts";
+} from './helpers.ts';
 
-import { equal } from "./deps.ts";
+import { equal } from './deps.ts';
 import type {
   Data,
   Finder,
@@ -14,7 +14,12 @@ import type {
   Subscription,
   Value,
   ValueOrFunction,
-} from "./types.ts";
+  BaseConfig,
+  Rules,
+} from './types.ts';
+
+const defaultRules = {};
+
 /**
  * A database in RAM without persistance.
  * For persistance use StoreJson
@@ -24,16 +29,10 @@ export class Store {
    * The actual data cache.
    */
   protected _data: Data = {};
-
   /**
-   * The hashed value of currently cached data.
+   * The actual rules
    */
-  protected _dataHash = "";
-
-  /**
-   * Stores the last known hash from store file.
-   */
-  protected _lastKnownStoreHash = "";
+  protected _rules: Rules;
 
   protected _subscriptions: Subscription[] = [];
 
@@ -41,18 +40,44 @@ export class Store {
    * Create a new {Store} instance without persistance.
    *
    */
-  constructor() {}
+  constructor(config?: BaseConfig) {
+    this._rules = config?.rules ?? defaultRules;
+  }
 
-  protected _notify() {
-    for (const subscription of this._subscriptions) {
-      const { path, callback } = subscription;
-      const value = this.get(path);
-      if (!equal(value, subscription.value)) {
-        callback(value);
-        subscription.value = value;
+  protected _checkReadRules(path: string): void {
+    const keys = getKeys(path);
+
+
+
+    // check rules from bottom to top
+
+    for (let index = keys.length ; index >= 0; index--) {
+
+      const currentPath = keys.slice(0, index);
+
+      const readRulePath = [...currentPath, '_read'].join('.');
+      const readRule = deepGet(this._rules, readRulePath);
+
+      if (typeof readRule === 'function') {
+        try {
+          const data = this._get(currentPath.join('.'))
+          const allowed = readRule({data});
+
+          if (!allowed) {
+            throw new Error(
+              `read disallowed at path /${currentPath.join(
+                '/',
+              )}`,
+            );
+          }
+          return;
+        } catch (error) {
+          throw error;
+        }
       }
     }
   }
+
   private _get(path: string): Value {
     return deepGet(this._data, path);
   }
@@ -68,6 +93,7 @@ export class Store {
    */
 
   public get(path: string): Value {
+    this._checkReadRules(path);
     const v = this._get(path);
     const c = deepClone(v);
     return c;
@@ -91,8 +117,12 @@ export class Store {
     path: string,
     valueOrFunction: ValueOrFunction,
   ): Value {
+    if (getKeys(path).length === 0) {
+      throw new Error('Root path cannot be set');
+    }
+
     let newValue;
-    if (typeof valueOrFunction === "function") {
+    if (typeof valueOrFunction === 'function') {
       const oldValue = this._get(path);
       newValue = valueOrFunction(oldValue);
     } else {
@@ -120,7 +150,7 @@ export class Store {
     if (isValidNumber(lastKey)) {
       // remove array child
       keys.pop();
-      const parentValue = this._get(keys.join("."));
+      const parentValue = this._get(keys.join('.'));
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
@@ -146,7 +176,7 @@ export class Store {
     const cloned = deepClone(values);
     const oldValue = this._get(path);
     if (!Array.isArray(oldValue)) {
-      throw new Error("is not an Array");
+      throw new Error('is not an Array');
     }
 
     oldValue.push(...cloned);
@@ -216,7 +246,7 @@ export class Store {
     const results = this.find(path, finder);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
-      const pathToRemove = [...getKeys(path), key].join(".");
+      const pathToRemove = [...getKeys(path), key].join('.');
       this.remove(pathToRemove);
     }
 
@@ -238,12 +268,25 @@ export class Store {
     const result = this.findOne(path, finder);
     if (result) {
       const pathToRemove = [...getKeys(path), result[0]].join(
-        ".",
+        '.',
       );
       this.remove(pathToRemove);
     }
 
     return result;
+  }
+  // SUBSCRIPTIONS
+  /////////////////
+
+  protected _notify() {
+    for (const subscription of this._subscriptions) {
+      const { path, callback } = subscription;
+      const value = this.get(path);
+      if (!equal(value, subscription.value)) {
+        callback(value);
+        subscription.value = value;
+      }
+    }
   }
   /**
    * Subscribe to changes in the path
@@ -298,7 +341,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error("no subscription found");
+      throw new Error('no subscription found');
     }
   }
 }

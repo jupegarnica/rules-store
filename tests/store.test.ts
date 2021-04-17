@@ -44,9 +44,10 @@ Deno.test("[Store] invalid root path", () => {
   assertThrows(() => {
     db.set("", []);
   });
-  assertThrows(() => {
-    db.get("");
-  });
+
+  db.set("a", 1);
+  assertEquals(db.get(""), {a:1})
+
 });
 
 Deno.test("[Store] Deep remove", () => {

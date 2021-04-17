@@ -5,9 +5,7 @@ function isObject(obj: unknown): boolean {
 export function getKeys(path: string): string[] {
   // match "\" "/" o "."
   const keys = path.split(/[\\\\/\.]/).filter((key) => key);
-  if (!path) {
-    throw new Error("Invalid path");
-  }
+
   return keys;
 }
 export const deepClone = (obj: Value) => {

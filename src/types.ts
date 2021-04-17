@@ -12,7 +12,27 @@ export type Subscription = {
   value: Value;
   path: string;
 };
-export type Config = {
+
+
+export type RuleContext = {
+  data?: Value;
+};
+
+// deno-lint-ignore no-explicit-any
+export type Rule = (context: RuleContext) => any;
+
+export type Rules = {
+  '.read'?: Rule;
+  '.write'?: Rule;
+  '.validate'?: Rule;
+  '.transform'?: Rule;
+  [key: string]: Rules | Rule | undefined;
+};
+
+export type BaseConfig = {
+  rules?: Rules;
+};
+export type Config = BaseConfig & {
   autoSave?: boolean;
   filename?: string;
   folder?: string;

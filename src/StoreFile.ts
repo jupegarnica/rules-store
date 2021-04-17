@@ -20,7 +20,7 @@ export abstract class StoreFile extends Store {
    * @param storePath A custom path where to write data
    */
   constructor(config?: Config) {
-    super();
+    super(config);
     this._autoSave = config?.autoSave ?? false;
     const filename = config?.filename || ".store.db";
     const folder = config?.folder || fromFileUrl(dirname(Deno.mainModule));

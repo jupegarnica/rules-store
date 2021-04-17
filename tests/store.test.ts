@@ -16,9 +16,11 @@ Deno.test("[Store] Simple set and get", () => {
 
 Deno.test("[Store] setting arrays", () => {
   const db = new Store();
-  db.set("a", []);
+  db.set("a", [1]);
   const A = db.get("a");
-  assertEquals(A, []);
+  assertEquals(A, [1]);
+  const length = db.get("a.length");
+  assertEquals(length, 1);
 
   db.set("b.0.a", 1);
   const B = db.get("b");
@@ -356,6 +358,14 @@ Deno.test("[Store] find by key in array", () => {
   assertEquals(result, [["1", 2]]);
 });
 
+
+Deno.test("[Store] find at not object", () => {
+  const db = new Store();
+  db.set("arr", [1, 2, 3]);
+  const result = db.find("arr.0", () => true);
+  assertEquals(result, []);
+});
+
 Deno.test("[Store] findOne in a object", () => {
   const db = new Store();
   db.set("obj", { a: 1, b: 2, c: 3 });
@@ -379,6 +389,21 @@ Deno.test("[Store] findOne by key in array", () => {
   );
   assertEquals(result, ["2", 3]);
 });
+
+Deno.test("[Store] findOne  at not object", () => {
+  const db = new Store();
+  db.set("arr", [1, 2, 3]);
+  const result = db.findOne("arr.0", () => true);
+  assertEquals(result, undefined);
+});
+
+Deno.test("[Store] findOne array length", () => {
+  const db = new Store();
+  db.set("arr", [1, 2, 3]);
+  const result = db.findOne("arr.length", () => true);
+  assertEquals(result, undefined);
+});
+
 
 Deno.test("[Store] findAndRemove by key in obj", () => {
   const db = new Store();

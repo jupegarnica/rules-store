@@ -3,7 +3,7 @@ import { StoreYaml } from '../src/StoreYaml.ts';
 import { StoreJson } from '../src/StoreJson.ts';
 import { assertEquals, assertThrows } from './test_deps.ts';
 
-Deno.test('[Rules] _write .set', () => {
+Deno.test('[Rules _write] .set', () => {
   const rules = {
     allowed: {
       _write: () => true,
@@ -24,7 +24,7 @@ Deno.test('[Rules] _write .set', () => {
   });
 });
 
-Deno.test('[Rules] _write .push', () => {
+Deno.test('[Rules _write] .push', () => {
   const rules = {
     arr: {
       _write: () => false,
@@ -40,7 +40,7 @@ Deno.test('[Rules] _write .push', () => {
   });
 });
 
-Deno.test('[Rules] _write .remove', () => {
+Deno.test('[Rules _write] .remove', () => {
   const rules = {
     arr: {
       _write: () => false,
@@ -56,7 +56,7 @@ Deno.test('[Rules] _write .remove', () => {
   });
 });
 
-Deno.test('[Rules] _write true but _read false ', () => {
+Deno.test('[Rules _write] true but _read false ', () => {
   const rules = {
     arr: {
       _write: () => true,

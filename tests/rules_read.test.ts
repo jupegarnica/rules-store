@@ -102,7 +102,6 @@ Deno.test("[Rules _read] protecting the root", () => {
   );
 });
 
-
 Deno.test("[Rules _read] with find", () => {
   const rules = {
     arr: { _read: () => false },

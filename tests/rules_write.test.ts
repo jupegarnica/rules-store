@@ -141,15 +141,12 @@ Deno.test("[Rules _write] throwing custom error", () => {
   assertThrows(() => db.set("a", 1), TypeError, "custom error");
 });
 
-
-
 Deno.test("[Rules _write] .set(function) without read permission", () => {
   const rules = {
     _read: () => false,
     _write: () => true,
-
   };
   const db = new Store({ rules });
-  db.set("a", 1)
-  assertThrows(() => db.set("a", (val:number) => val + 1));
+  db.set("a", 1);
+  assertThrows(() => db.set("a", (val: number) => val + 1));
 });

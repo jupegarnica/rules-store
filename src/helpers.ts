@@ -109,7 +109,6 @@ export function findRuleAndParams(
     if (maybeRule) rule = maybeRule;
     if (isObject(child)) {
       worker = child;
-
     } else {
       if (maybeParam) {
         params[maybeParam.replace("$", "")] = key;
@@ -121,8 +120,8 @@ export function findRuleAndParams(
     currentPath.push(key);
     maybeRule = worker[ruleType];
     if (maybeRule) {
-      rule = maybeRule
-      rulePath = [...currentPath]
+      rule = maybeRule;
+      rulePath = [...currentPath];
     }
     index++;
   } while (index < keys.length);

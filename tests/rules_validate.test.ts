@@ -10,7 +10,7 @@ Deno.test("[Rules _validate] list of numbers", () => {
       },
       $index: {
         _validate: ({ newData }: RuleContext) => {
-          return typeof newData === 'number';
+          return typeof newData === "number";
         },
       },
     },

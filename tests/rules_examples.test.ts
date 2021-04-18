@@ -10,7 +10,7 @@ Deno.test("[Rules Examples] list of numbers", () => {
       },
       $index: {
         _write: ({ newData }: RuleContext) => {
-          return typeof newData === 'number';
+          return typeof newData === "number";
         },
       },
     },

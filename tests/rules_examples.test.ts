@@ -23,7 +23,8 @@ Deno.test("[Rules Examples] list of numbers", () => {
   const db = new Store({ rules });
   const A = db.set("myNumber", [1, 2]);
   assertEquals(A, [1, 2]);
-  // db.set("myNumber.2", 3);
+  db.set("myNumber.2", 3);
 
-  // assertThrows(() => db.get("readForbidden.a.b.c"));
+  assertThrows(() => db.set("myNumber.2", null));
+  assertThrows(() => db.set("myNumber", null));
 });

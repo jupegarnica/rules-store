@@ -109,8 +109,6 @@ export function findRuleAndParams(
     if (isObject(child)) {
       worker = child;
 
-      maybeRule = worker[ruleType];
-      if (maybeRule) rule = maybeRule;
     } else {
       if (maybeParam) {
         params[maybeParam.replace("$", "")] = key;
@@ -119,8 +117,11 @@ export function findRuleAndParams(
         break;
       }
     }
+    maybeRule = worker[ruleType];
+    if (maybeRule) rule = maybeRule;
     rulePath.push(key);
-  } while (index++ < keys.length);
+    index++;
+  } while (index < keys.length);
 
   const result = { params, [ruleType]: rule, rulePath };
   return result;

@@ -1,7 +1,7 @@
 import { Store } from "../src/Store.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import type {RuleContext} from "../src/types.ts";
+import type { RuleContext } from "../src/types.ts";
 Deno.test("[Rules] _red]", () => {
   const rules = {
     readAllowed: {
@@ -202,13 +202,12 @@ Deno.test("[Rules _read]  findOn with one child not allowed", () => {
   );
 });
 
-
-Deno.test('[Rules _read] throwing custom error', () => {
+Deno.test("[Rules _read] throwing custom error", () => {
   const rules = {
     _read() {
       throw new TypeError("custom error");
-    }
+    },
   };
   const db = new Store({ rules });
-  assertThrows(() => db.get('a'), TypeError, 'custom error')
+  assertThrows(() => db.get("a"), TypeError, "custom error");
 });

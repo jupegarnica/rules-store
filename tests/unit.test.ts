@@ -3,8 +3,8 @@ import {
   deepGet,
   deepSet,
   findParam,
-  keysFromPath,
   isValidNumber,
+  keysFromPath,
 } from "../src/helpers.ts";
 import { assertEquals } from "./test_deps.ts";
 

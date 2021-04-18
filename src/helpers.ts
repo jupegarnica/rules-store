@@ -6,10 +6,10 @@ import type {
   Rule,
   Rules,
   Value,
-} from './types.ts';
+} from "./types.ts";
 
 export function isObject(obj: unknown): boolean {
-  return typeof obj === 'object' && obj !== null;
+  return typeof obj === "object" && obj !== null;
 }
 export function keysFromPath(path: string): Keys {
   // match "\" "/" o "."
@@ -19,7 +19,7 @@ export function keysFromPath(path: string): Keys {
 }
 
 export function pathFromKeys(keys: Keys): string {
-  return `/${keys.join('/')}`;
+  return `/${keys.join("/")}`;
 }
 
 export function addChildToKeys(keys: Keys, ...rest: Keys): Keys {
@@ -41,10 +41,7 @@ export const deepClone = (obj: Value) => {
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
   Object.keys(clone).forEach(
-    (key) =>
-      (clone[key] = isObject(obj[key])
-        ? deepClone(obj[key])
-        : obj[key]),
+    (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
   );
   return clone;
 };
@@ -101,7 +98,7 @@ export function findRuleAndParams(
   // deno-lint-ignore no-explicit-any
   let worker = rules as any;
   // deno-lint-ignore no-explicit-any
-  let rule: Rule | any ;
+  let rule: Rule | any;
   let index = 0;
   do {
     const key = keys[index];
@@ -116,7 +113,7 @@ export function findRuleAndParams(
       if (maybeRule) rule = maybeRule;
     } else {
       if (maybeParam) {
-        params[maybeParam.replace('$', '')] = key;
+        params[maybeParam.replace("$", "")] = key;
         worker = worker[maybeParam];
       } else {
         break;

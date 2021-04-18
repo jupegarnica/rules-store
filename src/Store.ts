@@ -4,24 +4,24 @@ import {
   deepGet,
   deepSet,
   findRuleAndParams,
-  keysFromPath,
   isObject,
   isValidNumber,
-pathFromKeys,
-} from './helpers.ts';
+  keysFromPath,
+  pathFromKeys,
+} from "./helpers.ts";
 
-import { equal } from './deps.ts';
+import { equal } from "./deps.ts";
 import type {
   BaseConfig,
   Data,
-  Keys,
   Finder,
+  Keys,
   Rules,
   Subscriber,
   Subscription,
   Value,
   ValueOrFunction,
-} from './types.ts';
+} from "./types.ts";
 
 const defaultRules = {};
 
@@ -65,7 +65,7 @@ export class Store {
 
   public get(path: string): Value {
     const keys = keysFromPath(path);
-    this._checkRule('_read', keys);
+    this._checkRule("_read", keys);
     return deepClone(this._get(keys));
   }
 
@@ -89,11 +89,11 @@ export class Store {
   ): Value {
     const keys = keysFromPath(path);
     if (keys.length === 0) {
-      throw new Error('Root path cannot be set');
+      throw new Error("Root path cannot be set");
     }
 
     let newValue;
-    if (typeof valueOrFunction === 'function') {
+    if (typeof valueOrFunction === "function") {
       const oldValue = this._get(keys);
       newValue = valueOrFunction(oldValue);
     } else {
@@ -101,7 +101,7 @@ export class Store {
     }
     newValue = deepClone(newValue);
 
-    this._checkRule('_write', keys, newValue);
+    this._checkRule("_write", keys, newValue);
     deepSet(this._data, keys, newValue);
     this._notify();
     return newValue;
@@ -117,8 +117,8 @@ export class Store {
    */
   public remove(path: string): Value {
     const keys = keysFromPath(path);
-    this._checkRule('_read', keys);
-    this._checkRule('_write', keys);
+    this._checkRule("_read", keys);
+    this._checkRule("_write", keys);
     const oldValue = this._get(keys);
     const lastKey = keys[keys.length - 1];
 
@@ -153,10 +153,10 @@ export class Store {
     const cloned = deepClone(values);
     const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
-      throw new Error('is not an Array');
+      throw new Error("is not an Array");
     }
-    ;
-    cloned.forEach((value: Value) => this._checkRule('_write', keys, value))
+
+    cloned.forEach((value: Value) => this._checkRule("_write", keys, value));
     oldValue.push(...cloned);
 
     this._notify();
@@ -176,13 +176,13 @@ export class Store {
     const keys = keysFromPath(path);
     let target = this._get(keys);
     if (!isObject(target)) {
-      throw new Error('Target not object or array');
+      throw new Error("Target not object or array");
     }
     target = deepClone(target);
     const results = [] as [string, Value][];
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkRule('_read',addChildToKeys(keys, key));
+        this._checkRule("_read", addChildToKeys(keys, key));
         const value = target[key];
         if (finder(value, key)) {
           results.push([key, value]);
@@ -206,13 +206,13 @@ export class Store {
   ): [string, Value] | void {
     let target = this.get(path);
     if (!isObject(target)) {
-      throw new Error('Target not object or array');
+      throw new Error("Target not object or array");
     }
     target = deepClone(target);
     const keys = keysFromPath(path);
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkRule('_read', addChildToKeys(keys, key))
+        this._checkRule("_read", addChildToKeys(keys, key));
         const value = target[key];
         if (finder(value, key)) {
           return [key, value];
@@ -234,10 +234,10 @@ export class Store {
     finder: Finder,
   ): [string, Value][] {
     const results = this.find(path, finder);
-    const keys = keysFromPath(path)
+    const keys = keysFromPath(path);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
-      const keysToRemove = addChildToKeys(keys,key);
+      const keysToRemove = addChildToKeys(keys, key);
       this.remove(pathFromKeys(keysToRemove));
     }
 
@@ -259,7 +259,7 @@ export class Store {
     const result = this.findOne(path, finder);
     const keys = keysFromPath(path);
     if (result) {
-      const pathToRemove = addChildToKeys(keys, result[0])
+      const pathToRemove = addChildToKeys(keys, result[0]);
       this.remove(pathFromKeys(pathToRemove));
     }
 
@@ -331,7 +331,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error('no subscription found');
+      throw new Error("no subscription found");
     }
   }
 
@@ -339,9 +339,9 @@ export class Store {
   ////////
 
   private _checkRule(
-    ruleType: '_read' | '_write',
+    ruleType: "_read" | "_write",
     keys: Keys,
-    newData?: Value
+    newData?: Value,
   ): void {
     const ruleAndParams = findRuleAndParams(
       keys,
@@ -353,17 +353,19 @@ export class Store {
     const rule = ruleAndParams[ruleType];
     const params = ruleAndParams.params;
     const rulePath = ruleAndParams.rulePath;
-    if (typeof rule === 'function') {
+    if (typeof rule === "function") {
       try {
         const data = this._get(rulePath);
         const allowed = rule({ data, newData, params });
 
         if (!allowed) {
           throw new Error(
-            `${ruleType.replace(
-              '_',
-              '',
-            )} disallowed at path ${pathFromKeys(keys)}`,
+            `${
+              ruleType.replace(
+                "_",
+                "",
+              )
+            } disallowed at path ${pathFromKeys(keys)}`,
           );
         }
         return;
@@ -372,5 +374,4 @@ export class Store {
       }
     }
   }
-
 }

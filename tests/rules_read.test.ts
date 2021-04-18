@@ -13,7 +13,6 @@ Deno.test("[Rules] _red]", () => {
   const db = new Store({ rules });
   const A = db.get("readAllowed");
   assertEquals(A, undefined);
-
   assertThrows(() => db.get("readForbidden.a.b.c"));
 });
 

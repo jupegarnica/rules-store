@@ -114,12 +114,11 @@ export class Store {
 
     let newValue;
     if (typeof valueOrFunction === "function") {
-      const oldValue = this._get(keys);
+      const oldValue = this.get(pathFromKeys(keys));
       newValue = valueOrFunction(oldValue);
     } else {
-      newValue = valueOrFunction;
+      newValue = deepClone(valueOrFunction);
     }
-    newValue = deepClone(newValue);
 
     this._set(keys, newValue);
 

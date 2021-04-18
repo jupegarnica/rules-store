@@ -5,20 +5,18 @@ import type { RuleContext } from "../src/types.ts";
 Deno.test("[Rules Examples] counter", () => {
   const rules = {
     count: {
-      _write: ({ newData , data}: RuleContext) => {
-        return typeof newData === 'number' && (newData - data === 1 || !data);
+      _write: ({ newData, data }: RuleContext) => {
+        return typeof newData === "number" && (newData - data === 1 || !data);
       },
     },
   };
 
   const db = new Store({ rules });
-  db.set("count", 0)
-  db.set("count", 1)
+  db.set("count", 0);
+  db.set("count", 1);
   assertThrows(() => db.set("count", 10));
   assertThrows(() => db.set("count", 11));
 });
-
-
 
 Deno.test("[Rules Examples] list of numbers", () => {
   const rules = {
@@ -40,7 +38,7 @@ Deno.test("[Rules Examples] list of numbers", () => {
   assertEquals(A, [1, 2]);
   db.set("myNumbers.2", 3);
   db.push("myNumbers", 1e2);
-  db.remove('myNumbers.0');
+  db.remove("myNumbers.0");
 
   assertThrows(() => db.set("myNumbers.2", null));
   assertThrows(() => db.push("myNumbers", 0, null));

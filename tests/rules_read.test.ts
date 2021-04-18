@@ -21,7 +21,7 @@ Deno.test("[Rules _red]", () => {
 Deno.test("[Rules _red] do not allow if not explicit", () => {
   const rules = {};
   const db = new Store({ rules });
-  assertThrows(() => db.set("a",1));
+  assertThrows(() => db.set("a", 1));
   assertThrows(() => db.get("a"));
 });
 
@@ -149,7 +149,11 @@ Deno.test("[Rules _read] with findOne", () => {
     filename: "./tests/test.json",
   });
 
-  assertThrows(() => db.findOne("", () => true), PermissionError, "Not explicit");
+  assertThrows(
+    () => db.findOne("", () => true),
+    PermissionError,
+    "Not explicit",
+  );
   assertThrows(() => db.findOne("arr", () => true));
   assertThrows(() => db.findOne("arr.0", () => true));
 });

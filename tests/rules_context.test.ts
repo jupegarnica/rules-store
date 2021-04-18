@@ -39,6 +39,57 @@ Deno.test("[Rules context] _write newData", () => {
   assertEquals(db.get("people.pepe.age"), 2);
 });
 
+
+
+
+Deno.test("[Rules context] newData .set and .push from different level", () => {
+  let calls = 0
+  const rules = {
+    myList: {
+      _write: ({ newData }: RuleContext) => {
+        calls++;
+        return Array.isArray(newData) && newData.length === calls;
+      },
+    },
+  };
+
+  const db = new Store({ rules });
+  const A = db.set("myList", [0]);
+  assertEquals(calls, 1);
+  assertEquals(A, [0]);
+  db.set("myList.1", 1);
+  assertEquals(calls, 2);
+  db.push("myList", 2);
+  assertEquals(calls, 3);
+  db.push("myList", 3,4);
+  assertEquals(calls, 5);
+});
+
+
+
+Deno.test("[Rules context] newData .remove from different level", () => {
+  let calls = 0
+  const rules = {
+    myList: {
+      _write: ({ newData }: RuleContext) => {
+        calls++;
+        return Array.isArray(newData) && newData.length === calls;
+      },
+    },
+  };
+
+  const db = new Store({ rules });
+  const A = db.set("myList", [0]);
+  assertEquals(calls, 1);
+  assertEquals(A, [0]);
+  db.remove("myList.1");
+  assertEquals(calls, 2);
+  assertEquals(db.get('myList'), [0]);
+
+});
+
+
+
 Deno.test("[Rules context] _read depending the data", () => {
   const rules = {
     a: { _read: (context: RuleContext) => context.data.b === 1 },

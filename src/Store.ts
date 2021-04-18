@@ -34,6 +34,7 @@ export class Store {
    * The actual data cache.
    */
   protected _data: Data = {};
+  protected _newData: Data = {};
   /**
    * The actual rules
    */
@@ -68,6 +69,25 @@ export class Store {
     this._checkRule("_read", keys);
     return deepClone(this._get(keys));
   }
+  private _set(keys: Keys, value: Value): void {
+    this._newData = deepClone(this._data);
+    deepSet(this._newData, keys, value);
+
+    try {
+      this._checkRule("_write", keys);
+    } catch (error) {
+      this._rollBack();
+      throw error;
+    }
+    this._commit();
+  }
+  private _commit(): void {
+    this._data = this._newData;
+    this._newData = {};
+  }
+  private _rollBack(): void {
+    this._newData = {};
+  }
 
   /**
    * Sets a value in the database by the specified path.
@@ -101,8 +121,8 @@ export class Store {
     }
     newValue = deepClone(newValue);
 
-    this._checkRule("_write", keys, newValue);
-    deepSet(this._data, keys, newValue);
+    this._set(keys, newValue);
+
     this._notify();
     return newValue;
   }
@@ -115,21 +135,22 @@ export class Store {
    * @returns  The value removed
    *
    */
-  public remove(path: string): Value {
+  public remove(path: string, returnRemoved = true): Value | void {
     const keys = keysFromPath(path);
-    this._checkRule("_read", keys);
-    this._checkRule("_write", keys);
-    const oldValue = this._get(keys);
     const lastKey = keys[keys.length - 1];
-
+    let oldValue;
+    if (returnRemoved) {
+      oldValue = this.get(pathFromKeys(keys));
+    }
     if (isValidNumber(lastKey)) {
       // remove array child
+      this._set(keys, undefined);
       keys.pop();
       const parentValue = this._get(keys);
       parentValue.splice(Number(lastKey), 1);
     } else {
       // remove object key
-      deepSet(this._data, keys, undefined);
+      this._set(keys, undefined);
     }
 
     this._notify();
@@ -149,15 +170,16 @@ export class Store {
     ...values: Value[]
   ): Value | Value[] {
     const keys = keysFromPath(path);
-
-    const cloned = deepClone(values);
     const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
-      throw new Error("is not an Array");
+      throw new Error("Target is not an Array");
     }
 
-    cloned.forEach((value: Value) => this._checkRule("_write", keys, value));
-    oldValue.push(...cloned);
+    const cloned = deepClone(values);
+    for (const index in cloned) {
+      const targetIndex = oldValue.length + Number(index);
+      this._set(addChildToKeys(keys, String(targetIndex)), cloned[index]);
+    }
 
     this._notify();
 
@@ -232,13 +254,14 @@ export class Store {
   public findAndRemove(
     path: string,
     finder: Finder,
+    returnsRemoved = true,
   ): [string, Value][] {
     const results = this.find(path, finder);
     const keys = keysFromPath(path);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
       const keysToRemove = addChildToKeys(keys, key);
-      this.remove(pathFromKeys(keysToRemove));
+      this.remove(pathFromKeys(keysToRemove), returnsRemoved);
     }
 
     return results;
@@ -255,12 +278,13 @@ export class Store {
   public findOneAndRemove(
     path: string,
     finder: Finder,
+    returnsRemoved = true,
   ): [string, Value] | void {
     const result = this.findOne(path, finder);
     const keys = keysFromPath(path);
     if (result) {
       const pathToRemove = addChildToKeys(keys, result[0]);
-      this.remove(pathFromKeys(pathToRemove));
+      this.remove(pathFromKeys(pathToRemove), returnsRemoved);
     }
 
     return result;
@@ -341,14 +365,12 @@ export class Store {
   private _checkRule(
     ruleType: "_read" | "_write",
     keys: Keys,
-    newData?: Value,
   ): void {
     const ruleAndParams = findRuleAndParams(
       keys,
       ruleType,
       this._rules,
     );
-    // console.log(ruleAndParams);
 
     const rule = ruleAndParams[ruleType];
     const params = ruleAndParams.params;
@@ -356,6 +378,7 @@ export class Store {
     if (typeof rule === "function") {
       try {
         const data = this._get(rulePath);
+        const newData = deepGet(this._newData, rulePath);
         const allowed = rule({
           data,
           newData,

@@ -12,6 +12,7 @@ export type Value = any;
 // deno-lint-ignore no-explicit-any
 export type ObjectKind = { [key: string]: any } | any[];
 export type Data = { [key: string]: Value };
+export type Keys = string[];
 
 export type ValueOrFunction = Value | ((value: Value) => Value);
 export type Subscriber = (data: Value) => void;

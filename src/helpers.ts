@@ -1,9 +1,17 @@
-import type { Data, ObjectKind, Params, Rule, Rules, Value } from "./types.ts";
+import type {
+  Data,
+  Keys,
+  ObjectKind,
+  Params,
+  Rule,
+  Rules,
+  Value,
+} from './types.ts';
 
 export function isObject(obj: unknown): boolean {
-  return typeof obj === "object" && obj !== null;
+  return typeof obj === 'object' && obj !== null;
 }
-export function getKeys(path: string): string[] {
+export function getKeys(path: string): Keys {
   // match "\" "/" o "."
   const keys = path.split(/[\\\\/\.]/).filter((key) => key);
 
@@ -12,18 +20,13 @@ export function getKeys(path: string): string[] {
 
 const paramRegex = /^\$.+/;
 
-export function findParam(
-  obj: ObjectKind,
-): string | void {
+export function findParam(obj: ObjectKind): string | void {
   for (const key in obj) {
     if (key.match(paramRegex)) return key;
   }
 }
 
-export function addChildToKeys(
-  keys: string[],
-  key: string,
-): string[] {
+export function addChildToKeys(keys: Keys, key: string): Keys {
   return [...keys, key];
 }
 export const deepClone = (obj: Value) => {
@@ -33,7 +36,10 @@ export const deepClone = (obj: Value) => {
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
   Object.keys(clone).forEach(
-    (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
+    (key) =>
+      (clone[key] = isObject(obj[key])
+        ? deepClone(obj[key])
+        : obj[key]),
   );
   return clone;
 };
@@ -45,7 +51,7 @@ export function isValidNumber(key: string): boolean {
   );
 }
 
-export const deepGet = (object: Data, keys: string[]): Value => {
+export const deepGet = (object: Data, keys: Keys): Value => {
   return keys.reduce(
     (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
     object,
@@ -54,7 +60,7 @@ export const deepGet = (object: Data, keys: string[]): Value => {
 
 export const deepSet = (
   obj: Data,
-  keys: string[],
+  keys: Keys,
   value: Value,
 ): Value => {
   let worker = obj;
@@ -79,33 +85,41 @@ export const deepSet = (
 };
 
 export function findRuleAndParams(
-  keys: string[],
+  keys: Keys,
   ruleType: string,
   rules: Rules,
-): { params: Params } & { [rule: string]: (Rule | undefined) } {
+): { params: Params; rulePath: Keys } & {
+  [rule: string]: Rule | undefined;
+} {
   const params: Params = {};
+  const rulePath = [] as Keys;
   // deno-lint-ignore no-explicit-any
   let worker = rules as any;
   // deno-lint-ignore no-explicit-any
   let rule: Rule | any;
-
-  for (const key of keys) {
+  let index = 0;
+  do {
+    const key = keys[index];
     const child = worker[key];
     const maybeParam = findParam(worker);
     let maybeRule = worker[ruleType];
     if (maybeRule) rule = maybeRule;
     if (isObject(child)) {
       worker = child;
+
       maybeRule = worker[ruleType];
       if (maybeRule) rule = maybeRule;
     } else {
       if (maybeParam) {
-        params[maybeParam.replace("$", "")] = key;
+        params[maybeParam.replace('$', '')] = key;
         worker = worker[maybeParam];
       } else {
         break;
       }
     }
-  }
-  return { params, [ruleType]: rule };
+    rulePath.push(key);
+  } while (index++ < keys.length);
+
+  const result = { params, [ruleType]: rule, rulePath };
+  return result;
 }

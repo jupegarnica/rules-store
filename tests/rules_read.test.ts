@@ -1,7 +1,7 @@
 import { Store } from "../src/Store.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-
+import type {RuleContext} from "../src/types.ts";
 Deno.test("[Rules] _red]", () => {
   const rules = {
     readAllowed: {
@@ -95,7 +95,7 @@ Deno.test("[Rules _read] protecting the root", () => {
     a: { _read: () => false },
   };
   const db = new Store({ rules });
-  db.set("a", 1);
+  // db.set("a", 1);
 
   assertThrows(
     () => assertEquals(db.get(""), { a: 1 }),
@@ -106,14 +106,13 @@ Deno.test("[Rules _read] protecting the root", () => {
 
 Deno.test("[Rules _read] depending the data", () => {
   const rules = {
-    // deno-lint-ignore no-explicit-any
-    a: { _read: (context: any) => context.data === 1 },
+    a: { _read: (context: RuleContext) => context.data.b === 1 },
   };
   const db = new Store({ rules });
-  db.set("a", 1);
-  assertEquals(db.get("a"), 1);
-  db.set("a", 2);
-  assertThrows(() => db.get("a"));
+  db.set("a.b", 1);
+  assertEquals(db.get("a.b"), 1);
+  db.set("a.b", 2);
+  assertThrows(() => db.get("a.b"));
 });
 
 Deno.test("[Rules _read] with find", () => {

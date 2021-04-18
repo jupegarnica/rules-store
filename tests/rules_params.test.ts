@@ -13,7 +13,8 @@ Deno.test("[Rules params] get", () => {
       $name: {
         _read: (context: RuleContext) => {
           calls++;
-          assertEquals(typeof context.data, "number");
+          assertEquals(typeof context.data, "object");
+          assertEquals(typeof context.data.age, "number");
           return calls === 1;
         },
       },
@@ -62,7 +63,7 @@ Deno.test("[Rules params] findRuleAndParams not found", () => {
   );
   assertEquals(notFound.params, {});
   assertEquals(notFound._read, undefined);
-  assertEquals(notFound, { params: {}, _read: undefined });
+  assertEquals(notFound, { params: {}, _read: undefined, rulePath:[] });
 });
 
 Deno.test("[Rules params] findRuleAndParams multiple rules", () => {

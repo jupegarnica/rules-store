@@ -20,7 +20,9 @@ Deno.test("[Rules Examples] list of numbers", () => {
   const A = db.set("myNumber", [1, 2]);
   assertEquals(A, [1, 2]);
   db.set("myNumber.2", 3);
-
+  db.push("myNumber", 1e2);
+  db.remove('myNumbers.2')
   assertThrows(() => db.set("myNumber.2", null));
+  assertThrows(() => db.push("myNumber", 0, null));
   assertThrows(() => db.set("myNumber", null));
 });

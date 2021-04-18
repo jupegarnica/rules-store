@@ -94,7 +94,8 @@ export function findRuleAndParams(
   [rule: string]: Rule | undefined;
 } {
   const params: Params = {};
-  const rulePath = [] as Keys;
+  const currentPath = [] as Keys;
+  let rulePath = [] as Keys;
   // deno-lint-ignore no-explicit-any
   let worker = rules as any;
   // deno-lint-ignore no-explicit-any
@@ -117,9 +118,12 @@ export function findRuleAndParams(
         break;
       }
     }
+    currentPath.push(key);
     maybeRule = worker[ruleType];
-    if (maybeRule) rule = maybeRule;
-    rulePath.push(key);
+    if (maybeRule) {
+      rule = maybeRule
+      rulePath = [...currentPath]
+    }
     index++;
   } while (index < keys.length);
 

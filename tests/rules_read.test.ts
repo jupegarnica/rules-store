@@ -104,16 +104,6 @@ Deno.test("[Rules _read] protecting the root", () => {
   );
 });
 
-Deno.test("[Rules _read] depending the data", () => {
-  const rules = {
-    a: { _read: (context: RuleContext) => context.data.b === 1 },
-  };
-  const db = new Store({ rules });
-  db.set("a.b", 1);
-  assertEquals(db.get("a.b"), 1);
-  db.set("a.b", 2);
-  assertThrows(() => db.get("a.b"));
-});
 
 Deno.test("[Rules _read] with find", () => {
   const rules = {

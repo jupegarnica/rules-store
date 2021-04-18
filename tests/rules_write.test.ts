@@ -89,42 +89,6 @@ Deno.test("[Rules _write] with findOneAndRemove", () => {
   assertThrows(() => db.findOneAndRemove("", () => true));
 });
 
-Deno.test("[Rules _write] newData", () => {
-  const rules = {
-    people: {
-      _write({ newData }: RuleContext) {
-        return typeof newData === "object" && newData;
-      },
-    },
-  };
-  const db = new Store({ rules });
-  db.set("people", { garn: { age: 1 }, pepe: { age: 2 } });
-  assertEquals(db.get("people.garn.age"), 1);
-  assertEquals(db.get("people.pepe.age"), 2);
-});
-
-Deno.test("[Rules _write] newData", () => {
-  let calls = 0;
-  const rules = {
-    people: {
-      $name: {
-        _write({ newData }: RuleContext) {
-          calls++;
-          return (
-            typeof newData === "object" && newData && newData.age > 0
-          );
-        },
-      },
-    },
-  };
-  const db = new Store({ rules });
-  db.set("people", { garn: { age: 1 }, pepe: { age: 2 } });
-  assertEquals(calls, 0); // don't throw because it sets on parent
-  assertEquals(db.get("people.garn.age"), 1);
-  assertEquals(db.get("people.pepe.age"), 2);
-  assertThrows(() => db.set("people.garn", { age: 0 }));
-  assertEquals(calls, 1);
-});
 
 Deno.test("[Rules _write] throwing custom error", () => {
   const rules = {

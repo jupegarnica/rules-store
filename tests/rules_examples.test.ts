@@ -2,6 +2,24 @@ import { Store } from "../src/Store.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 import type { RuleContext } from "../src/types.ts";
 
+Deno.test("[Rules Examples] counter", () => {
+  const rules = {
+    count: {
+      _write: ({ newData , data}: RuleContext) => {
+        return typeof newData === 'number' && (newData - data === 1 || !data);
+      },
+    },
+  };
+
+  const db = new Store({ rules });
+  db.set("count", 0)
+  db.set("count", 1)
+  assertThrows(() => db.set("count", 10));
+  assertThrows(() => db.set("count", 11));
+});
+
+
+
 Deno.test("[Rules Examples] list of numbers", () => {
   const rules = {
     myNumber: {

@@ -1,7 +1,7 @@
 import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
 
-import type { Config, Value, ValueOrFunction } from "./types.ts";
+import type { Config, Finder, Value, ValueOrFunction } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -51,8 +51,25 @@ export abstract class StoreFile extends Store {
     }
     return returned;
   }
-  public remove(path: string): Value {
-    const returned = super.remove(path);
+  public remove(path: string, returnRemoved = true): Value {
+    const returned = super.remove(path, returnRemoved);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+
+  public findAndRemove(path: string, finder: Finder, returnRemoved = true): Value {
+    const returned = super.findAndRemove(path, finder,returnRemoved);
+    if (this._autoSave) {
+      this.write();
+    }
+    return returned;
+  }
+
+
+  public findOneAndRemove(path: string, finder: Finder, returnRemoved = true): Value {
+    const returned = super.findOneAndRemove(path, finder,returnRemoved);
     if (this._autoSave) {
       this.write();
     }

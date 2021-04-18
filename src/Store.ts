@@ -256,7 +256,7 @@ export class Store {
     finder: Finder,
     returnsRemoved = true,
   ): [string, Value][] {
-    const results = this.find(path, finder);
+    const results = returnsRemoved ? this.find(path, finder) : [];
     const keys = keysFromPath(path);
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
@@ -280,7 +280,7 @@ export class Store {
     finder: Finder,
     returnsRemoved = true,
   ): [string, Value] | void {
-    const result = this.findOne(path, finder);
+    const result = returnsRemoved ? this.findOne(path, finder) : undefined;
     const keys = keysFromPath(path);
     if (result) {
       const pathToRemove = addChildToKeys(keys, result[0]);

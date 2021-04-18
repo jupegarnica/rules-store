@@ -71,6 +71,30 @@ Deno.test("[Rules _write] .remove _write true but _read false ", () => {
   assertThrows(() => {
     db.remove("arr.0");
   });
+
+  assertEquals(
+    db.remove("arr.0", false),
+    undefined,
+  );
+});
+
+Deno.test("[Rules _write] with .findAndRemove _write true but _read false", () => {
+  const rules = {
+    arr: {
+      $i: {
+        _write: () => true,
+        _read: () => false,
+      },
+    },
+  };
+  const db = new StoreJson({
+    rules,
+    filename: "./tests/test.json",
+  });
+
+  assertThrows(() => db.findAndRemove("arr", () => true, true));
+  assertThrows(() => db.findAndRemove("arr", () => true));
+  assertEquals(db.findAndRemove("arr", () => true, false), []);
 });
 
 Deno.test("[Rules _write] with .findOneAndRemove", () => {
@@ -88,6 +112,24 @@ Deno.test("[Rules _write] with .findOneAndRemove", () => {
   assertThrows(() => db.findOneAndRemove("", () => true));
 });
 
+Deno.test("[Rules _write] with .findOneAndRemove _write true but _read false", () => {
+  const rules = {
+    arr: {
+      $i: {
+        _write: () => true,
+        _read: () => false,
+      },
+    },
+  };
+  const db = new StoreJson({
+    rules,
+    filename: "./tests/test.json",
+  });
+
+  assertThrows(() => db.findOneAndRemove("arr", () => true, true));
+  assertThrows(() => db.findOneAndRemove("arr", () => true));
+  assertEquals(db.findOneAndRemove("arr", () => true, false), undefined);
+});
 
 Deno.test("[Rules _write] throwing custom error", () => {
   const rules = {

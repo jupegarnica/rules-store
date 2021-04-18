@@ -23,7 +23,10 @@ import type {
   ValueOrFunction,
 } from "./types.ts";
 
-const defaultRules = {};
+const allowAllRules = {
+  _read: () => true,
+  _write: () => true,
+};
 
 /**
  * A database in RAM without persistance.
@@ -47,7 +50,7 @@ export class Store {
    *
    */
   constructor(config?: BaseConfig) {
-    this._rules = config?.rules ?? defaultRules;
+    this._rules = config?.rules ?? allowAllRules;
   }
 
   private _get(keys: Keys): Value {
@@ -361,16 +364,28 @@ export class Store {
     ruleType: "_read" | "_write",
     keys: Keys,
   ): void {
+
     const ruleAndParams = findRuleAndParams(
       keys,
       ruleType,
       this._rules,
-    );
+      );
 
-    const rule = ruleAndParams[ruleType];
-    const params = ruleAndParams.params;
-    const rulePath = ruleAndParams.rulePath;
+      const rule = ruleAndParams[ruleType];
+      const params = ruleAndParams.params;
+      const rulePath = ruleAndParams.rulePath;
     try {
+      if (typeof rule !== 'function') {
+        throw new Error(
+          `Not explicit permission to ${
+            ruleType.replace(
+              "_",
+              "",
+            )
+          }`,
+        );
+
+      }
       const data = this._get(rulePath);
       const newData = deepGet(this._newData, rulePath);
       const allowed = rule?.({
@@ -387,11 +402,12 @@ export class Store {
               "_",
               "",
             )
-          } disallowed at path ${pathFromKeys(keys)}`,
+          } disallowed at path ${pathFromKeys(rulePath)}`,
         );
       }
       return;
     } catch (error) {
       throw error;
-    }  }
+    }
+  }
 }

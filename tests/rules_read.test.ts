@@ -80,7 +80,8 @@ Deno.test(
   "[Rules _read] access protected data from parent",
   () => {
     const rules = {
-      // _read: () => true,
+      _read: () => true,
+      _write: () => true,
       a: { _read: () => false },
     };
     const db = new Store({ rules });
@@ -147,7 +148,7 @@ Deno.test("[Rules _read] with findOne", () => {
     filename: "./tests/test.json",
   });
 
-  assertThrows(() => db.findOne("", () => true), Error, "/arr");
+  assertThrows(() => db.findOne("", () => true), Error, "Not explicit");
   assertThrows(() => db.findOne("arr", () => true));
   assertThrows(() => db.findOne("arr.0", () => true));
 });

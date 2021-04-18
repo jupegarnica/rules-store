@@ -6,6 +6,8 @@ Deno.test("[Rules context] _write newData", () => {
   let calls = 0;
   const rules = {
     people: {
+      _read: () => true,
+      _write: () => true,
       $name: {
         _write({ newData }: RuleContext) {
           calls++;
@@ -27,6 +29,8 @@ Deno.test("[Rules context] _write newData", () => {
 
 Deno.test("[Rules context] _write newData", () => {
   const rules = {
+    _read: () => true,
+
     people: {
       _write({ newData }: RuleContext) {
         return typeof newData === "object" && newData;
@@ -65,6 +69,8 @@ Deno.test("[Rules context] newData .set and .push from different level", () => {
 Deno.test("[Rules context] newData .remove from different level", () => {
   let calls = 0;
   const rules = {
+    _read: () => true,
+
     myList: {
       _write: ({ newData }: RuleContext) => {
         calls++;
@@ -77,13 +83,14 @@ Deno.test("[Rules context] newData .remove from different level", () => {
   const A = db.set("myList", [0]);
   assertEquals(calls, 1);
   assertEquals(A, [0]);
-  db.remove("myList.1");
+  db.remove("myList.1", false);
   assertEquals(calls, 2);
   assertEquals(db.get("myList"), [0]);
 });
 
 Deno.test("[Rules context] _read depending the data", () => {
   const rules = {
+    _write: () => true,
     a: { _read: (context: RuleContext) => context.data.b === 1 },
   };
   const db = new Store({ rules });
@@ -97,6 +104,7 @@ Deno.test("[Rules context] params _read", () => {
   let calls = 0;
 
   const rules = {
+    _write: () => true,
     people: {
       $name: {
         _read: (context: RuleContext) => {
@@ -121,6 +129,7 @@ Deno.test("[Rules context] params _read", () => {
 
 Deno.test("[Rules context] params _read at root", () => {
   const rules = {
+    _write: () => true,
     $rootKey: {
       _read({ params, data }: RuleContext) {
         return (
@@ -157,6 +166,7 @@ Deno.test("[Rules context] params _write at root", () => {
 Deno.test("[Rules context] params multiple params", () => {
   let calls = 0;
   const rules = {
+    _write: () => true,
     $a: {
       $b: {
         $c: {
@@ -178,6 +188,7 @@ Deno.test("[Rules context] params multiple params", () => {
 Deno.test("[Rules context] rootData", () => {
   let calls = 0;
   const rules = {
+    _write: () => true,
     $a: {
       $b: {
         _read({ rootData }: RuleContext) {
@@ -200,6 +211,7 @@ Deno.test("[Rules context] rootData", () => {
 Deno.test("[Rules context] rootData inmutable", () => {
   let calls = 0;
   const rules = {
+    _write: () => true,
     $a: {
       $b: {
         _read({ rootData }: RuleContext) {

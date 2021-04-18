@@ -75,8 +75,9 @@ export const deepSet = (
       worker[key] = isValidNumber(keys[index + 1]) ? [] : {};
     }
     if (index === lastIndex) {
-      if (value === undefined) delete worker[key];
-      else worker[key] = value;
+      if (value === undefined) {
+        delete worker[key];
+      } else worker[key] = value;
     }
 
     worker = worker[key];
@@ -101,11 +102,13 @@ export function findRuleAndParams(
   // deno-lint-ignore no-explicit-any
   let rule: Rule | any;
   let index = 0;
+
   do {
     const key = keys[index];
     const child = worker[key];
     const maybeParam = findParam(worker);
     let maybeRule = worker[ruleType];
+
     if (maybeRule) rule = maybeRule;
     if (isObject(child)) {
       worker = child;

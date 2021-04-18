@@ -1,3 +1,4 @@
+import { PermissionError } from "../src/Errors.ts";
 import { Store } from "../src/Store.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
@@ -31,13 +32,13 @@ Deno.test("[Rules _read] root", () => {
   const db = new Store({ rules });
   assertThrows(
     () => db.get("a"),
-    Error,
+    PermissionError,
     "read disallowed at path /",
   );
 
   assertThrows(
     () => db.get("b"),
-    Error,
+    PermissionError,
     "read disallowed at path /",
   );
 });
@@ -66,12 +67,12 @@ Deno.test("[Rules _read] overlapping rules", () => {
 
   assertThrows(
     () => db.get("a"),
-    Error,
+    PermissionError,
     "read disallowed at path /a",
   );
   assertThrows(
     () => db.get("a.b"),
-    Error,
+    PermissionError,
     "read disallowed at path /a",
   );
 });
@@ -90,7 +91,7 @@ Deno.test(
 
     assertThrows(
       () => db.get("a"),
-      Error,
+      PermissionError,
       "read disallowed at path /a",
     );
   },
@@ -106,7 +107,7 @@ Deno.test("[Rules _read] protecting the root", () => {
 
   assertThrows(
     () => assertEquals(db.get(""), { a: 1 }),
-    Error,
+    PermissionError,
     "read disallowed at path /",
   );
 });
@@ -148,7 +149,7 @@ Deno.test("[Rules _read] with findOne", () => {
     filename: "./tests/test.json",
   });
 
-  assertThrows(() => db.findOne("", () => true), Error, "Not explicit");
+  assertThrows(() => db.findOne("", () => true), PermissionError, "Not explicit");
   assertThrows(() => db.findOne("arr", () => true));
   assertThrows(() => db.findOne("arr.0", () => true));
 });
@@ -177,7 +178,7 @@ Deno.test("[Rules _read] find with one child not allowed", () => {
 
   assertThrows(
     () => db.find("arr", () => true),
-    Error,
+    PermissionError,
     "/arr/1",
   );
 });
@@ -193,7 +194,7 @@ Deno.test("[Rules _read]  findOn with one child not allowed", () => {
 
   assertThrows(
     () => db.findOne("arr", () => true),
-    Error,
+    PermissionError,
     "/arr/0",
   );
 });
@@ -201,9 +202,9 @@ Deno.test("[Rules _read]  findOn with one child not allowed", () => {
 Deno.test("[Rules _read] throwing custom error", () => {
   const rules = {
     _read() {
-      throw new TypeError("custom error");
+      throw new EvalError("custom error");
     },
   };
   const db = new Store({ rules });
-  assertThrows(() => db.get("a"), TypeError, "custom error");
+  assertThrows(() => db.get("a"), EvalError, "custom error");
 });

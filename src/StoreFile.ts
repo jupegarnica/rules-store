@@ -1,6 +1,6 @@
 import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
-
+import { StoreNotFoundError } from "./Errors.ts";
 import type { Config, Finder, Value, ValueOrFunction } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
@@ -104,7 +104,7 @@ export abstract class StoreFile extends Store {
   public deleteStore(): void {
     const storePath = this._storePath;
     if (!existsSync(storePath)) {
-      throw new Error(`${storePath} not exists`);
+      throw new StoreNotFoundError(`${storePath} not exists`);
     }
     Deno.removeSync(storePath);
     return;

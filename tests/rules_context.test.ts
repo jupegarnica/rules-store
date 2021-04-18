@@ -1,6 +1,7 @@
 import { Store } from "../src/Store.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 import type { RuleContext } from "../src/types.ts";
+import { PermissionError } from "../src/Errors.ts";
 
 Deno.test("[Rules context] _write newData", () => {
   let calls = 0;
@@ -122,7 +123,7 @@ Deno.test("[Rules context] params _read", () => {
   assertEquals(calls, 1);
   assertThrows(
     () => db.get("people.pepe.age"),
-    Error,
+    PermissionError,
     "read disallowed",
   );
 });
@@ -145,7 +146,7 @@ Deno.test("[Rules context] params _read at root", () => {
   assertEquals(db.get("people.garn.age"), 1);
   assertThrows(
     () => db.get("clients.garn.age"),
-    Error,
+    PermissionError,
     "/clients",
   );
 });

@@ -134,11 +134,11 @@ Deno.test("[Rules _write] with .findOneAndRemove _write true but _read false", (
 Deno.test("[Rules _write] throwing custom error", () => {
   const rules = {
     _write() {
-      throw new TypeError("custom error");
+      throw new EvalError("custom error");
     },
   };
   const db = new Store({ rules });
-  assertThrows(() => db.set("a", 1), TypeError, "custom error");
+  assertThrows(() => db.set("a", 1), EvalError, "custom error");
 });
 
 Deno.test("[Rules _write] .set(function) without read permission", () => {

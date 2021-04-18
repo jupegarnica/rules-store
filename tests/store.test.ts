@@ -82,8 +82,6 @@ Deno.test("[Store] Deep remove with subscription", () => {
       assertEquals(data, called);
     } else if (called === 2) {
       assertEquals(data, undefined);
-    } else {
-      throw new Error("should not be called");
     }
   };
   const returned = db.on("a.b.c", onChange);

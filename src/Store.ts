@@ -22,6 +22,7 @@ import type {
   Value,
   ValueOrFunction,
 } from "./types.ts";
+import { PermissionError, SubscriptionNotFoundError } from "./Errors.ts";
 
 const allowAllRules = {
   _read: () => true,
@@ -110,7 +111,7 @@ export class Store {
   ): Value {
     const keys = keysFromPath(path);
     if (keys.length === 0) {
-      throw new Error("Root path cannot be set");
+      throw new PermissionError("Root path cannot be set");
     }
 
     let newValue;
@@ -172,7 +173,7 @@ export class Store {
     const keys = keysFromPath(path);
     const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
-      throw new Error("Target is not an Array");
+      throw new TypeError("Target is not an Array");
     }
 
     const cloned = deepClone(values);
@@ -198,7 +199,7 @@ export class Store {
     const keys = keysFromPath(path);
     let target = this._get(keys);
     if (!isObject(target)) {
-      throw new Error("Target not object or array");
+      throw new TypeError("Target not object or array");
     }
     target = deepClone(target);
     const results = [] as [string, Value][];
@@ -228,7 +229,7 @@ export class Store {
   ): [string, Value] | void {
     let target = this.get(path);
     if (!isObject(target)) {
-      throw new Error("Target not object or array");
+      throw new TypeError("Target not object or array");
     }
     target = deepClone(target);
     const keys = keysFromPath(path);
@@ -353,7 +354,7 @@ export class Store {
     );
 
     if (oldLength === this._subscriptions.length) {
-      throw new Error("no subscription found");
+      throw new SubscriptionNotFoundError("no subscription found");
     }
   }
 
@@ -364,19 +365,18 @@ export class Store {
     ruleType: "_read" | "_write",
     keys: Keys,
   ): void {
-
     const ruleAndParams = findRuleAndParams(
       keys,
       ruleType,
       this._rules,
-      );
+    );
 
-      const rule = ruleAndParams[ruleType];
-      const params = ruleAndParams.params;
-      const rulePath = ruleAndParams.rulePath;
+    const rule = ruleAndParams[ruleType];
+    const params = ruleAndParams.params;
+    const rulePath = ruleAndParams.rulePath;
     try {
-      if (typeof rule !== 'function') {
-        throw new Error(
+      if (typeof rule !== "function") {
+        throw new PermissionError(
           `Not explicit permission to ${
             ruleType.replace(
               "_",
@@ -384,7 +384,6 @@ export class Store {
             )
           }`,
         );
-
       }
       const data = this._get(rulePath);
       const newData = deepGet(this._newData, rulePath);
@@ -396,7 +395,7 @@ export class Store {
       });
 
       if (!allowed) {
-        throw new Error(
+        throw new PermissionError(
           `${
             ruleType.replace(
               "_",

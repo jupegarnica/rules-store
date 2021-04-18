@@ -105,6 +105,33 @@ Deno.test("[StoreJson] autoSave config on remove", () => {
   assertEquals(existsSync(db.storePath), false);
 });
 
+
+Deno.test("[StoreJson] autoSave config on findAndRemove", () => {
+  const db = new StoreJson({
+    filename: testStorePath,
+    autoSave: true,
+  });
+  db.set("arr", [1, 2]);
+  Deno.removeSync(testStorePath);
+  db.findAndRemove("arr", () => true);
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore();
+  assertEquals(existsSync(db.storePath), false);
+});
+Deno.test("[StoreJson] autoSave config on findOneAndRemove", () => {
+  const db = new StoreJson({
+    filename: testStorePath,
+    autoSave: true,
+  });
+  db.set("arr", [1, 2]);
+  Deno.removeSync(testStorePath);
+  db.findOneAndRemove("arr", () => true);
+  assertEquals(existsSync(db.storePath), true);
+  db.deleteStore();
+  assertEquals(existsSync(db.storePath), false);
+});
+
+
 Deno.test("[StoreJson] set and get null", () => {
   const db = new StoreJson();
   db.set("a.b.c", null);

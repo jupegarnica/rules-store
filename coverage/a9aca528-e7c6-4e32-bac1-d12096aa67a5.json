@@ -1,0 +1,1 @@
+{"scriptId":"62","url":"deno:runtime/js/99_main.js","functions":[{"functionName":"opMainModule","ranges":[{"startOffset":3935,"endOffset":4006,"count":28}],"isBlockCoverage":true},{"functionName":"","ranges":[{"startOffset":15017,"endOffset":15071,"count":1}],"isBlockCoverage":true}]}

@@ -1,5 +1,10 @@
 scripts:
   test: deno test --allow-read --allow-write --unstable
+  coverage:
+    - deno test --allow-read --allow-write --unstable --coverage=coverage
+    - deno coverage --unstable coverage --lcov > coverage/coverage.lcov
+    - genhtml -o coverage/html coverage/coverage.lcov
+    - deno run -A https://deno.land/std/http/file_server.ts coverage/html
   # dev:
   #   cmd: vr test
   #   watch: true

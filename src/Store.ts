@@ -204,12 +204,10 @@ export class Store {
     target = deepClone(target);
     const results = [] as [string, Value][];
     for (const key in target) {
-      if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkRule("_read", addChildToKeys(keys, key));
-        const value = target[key];
-        if (finder(value, key)) {
-          results.push([key, value]);
-        }
+      this._checkRule("_read", addChildToKeys(keys, key));
+      const value = target[key];
+      if (finder(value, key)) {
+        results.push([key, value]);
       }
     }
     return results;
@@ -234,12 +232,10 @@ export class Store {
     target = deepClone(target);
     const keys = keysFromPath(path);
     for (const key in target) {
-      if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkRule("_read", addChildToKeys(keys, key));
-        const value = target[key];
-        if (finder(value, key)) {
-          return [key, value];
-        }
+      this._checkRule("_read", addChildToKeys(keys, key));
+      const value = target[key];
+      if (finder(value, key)) {
+        return [key, value];
       }
     }
   }

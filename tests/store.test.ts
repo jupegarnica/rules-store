@@ -361,6 +361,13 @@ Deno.test("[Store] find at not object", () => {
   assertThrows(() => db.find("arr.0", () => true));
 });
 
+Deno.test("[Store] findOne not found", () => {
+  const db = new Store();
+  db.set("a", [1]);
+
+  const result = db.findOne("a", () => false);
+  assertEquals(result, undefined);
+});
 Deno.test("[Store] findOne in a object", () => {
   const db = new Store();
   db.set("obj", { a: 1, b: 2, c: 3 });

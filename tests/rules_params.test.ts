@@ -66,7 +66,26 @@ Deno.test("[Rules params] _write at root", () => {
   assertThrows(() => db.set("clients", { pepe: { age: 2 } }));
 });
 
-// TODO more integration tests:  with _write and more cases
+Deno.test("[Rules params] multiple params", () => {
+  let calls = 0;
+  const rules = {
+    $a: {
+      $b: {
+        $c: {
+          _write({ params }: RuleContext) {
+            calls++;
+            return params.a === "a" && params.b === "b" && params.c === "c";
+          },
+        },
+      },
+    },
+  };
+  const db = new Store({ rules });
+  db.set("a.b.c", 1);
+  assertEquals(calls, 1);
+  assertThrows(() => db.set("x.y.z", 1));
+  assertEquals(calls, 2);
+});
 
 Deno.test("[Rules params] findRuleAndParams basic", () => {
   const rules = {

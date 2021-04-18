@@ -2,7 +2,6 @@ import { Store } from "../src/Store.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import { RuleContext } from "../src/types.ts";
 
 Deno.test("[Rules _write] .set", () => {
   const rules = {
@@ -57,7 +56,7 @@ Deno.test("[Rules _write] .remove", () => {
   });
 });
 
-Deno.test("[Rules _write] true but _read false ", () => {
+Deno.test("[Rules _write] .remove _write true but _read false ", () => {
   const rules = {
     arr: {
       _write: () => true,
@@ -74,7 +73,7 @@ Deno.test("[Rules _write] true but _read false ", () => {
   });
 });
 
-Deno.test("[Rules _write] with findOneAndRemove", () => {
+Deno.test("[Rules _write] with .findOneAndRemove", () => {
   const rules = {
     arr: { _write: () => false },
   };

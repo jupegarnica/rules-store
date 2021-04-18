@@ -1,7 +1,6 @@
 import { Store } from "../src/Store.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import type { RuleContext } from "../src/types.ts";
 Deno.test("[Rules] _red]", () => {
   const rules = {
     readAllowed: {

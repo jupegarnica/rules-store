@@ -4,9 +4,10 @@ import {
   deepGet,
   deepSet,
   findRuleAndParams,
-  getKeys,
+  keysFromPath,
   isObject,
   isValidNumber,
+pathFromKeys,
 } from './helpers.ts';
 
 import { equal } from './deps.ts';
@@ -63,7 +64,7 @@ export class Store {
    */
 
   public get(path: string): Value {
-    const keys = getKeys(path);
+    const keys = keysFromPath(path);
     this._checkReadRules(keys);
     return deepClone(this._get(keys));
   }
@@ -86,7 +87,7 @@ export class Store {
     path: string,
     valueOrFunction: ValueOrFunction,
   ): Value {
-    const keys = getKeys(path);
+    const keys = keysFromPath(path);
     if (keys.length === 0) {
       throw new Error('Root path cannot be set');
     }
@@ -114,7 +115,7 @@ export class Store {
    *
    */
   public remove(path: string): Value {
-    const keys = getKeys(path);
+    const keys = keysFromPath(path);
     this._checkWriteRules(keys);
     this._checkReadRules(keys);
     const oldValue = this._get(keys);
@@ -146,7 +147,7 @@ export class Store {
     path: string,
     ...values: Value[]
   ): Value | Value[] {
-    const keys = getKeys(path);
+    const keys = keysFromPath(path);
     this._checkWriteRules(keys);
     const cloned = deepClone(values);
     const oldValue = this._get(keys);
@@ -170,7 +171,7 @@ export class Store {
    * @returns  An array of pairs [key,value] found
    */
   public find(path: string, finder: Finder): [string, Value][] {
-    const keys = getKeys(path);
+    const keys = keysFromPath(path);
     let target = this._get(keys);
     if (!isObject(target)) {
       throw new Error('Target not object or array');
@@ -206,7 +207,7 @@ export class Store {
       throw new Error('Target not object or array');
     }
     target = deepClone(target);
-    const keys = getKeys(path);
+    const keys = keysFromPath(path);
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
         this._checkReadRules(addChildToKeys(keys, key));
@@ -231,10 +232,11 @@ export class Store {
     finder: Finder,
   ): [string, Value][] {
     const results = this.find(path, finder);
+    const keys = keysFromPath(path)
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
-      const pathToRemove = [...getKeys(path), key].join('.');
-      this.remove(pathToRemove);
+      const keysToRemove = addChildToKeys(keys,key);
+      this.remove(pathFromKeys(keysToRemove));
     }
 
     return results;
@@ -253,11 +255,10 @@ export class Store {
     finder: Finder,
   ): [string, Value] | void {
     const result = this.findOne(path, finder);
+    const keys = keysFromPath(path);
     if (result) {
-      const pathToRemove = [...getKeys(path), result[0]].join(
-        '.',
-      );
-      this.remove(pathToRemove);
+      const pathToRemove = addChildToKeys(keys, result[0])
+      this.remove(pathFromKeys(pathToRemove));
     }
 
     return result;
@@ -357,7 +358,7 @@ export class Store {
             `${ruleType.replace(
               '_',
               '',
-            )} disallowed at path /${keys.join('/')}`,
+            )} disallowed at path ${pathFromKeys(keys)}`,
           );
         }
         return;

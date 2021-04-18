@@ -3,7 +3,7 @@ import {
   deepGet,
   deepSet,
   findParam,
-  getKeys,
+  keysFromPath,
   isValidNumber,
 } from "../src/helpers.ts";
 import { assertEquals } from "./test_deps.ts";
@@ -75,14 +75,14 @@ Deno.test("[Helpers] deepGet array", () => {
   ]);
 });
 
-Deno.test("[Helpers] getKeys", () => {
-  assertEquals(getKeys("x.y.z"), ["x", "y", "z"]);
-  assertEquals(getKeys("x/y/z"), ["x", "y", "z"]);
-  assertEquals(getKeys("/x/y/z"), ["x", "y", "z"]);
-  assertEquals(getKeys("x/y/z/"), ["x", "y", "z"]);
-  assertEquals(getKeys("/x/y/z/"), ["x", "y", "z"]);
-  assertEquals(getKeys("\\x\\y\\z\\"), ["x", "y", "z"]);
-  assertEquals(getKeys("\\x.y/z\\"), ["x", "y", "z"]);
+Deno.test("[Helpers] keysFromPath", () => {
+  assertEquals(keysFromPath("x.y.z"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("x/y/z"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("/x/y/z"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("x/y/z/"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("/x/y/z/"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("\\x\\y\\z\\"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("\\x.y/z\\"), ["x", "y", "z"]);
 });
 
 Deno.test("[Helpers] isValidNumber", () => {

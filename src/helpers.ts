@@ -11,11 +11,19 @@ import type {
 export function isObject(obj: unknown): boolean {
   return typeof obj === 'object' && obj !== null;
 }
-export function getKeys(path: string): Keys {
+export function keysFromPath(path: string): Keys {
   // match "\" "/" o "."
   const keys = path.split(/[\\\\/\.]/).filter((key) => key);
 
   return keys;
+}
+
+export function pathFromKeys(keys: Keys): string {
+  return `/${keys.join('/')}`;
+}
+
+export function addChildToKeys(keys: Keys, ...rest: Keys): Keys {
+  return [...keys, ...rest];
 }
 
 const paramRegex = /^\$.+/;
@@ -26,9 +34,6 @@ export function findParam(obj: ObjectKind): string | void {
   }
 }
 
-export function addChildToKeys(keys: Keys, key: string): Keys {
-  return [...keys, key];
-}
 export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {
     return obj;

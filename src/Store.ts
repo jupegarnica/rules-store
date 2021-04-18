@@ -63,7 +63,6 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    * @returns The cloned value found or undefined if not found
    */
-
   public get(path: string): Value {
     const keys = keysFromPath(path);
     this._checkRule("_read", keys);
@@ -102,7 +101,6 @@ export class Store {
    * @returns  The cloned value added
    *
    */
-
   public set(
     path: string,
     valueOrFunction: ValueOrFunction,
@@ -309,7 +307,6 @@ export class Store {
    * @param callback A function to be called when the value has changed and during subscription
    * @returns  The value
    */
-
   public subscribe(path: string, callback: Subscriber): Value {
     const value = this.get(path);
     this._subscriptions.push({
@@ -341,7 +338,6 @@ export class Store {
    * @param path The path
    * @param callback A reference to the callback used in the subscription
    */
-
   public off(path: string, callback: Subscriber): void {
     const oldLength = this._subscriptions.length;
 
@@ -374,31 +370,28 @@ export class Store {
     const rule = ruleAndParams[ruleType];
     const params = ruleAndParams.params;
     const rulePath = ruleAndParams.rulePath;
-    if (typeof rule === "function") {
-      try {
-        const data = this._get(rulePath);
-        const newData = deepGet(this._newData, rulePath);
-        const allowed = rule({
-          data,
-          newData,
-          params,
-          rootData: deepClone(this._data),
-        });
+    try {
+      const data = this._get(rulePath);
+      const newData = deepGet(this._newData, rulePath);
+      const allowed = rule?.({
+        data,
+        newData,
+        params,
+        rootData: deepClone(this._data),
+      });
 
-        if (!allowed) {
-          throw new Error(
-            `${
-              ruleType.replace(
-                "_",
-                "",
-              )
-            } disallowed at path ${pathFromKeys(keys)}`,
-          );
-        }
-        return;
-      } catch (error) {
-        throw error;
+      if (!allowed) {
+        throw new Error(
+          `${
+            ruleType.replace(
+              "_",
+              "",
+            )
+          } disallowed at path ${pathFromKeys(keys)}`,
+        );
       }
-    }
-  }
+      return;
+    } catch (error) {
+      throw error;
+    }  }
 }

@@ -1,7 +1,8 @@
 import { Store } from "../src/Store.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-Deno.test("[Rules] _red]", () => {
+
+Deno.test("[Rules _red]", () => {
   const rules = {
     readAllowed: {
       _read: () => true,
@@ -14,6 +15,13 @@ Deno.test("[Rules] _red]", () => {
   const A = db.get("readAllowed");
   assertEquals(A, undefined);
   assertThrows(() => db.get("readForbidden.a.b.c"));
+});
+
+Deno.test("[Rules _red] do not allow if not explicit", () => {
+  const rules = {};
+  const db = new Store({ rules });
+  assertThrows(() => db.set("a",1));
+  assertThrows(() => db.get("a"));
 });
 
 Deno.test("[Rules _read] root", () => {

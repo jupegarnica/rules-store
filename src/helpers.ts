@@ -101,7 +101,7 @@ export function findRuleAndParams(
   // deno-lint-ignore no-explicit-any
   let worker = rules as any;
   // deno-lint-ignore no-explicit-any
-  let rule: Rule | any;
+  let rule: Rule | any ;
   let index = 0;
   do {
     const key = keys[index];

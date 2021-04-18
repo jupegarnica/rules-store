@@ -65,7 +65,7 @@ export class Store {
 
   public get(path: string): Value {
     const keys = keysFromPath(path);
-    this._checkReadRules(keys);
+    this._checkRule('_read', keys);
     return deepClone(this._get(keys));
   }
 
@@ -91,7 +91,6 @@ export class Store {
     if (keys.length === 0) {
       throw new Error('Root path cannot be set');
     }
-    this._checkWriteRules(keys);
 
     let newValue;
     if (typeof valueOrFunction === 'function') {
@@ -101,6 +100,8 @@ export class Store {
       newValue = valueOrFunction;
     }
     newValue = deepClone(newValue);
+
+    this._checkRule('_write', keys, newValue);
     deepSet(this._data, keys, newValue);
     this._notify();
     return newValue;
@@ -116,8 +117,8 @@ export class Store {
    */
   public remove(path: string): Value {
     const keys = keysFromPath(path);
-    this._checkWriteRules(keys);
-    this._checkReadRules(keys);
+    this._checkRule('_read', keys);
+    this._checkRule('_write', keys);
     const oldValue = this._get(keys);
     const lastKey = keys[keys.length - 1];
 
@@ -148,13 +149,14 @@ export class Store {
     ...values: Value[]
   ): Value | Value[] {
     const keys = keysFromPath(path);
-    this._checkWriteRules(keys);
+
     const cloned = deepClone(values);
     const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
       throw new Error('is not an Array');
     }
-
+    ;
+    cloned.forEach((value: Value) => this._checkRule('_write', keys, value))
     oldValue.push(...cloned);
 
     this._notify();
@@ -180,7 +182,7 @@ export class Store {
     const results = [] as [string, Value][];
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkReadRules(addChildToKeys(keys, key));
+        this._checkRule('_read',addChildToKeys(keys, key));
         const value = target[key];
         if (finder(value, key)) {
           results.push([key, value]);
@@ -210,7 +212,7 @@ export class Store {
     const keys = keysFromPath(path);
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        this._checkReadRules(addChildToKeys(keys, key));
+        this._checkRule('_read', addChildToKeys(keys, key))
         const value = target[key];
         if (finder(value, key)) {
           return [key, value];
@@ -339,19 +341,22 @@ export class Store {
   private _checkRule(
     ruleType: '_read' | '_write',
     keys: Keys,
+    newData?: Value
   ): void {
     const ruleAndParams = findRuleAndParams(
       keys,
       ruleType,
       this._rules,
     );
+    // console.log(ruleAndParams);
+
     const rule = ruleAndParams[ruleType];
     const params = ruleAndParams.params;
     const rulePath = ruleAndParams.rulePath;
     if (typeof rule === 'function') {
       try {
         const data = this._get(rulePath);
-        const allowed = rule({ data, params });
+        const allowed = rule({ data, newData, params });
 
         if (!allowed) {
           throw new Error(
@@ -367,11 +372,5 @@ export class Store {
       }
     }
   }
-  protected _checkReadRules(keys: Keys): void {
-    this._checkRule('_read', keys);
-  }
 
-  protected _checkWriteRules(keys: Keys): void {
-    this._checkRule('_write', keys);
-  }
 }

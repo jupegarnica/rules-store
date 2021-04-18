@@ -30,6 +30,7 @@ export type Params = { [key: string]: string };
 export type RuleContext = {
   data: Value;
   params: Params;
+  newData: Value;
 };
 
 // deno-lint-ignore no-explicit-any

@@ -201,3 +201,14 @@ Deno.test("[Rules _read]  findOn with one child not allowed", () => {
     "/arr/0",
   );
 });
+
+
+Deno.test('[Rules _read] throwing custom error', () => {
+  const rules = {
+    _read() {
+      throw new TypeError("custom error");
+    }
+  };
+  const db = new Store({ rules });
+  assertThrows(() => db.get('a'), TypeError, 'custom error')
+});

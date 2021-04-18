@@ -131,3 +131,50 @@ Deno.test("[Rules context] params multiple params", () => {
   assertThrows(() => db.set("x.y.z", 1));
   assertEquals(calls, 2);
 });
+
+Deno.test("[Rules context] rootData", () => {
+  let calls = 0;
+  const rules = {
+    $a: {
+      $b: {
+        _read({ rootData }: RuleContext) {
+          calls++;
+          assertEquals(rootData, { a: { b: 1 } });
+          return true;
+        },
+      },
+    },
+  };
+  const db = new Store({ rules });
+  db.set("a.b", 1);
+  db.get("x.y.z");
+  assertEquals(calls, 1);
+
+  db.get("w.x.y.z");
+  assertEquals(calls, 2);
+});
+
+Deno.test("[Rules context] rootData inmutable", () => {
+  let calls = 0;
+  const rules = {
+    $a: {
+      $b: {
+        _read({ rootData }: RuleContext) {
+          calls++;
+          assertEquals(rootData, { a: { b: 1 } });
+          rootData.a.b = 2;
+          return true;
+        },
+      },
+    },
+  };
+  const db = new Store({ rules });
+  db.set("a.b", 1);
+  db.get("x.y.z");
+  assertEquals(calls, 1);
+  assertEquals(
+    db.get("a.b"),
+    1,
+  );
+  assertEquals(calls, 2);
+});

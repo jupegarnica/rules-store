@@ -356,7 +356,12 @@ export class Store {
     if (typeof rule === "function") {
       try {
         const data = this._get(rulePath);
-        const allowed = rule({ data, newData, params });
+        const allowed = rule({
+          data,
+          newData,
+          params,
+          rootData: deepClone(this._data),
+        });
 
         if (!allowed) {
           throw new Error(

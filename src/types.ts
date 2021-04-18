@@ -31,6 +31,7 @@ export type RuleContext = {
   data: Value;
   params: Params;
   newData: Value;
+  rootData: Data;
 };
 
 // deno-lint-ignore no-explicit-any

@@ -1,8 +1,7 @@
 import { findRuleAndParams } from "../src/helpers.ts";
-import { assertEquals} from "./test_deps.ts";
+import { assertEquals } from "./test_deps.ts";
 
-const context = { data: "bar", params: {}, newData: undefined };
-
+const context = { data: "bar", params: {}, newData: undefined, rootData: {} };
 
 Deno.test("[Rules params] findRuleAndParams basic", () => {
   const rules = {

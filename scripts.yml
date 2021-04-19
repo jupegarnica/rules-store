@@ -1,5 +1,6 @@
 scripts:
   test: deno test --allow-read --allow-write --unstable
+  bench: deno run -A --unstable benchmarks/benchmarks.ts
   coverage:
     - deno test --allow-read --allow-write --unstable --coverage=coverage
     - deno coverage --unstable coverage --lcov > coverage/coverage.lcov

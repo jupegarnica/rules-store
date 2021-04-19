@@ -16,6 +16,7 @@ import type {
   Data,
   Finder,
   Keys,
+  RuleContext,
   Rules,
   Subscriber,
   Subscription,
@@ -52,7 +53,7 @@ export class Store {
    */
   constructor(config?: BaseConfig) {
     this._rules = config?.rules ?? allowAllRules;
-    this._cloneData = config?.cloneData ?? true;
+    this._cloneData = config?.cloneData ?? false;
   }
 
   private _get(keys: Keys): Value {
@@ -385,28 +386,57 @@ export class Store {
           }`,
         );
       }
-
-      // let data = deepGet(JSON.parse(this._dataBackup), rulePath);
-
-      // let newData = deepGet(this._data, rulePath);
-      let newData;
-      let data;
-
+      // deno-lint-ignore no-this-alias
+      const self = this;
+      let ruleContext;
       if (ruleType === "_write") {
-        data = deepGet(JSON.parse(this._dataBackup), rulePath);
-        newData = deepGet(this._data, rulePath);
+        ruleContext = {
+          params,
+          get data(): Value {
+            return deepGet(JSON.parse(self._dataBackup), rulePath);
+          },
+          get newData(): Value {
+            return deepGet(self._data, rulePath);
+          },
+          get rootData(): Data {
+            return self._clone(self._data);
+          },
+          set data(_: Value) {
+            throw new Error("please do not set data");
+          },
+          set newData(_: Value) {
+            throw new Error("please do not set newData");
+          },
+          set rootData(_: Data) {
+            throw new Error("please do not set rootData");
+          },
+        };
       }
       if (ruleType === "_read") {
-        data = deepGet(this._data, rulePath);
-        newData = undefined;
-      }
+        ruleContext = {
+          params,
 
-      const allowed = rule?.({
-        data,
-        newData,
-        params,
-        rootData: this._clone(this._data),
-      });
+          get data(): Value {
+            return deepGet(self._data, rulePath);
+          },
+          get newData(): Value {
+            return undefined;
+          },
+          get rootData(): Data {
+            return self._clone(self._data);
+          },
+          set data(_: Value) {
+            throw new Error("please do not set data");
+          },
+          set newData(_: Value) {
+            throw new Error("please do not set newData");
+          },
+          set rootData(_: Data) {
+            throw new Error("please do not set rootData");
+          },
+        };
+      }
+      const allowed = rule?.(ruleContext as RuleContext);
 
       if (!allowed) {
         throw new PermissionError(

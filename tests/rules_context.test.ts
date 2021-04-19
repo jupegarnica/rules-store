@@ -234,3 +234,36 @@ Deno.test("[Rules context] rootData inmutable", () => {
   );
   assertEquals(calls, 2);
 });
+
+
+Deno.test("[Rules context] data inmutable even when cloneData = false", () => {
+  let calls = 0;
+  const rule = (context: RuleContext) =>{
+    calls++;
+    assertThrows(() => {
+      context.rootData = {};
+    })
+    assertThrows(() => {
+      context.newData = 3;
+    })
+    assertThrows(() => {
+      context.data = 2;
+    })
+    return true;
+  };
+  const rules = {
+    _write: () => true,
+    $a: {
+      $b: {
+        _write: rule,
+        _read: rule
+      },
+    },
+  };
+  const db = new Store({ rules , cloneData: false});
+  db.set("a.b", 1);
+  assertEquals(calls, 1);
+  db.get("a.b.c");
+  assertEquals(calls, 2);
+
+});

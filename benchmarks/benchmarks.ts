@@ -8,7 +8,11 @@ import { StoreJson } from "../src/StoreJson.ts";
 // import { Store } from `../src/Store.ts`;
 // const testStorePath = `./bench.store.json`;
 
-const RUNS = 1e3;
+const RUNS =
+1e3;
+1e2;
+1e4;
+1e5;
 
 bench({
   name: `[Set Get] set ${RUNS} children`,
@@ -93,7 +97,7 @@ for (const result of results) {
   const { name, runsCount, measuredRunsAvgMs } = result;
   dbResults.set(
     `results/${name}`,
-    (old: any) => {
+    (old:{[k:string]: number}) => {
       const lastOld = old?.lastRun ?? 0;
       const totalRunsOld = old?.totalRuns ?? 0;
       const totalRuns = (totalRunsOld) + runsCount;

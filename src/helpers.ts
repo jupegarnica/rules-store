@@ -11,11 +11,9 @@ import type {
 export function isObject(obj: unknown): boolean {
   return typeof obj === "object" && obj !== null;
 }
+// match "\" "/" o "."
 export function keysFromPath(path: string): Keys {
-  // match "\" "/" o "."
-  const keys = path.split(/[\\\\/\.]/).filter((key) => key);
-
-  return keys;
+  return path.split(/[\\\\/\.]/).filter((key) => key);
 }
 
 export function pathFromKeys(keys: Keys): string {
@@ -58,6 +56,8 @@ export function isValidNumber(key: string): boolean {
     maybeNumber >= 0 && maybeNumber <= Number.MAX_SAFE_INTEGER
   );
 }
+
+// export const isValidNumber = memo(_isValidNumber);
 
 export const deepGet = (object: Data, keys: Keys): Value => {
   return keys.reduce(
@@ -137,3 +137,31 @@ export function findRuleAndParams(
   const result = { params, [ruleType]: rule, rulePath };
   return result;
 }
+
+// export function memo(fun: (...args: Value[]) => Value) {
+//   const cache: { [key: string]: Value } = {};
+//   return function (...args: Value[]) {
+//     const key = args[0];
+//     if (cache[key] != undefined) {
+//       return cache[key];
+//     } else {
+//       const result = fun(...args);
+//       cache[key] = result;
+//       return result;
+//     }
+//   };
+// }
+
+// export function memoCheckRule(fun: (...args: Value[]) => Value) {
+//   const cache: { [key: string]: Value } = {};
+//   return function (...args: Value[]) {
+//     const key = args[0] + args[1];
+//     if (cache[key] != undefined) {
+//       return cache[key];
+//     } else {
+//       const result = fun(...args);
+//       cache[key] = result;
+//       return result;
+//     }
+//   };
+// }

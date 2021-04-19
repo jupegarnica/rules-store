@@ -16,6 +16,7 @@ import type {
   Data,
   Finder,
   Keys,
+  Params,
   RuleContext,
   Rules,
   Subscriber,
@@ -40,12 +41,7 @@ export class Store {
    */
   protected _data: Data = {};
   protected _dataBackup = "{}";
-  /**
-   * The actual rules
-   */
-  protected _rules: Rules;
   protected _cloneData = false;
-  protected _subscriptions: Subscription[] = [];
 
   /**
    * Create a new {Store} instance without persistance.
@@ -289,19 +285,8 @@ export class Store {
   }
   // SUBSCRIPTIONS
   /////////////////
+  protected _subscriptions: Subscription[] = [];
 
-  protected _notify() {
-    for (const subscription of this._subscriptions) {
-      const { path, callback } = subscription;
-      const keys = keysFromPath(path);
-      this._checkRule("_read", keys);
-      const value = deepClone(this._get(keys));
-      if (!equal(value, subscription.value)) {
-        callback(value);
-        subscription.value = value;
-      }
-    }
-  }
   /**
    * Subscribe to changes in the path
    * It will run the callback only if the path value has changed
@@ -359,8 +344,74 @@ export class Store {
     }
   }
 
+  protected _notify() {
+    for (const subscription of this._subscriptions) {
+      const { path, callback } = subscription;
+      const keys = keysFromPath(path);
+      this._checkRule("_read", keys);
+      const value = deepClone(this._get(keys));
+      if (!equal(value, subscription.value)) {
+        callback(value);
+        subscription.value = value;
+      }
+    }
+  }
+
   // RULES
   ////////
+  protected _findRuleAndParams = (findRuleAndParams);
+  protected _rules: Rules;
+  protected _getRuleContextWrite = (
+    params: Params,
+    rulePath: Keys,
+    self: Store,
+  ): RuleContext => ({
+    params,
+    get data(): Value {
+      return deepGet(JSON.parse(self._dataBackup), rulePath);
+    },
+    get newData(): Value {
+      return deepGet(self._data, rulePath);
+    },
+    get rootData(): Data {
+      return self._clone(self._data);
+    },
+    set data(_: Value) {
+      throw new Error("please do not set data");
+    },
+    set newData(_: Value) {
+      throw new Error("please do not set newData");
+    },
+    set rootData(_: Data) {
+      throw new Error("please do not set rootData");
+    },
+  });
+
+  protected _getRuleContextRead = (
+    params: Params,
+    rulePath: Keys,
+    self: Store,
+  ): RuleContext => ({
+    params,
+    get data(): Value {
+      return deepGet(self._data, rulePath);
+    },
+    get newData(): Value {
+      return undefined;
+    },
+    get rootData(): Data {
+      return self._clone(self._data);
+    },
+    set data(_: Value) {
+      throw new Error("please do not set data");
+    },
+    set newData(_: Value) {
+      throw new Error("please do not set newData");
+    },
+    set rootData(_: Data) {
+      throw new Error("please do not set rootData");
+    },
+  });
 
   private _checkRule(
     ruleType: "_read" | "_write",
@@ -386,55 +437,12 @@ export class Store {
           }`,
         );
       }
-      // deno-lint-ignore no-this-alias
-      const self = this;
       let ruleContext;
       if (ruleType === "_write") {
-        ruleContext = {
-          params,
-          get data(): Value {
-            return deepGet(JSON.parse(self._dataBackup), rulePath);
-          },
-          get newData(): Value {
-            return deepGet(self._data, rulePath);
-          },
-          get rootData(): Data {
-            return self._clone(self._data);
-          },
-          set data(_: Value) {
-            throw new Error("please do not set data");
-          },
-          set newData(_: Value) {
-            throw new Error("please do not set newData");
-          },
-          set rootData(_: Data) {
-            throw new Error("please do not set rootData");
-          },
-        };
+        ruleContext = this._getRuleContextWrite(params, rulePath, this);
       }
       if (ruleType === "_read") {
-        ruleContext = {
-          params,
-
-          get data(): Value {
-            return deepGet(self._data, rulePath);
-          },
-          get newData(): Value {
-            return undefined;
-          },
-          get rootData(): Data {
-            return self._clone(self._data);
-          },
-          set data(_: Value) {
-            throw new Error("please do not set data");
-          },
-          set newData(_: Value) {
-            throw new Error("please do not set newData");
-          },
-          set rootData(_: Data) {
-            throw new Error("please do not set rootData");
-          },
-        };
+        ruleContext = this._getRuleContextRead(params, rulePath, this);
       }
       const allowed = rule?.(ruleContext as RuleContext);
 

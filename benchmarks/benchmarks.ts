@@ -4,17 +4,19 @@ import {
 } from "https://deno.land/std@0.93.0/testing/bench.ts";
 
 import { StoreJson } from "../src/StoreJson.ts";
-// import { Store } from "../src/Store.ts";
-// const testStorePath = "./bench.store.json";
+// import { Store } from `../src/Store.ts`;
+// const testStorePath = `./bench.store.json`;
+
+const RUNS = 1e3;
 
 bench({
-  name: "set 1e5 children",
+  name: `set ${RUNS} children`,
   runs: 1,
   func(b): void {
-    const db = new StoreJson({ filename: "./bench.1e5.store.json" });
+    const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
     b.start();
-    for (let i = 0; i < 1e5; i++) {
-      db.set("item" + i, i);
+    for (let i = 0; i < RUNS; i++) {
+      db.set(`item` + i, i);
     }
     b.stop();
     db.write();
@@ -22,20 +24,20 @@ bench({
 });
 
 bench({
-  name: "load 1e5 children",
+  name: `load ${RUNS} children`,
   runs: 1,
   func(b): void {
     b.start();
-    new StoreJson({ filename: "./bench.1e5.store.json" });
+    new StoreJson({ filename: `./bench.${RUNS}.store.json` });
     b.stop();
   },
 });
 
 bench({
-  name: "write 1e5 children",
+  name: `write ${RUNS} children`,
   runs: 1,
   func(b): void {
-    const db = new StoreJson({ filename: "./bench.1e5.store.json" });
+    const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
     b.start();
     db.write();
     b.stop();
@@ -43,54 +45,86 @@ bench({
 });
 
 bench({
-  name: "get 1e5 children",
+  name: `get ${RUNS} children`,
   runs: 1,
   func(b): void {
-    const db = new StoreJson({ filename: "./bench.1e5.store.json" });
+    const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
     b.start();
-    for (let i = 0; i < 1e5; i++) {
-      db.get("item" + i);
+    for (let i = 0; i < RUNS; i++) {
+      db.get(`item` + i);
     }
     b.stop();
   },
 });
 
+const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
 bench({
-  name: "get 1e5 runs",
-  runs: 1e5,
+  name: `get ${RUNS} runs`,
+  runs: RUNS,
   func(b): void {
-    const db = new StoreJson({ filename: "./bench.1e5.store.json" });
     b.start();
-    db.get("item0");
+    db.get(`item0`);
     b.stop();
   },
 });
 
-const r = await runBenchmarks({
+const { results } = await runBenchmarks({
   // skip: /set/ ,
   // only: /set/,
 });
 
 const dbResults = new StoreJson({
-  filename: "./bench.results.store.json",
+  filename: `./bench.results.store.json`,
   autoSave: true,
   rules: {
+    _write: () => true,
+    _read: () => true,
     results: {
-      _read: () => true,
-      _write: ({ data }) => {
-        console.log(data);
-
-        return !data;
-      },
-      $i: {
-        _write: () => true,
+      $name: {
+        runs: {
+          _write: ({ data }) => {
+            return !data || Array.isArray(data);
+          },
+        },
       },
     },
   },
 });
-try {
-  dbResults.set("results", []);
-} catch (error) {
-  console.log(error);
+
+for (const result of results) {
+  const { name, runsCount, measuredRunsAvgMs } = result;
+  try {
+    dbResults.set(`results/${name}/runs`, []);
+  } catch (error) {
+    console.log(error.message);
+  }
+
+  dbResults.set(
+    `results/${name}`,
+    (old: any) => {
+      const last = old.lastMeasuredRun ?? 0;
+      const totalRunCounts = (old.totalRunCounts + runsCount) || runsCount;
+      const diff = measuredRunsAvgMs - last;
+      const diffRatio = measuredRunsAvgMs / last;
+      const improvement = diff / measuredRunsAvgMs;
+
+      const data = ({
+        ...old,
+        totalRunCounts,
+        lastMeasuredRun: measuredRunsAvgMs,
+        diff,
+        diffRatio,
+        improvement,
+      });
+
+      console.log(name,`${(data.improvement * 100).toFixed(2)}`);
+
+      return data;
+    },
+  );
+  dbResults.push(`results/${name}/runs`, {
+    ...result,
+    name: undefined,
+    measuredRunsMs: undefined,
+  });
 }
-dbResults.push("results", ...r.results);

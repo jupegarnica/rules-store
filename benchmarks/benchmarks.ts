@@ -3,6 +3,7 @@ import {
   runBenchmarks,
 } from "https://deno.land/std@0.93.0/testing/bench.ts";
 
+import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 // import { Store } from `../src/Store.ts`;
 // const testStorePath = `./bench.store.json`;
@@ -10,7 +11,7 @@ import { StoreJson } from "../src/StoreJson.ts";
 const RUNS = 1e3;
 
 bench({
-  name: `set ${RUNS} children`,
+  name: `[Set Get] set ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
@@ -22,9 +23,41 @@ bench({
     db.write();
   },
 });
+const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
 
 bench({
-  name: `load ${RUNS} children`,
+  name: `[Set Get] set ${RUNS} runs`,
+  runs: RUNS,
+  func(b): void {
+    b.start();
+    db.set(`item0`, 0);
+    b.stop();
+  },
+});
+bench({
+  name: `[Set Get] get ${RUNS} children`,
+  runs: 1,
+  func(b): void {
+    b.start();
+    for (let i = 0; i < RUNS; i++) {
+      db.get(`item` + i);
+    }
+    b.stop();
+  },
+});
+
+bench({
+  name: `[Set Get] get ${RUNS} runs`,
+  runs: RUNS,
+  func(b): void {
+    b.start();
+    db.get(`item0`);
+    b.stop();
+  },
+});
+
+bench({
+  name: `[Load Write] load ${RUNS} children`,
   runs: 1,
   func(b): void {
     b.start();
@@ -34,7 +67,7 @@ bench({
 });
 
 bench({
-  name: `write ${RUNS} children`,
+  name: `[Load Write] write ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
@@ -44,87 +77,55 @@ bench({
   },
 });
 
-bench({
-  name: `get ${RUNS} children`,
-  runs: 1,
-  func(b): void {
-    const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
-    b.start();
-    for (let i = 0; i < RUNS; i++) {
-      db.get(`item` + i);
-    }
-    b.stop();
-  },
-});
-
-const db = new StoreJson({ filename: `./bench.${RUNS}.store.json` });
-bench({
-  name: `get ${RUNS} runs`,
-  runs: RUNS,
-  func(b): void {
-    b.start();
-    db.get(`item0`);
-    b.stop();
-  },
-});
-
 const { results } = await runBenchmarks({
   // skip: /set/ ,
-  // only: /set/,
+  // only: /Load.Write/,
+  only: /Set.Get/,
+  silent: true,
 });
 
 const dbResults = new StoreJson({
   filename: `./bench.results.store.json`,
   autoSave: true,
-  rules: {
-    _write: () => true,
-    _read: () => true,
-    results: {
-      $name: {
-        runs: {
-          _write: ({ data }) => {
-            return !data || Array.isArray(data);
-          },
-        },
-      },
-    },
-  },
 });
 
 for (const result of results) {
   const { name, runsCount, measuredRunsAvgMs } = result;
-  try {
-    dbResults.set(`results/${name}/runs`, []);
-  } catch (error) {
-    console.log(error.message);
-  }
-
   dbResults.set(
     `results/${name}`,
     (old: any) => {
-      const last = old.lastMeasuredRun ?? 0;
-      const totalRunCounts = (old.totalRunCounts + runsCount) || runsCount;
-      const diff = measuredRunsAvgMs - last;
-      const diffRatio = measuredRunsAvgMs / last;
-      const improvement = diff / measuredRunsAvgMs;
+      const lastOld = old?.lastRun ?? 0;
+      const totalRunsOld = old?.totalRuns ?? 0;
+      const totalRuns = (totalRunsOld) + runsCount;
+      const diff = measuredRunsAvgMs - lastOld;
+      const diffRatio = measuredRunsAvgMs / lastOld;
+      const improvement = -(1 - diffRatio);
+      const averageRunOld = old?.averageRun ?? 0;
+      const averageRun = ((averageRunOld * totalRunsOld) +
+        (measuredRunsAvgMs * runsCount)) / totalRuns;
 
       const data = ({
-        ...old,
-        totalRunCounts,
-        lastMeasuredRun: measuredRunsAvgMs,
+        totalRuns,
+        lastRun: measuredRunsAvgMs,
         diff,
         diffRatio,
         improvement,
+        averageRun,
       });
 
-      console.log(name,`${(data.improvement * 100).toFixed(2)}`);
+      const text = `${(data.improvement * 100).toFixed(2)}`;
+      const imp = data.improvement > 0 ? colors.red(text) : colors.green(text);
+
+      console.group(colors.dim(name));
+      console.debug(
+        colors.bold(colors.blue(measuredRunsAvgMs.toFixed(2))),
+        colors.blue(averageRun.toFixed(2)),
+        colors.yellow(diffRatio.toFixed(2)),
+        colors.bold(imp) ,
+      );
+      console.groupEnd();
 
       return data;
     },
   );
-  dbResults.push(`results/${name}/runs`, {
-    ...result,
-    name: undefined,
-    measuredRunsMs: undefined,
-  });
 }

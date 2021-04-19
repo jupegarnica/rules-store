@@ -5,6 +5,7 @@ import type { RuleContext } from "../src/types.ts";
 Deno.test("[Rules Examples] counter", () => {
   const rules = {
     count: {
+      _read: () => true,
       _write: ({ newData, data }: RuleContext) => {
         return typeof newData === "number" && (newData - data === 1 || !data);
       },
@@ -13,7 +14,9 @@ Deno.test("[Rules Examples] counter", () => {
 
   const db = new Store({ rules });
   db.set("count", 0);
+  assertEquals(db.get("count"),0)
   db.set("count", 1);
+  assertEquals(db.get("count"),1)
   assertThrows(() => db.set("count", 10));
   assertThrows(() => db.set("count", 11));
 });

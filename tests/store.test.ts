@@ -266,7 +266,7 @@ Deno.test("[Store] push into an not array", () => {
 });
 
 Deno.test("[Store] Set inmutable behavior", () => {
-  const db = new Store();
+  const db = new Store({cloneData:true});
   const obj = { b: 1 };
   db.set("a", obj);
   obj.b = 2;
@@ -276,7 +276,7 @@ Deno.test("[Store] Set inmutable behavior", () => {
 });
 
 Deno.test("[Store] Get inmutable behavior", () => {
-  const db = new Store();
+  const db = new Store({cloneData:true});
   db.set("a", { b: 1 });
 
   const A = db.get("a");

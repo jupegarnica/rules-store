@@ -38,12 +38,12 @@ export class Store {
    * The actual data cache.
    */
   protected _data: Data = {};
-  protected _newData: Data = {};
+  protected _dataBackup = "{}";
   /**
    * The actual rules
    */
   protected _rules: Rules;
-
+  protected _cloneData = false;
   protected _subscriptions: Subscription[] = [];
 
   /**
@@ -52,10 +52,14 @@ export class Store {
    */
   constructor(config?: BaseConfig) {
     this._rules = config?.rules ?? allowAllRules;
+    this._cloneData = config?.cloneData ?? true;
   }
 
   private _get(keys: Keys): Value {
     return deepGet(this._data, keys);
+  }
+  private _clone(data: Value): Value {
+    return this._cloneData ? deepClone(data) : data;
   }
   /**
    * Retrieves a value from database by specified path.
@@ -70,11 +74,11 @@ export class Store {
   public get(path: string): Value {
     const keys = keysFromPath(path);
     this._checkRule("_read", keys);
-    return deepClone(this._get(keys));
+    return this._clone(this._get(keys));
   }
   private _set(keys: Keys, value: Value): void {
-    this._newData = deepClone(this._data);
-    deepSet(this._newData, keys, value);
+    this._dataBackup = JSON.stringify(this._data);
+    deepSet(this._data, keys, value);
 
     try {
       this._checkRule("_write", keys);
@@ -85,13 +89,13 @@ export class Store {
     this._commit();
   }
   private _commit(): void {
-    this._data = this._newData;
-    this._newData = {};
+    this._dataBackup = "{}";
+    this._notify();
   }
   private _rollBack(): void {
-    this._newData = {};
+    this._data = JSON.parse(this._dataBackup);
+    this._dataBackup = "{}";
   }
-
   /**
    * Sets a value in the database by the specified path.
    *
@@ -119,12 +123,11 @@ export class Store {
       const oldValue = this.get(pathFromKeys(keys));
       newValue = valueOrFunction(oldValue);
     } else {
-      newValue = deepClone(valueOrFunction);
+      newValue = this._clone(valueOrFunction);
     }
 
     this._set(keys, newValue);
 
-    this._notify();
     return newValue;
   }
 
@@ -154,8 +157,6 @@ export class Store {
       this._set(keys, undefined);
     }
 
-    this._notify();
-
     return oldValue;
   }
   /**
@@ -176,13 +177,12 @@ export class Store {
       throw new TypeError("Target is not an Array");
     }
 
-    const cloned = deepClone(values);
+    const cloned = this._clone(values);
+    const initialLength = oldValue.length;
     for (const index in cloned) {
-      const targetIndex = oldValue.length + Number(index);
+      const targetIndex = initialLength + Number(index);
       this._set(addChildToKeys(keys, String(targetIndex)), cloned[index]);
     }
-
-    this._notify();
 
     return cloned.length > 1 ? cloned : cloned[0];
   }
@@ -201,7 +201,7 @@ export class Store {
     if (!isObject(target)) {
       throw new TypeError("Target not object or array");
     }
-    target = deepClone(target);
+    target = this._clone(target);
     const results = [] as [string, Value][];
     for (const key in target) {
       this._checkRule("_read", addChildToKeys(keys, key));
@@ -229,7 +229,7 @@ export class Store {
     if (!isObject(target)) {
       throw new TypeError("Target not object or array");
     }
-    target = deepClone(target);
+    target = this._clone(target);
     const keys = keysFromPath(path);
     for (const key in target) {
       this._checkRule("_read", addChildToKeys(keys, key));
@@ -292,7 +292,9 @@ export class Store {
   protected _notify() {
     for (const subscription of this._subscriptions) {
       const { path, callback } = subscription;
-      const value = this.get(path);
+      const keys = keysFromPath(path);
+      this._checkRule("_read", keys);
+      const value = deepClone(this._get(keys));
       if (!equal(value, subscription.value)) {
         callback(value);
         subscription.value = value;
@@ -308,10 +310,12 @@ export class Store {
    * @returns  The value
    */
   public subscribe(path: string, callback: Subscriber): Value {
-    const value = this.get(path);
+    const keys = keysFromPath(path);
+    this._checkRule("_read", keys);
+    const value = deepClone(this._get(keys));
     this._subscriptions.push({
       callback,
-      value: value,
+      value,
       path,
     });
     return value;
@@ -381,13 +385,27 @@ export class Store {
           }`,
         );
       }
-      const data = this._get(rulePath);
-      const newData = deepGet(this._newData, rulePath);
+
+      // let data = deepGet(JSON.parse(this._dataBackup), rulePath);
+
+      // let newData = deepGet(this._data, rulePath);
+      let newData;
+      let data;
+
+      if (ruleType === "_write") {
+        data = deepGet(JSON.parse(this._dataBackup), rulePath);
+        newData = deepGet(this._data, rulePath);
+      }
+      if (ruleType === "_read") {
+        data = deepGet(this._data, rulePath);
+        newData = undefined;
+      }
+
       const allowed = rule?.({
         data,
         newData,
         params,
-        rootData: deepClone(this._data),
+        rootData: this._clone(this._data),
       });
 
       if (!allowed) {

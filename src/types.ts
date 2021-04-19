@@ -47,6 +47,7 @@ export type Rules = {
 
 export type BaseConfig = {
   rules?: Rules;
+  cloneData?: boolean;
 };
 export type Config = BaseConfig & {
   autoSave?: boolean;

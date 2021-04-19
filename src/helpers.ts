@@ -33,7 +33,6 @@ export function findParam(obj: ObjectKind): string | void {
     if (key.match(paramRegex)) return key;
   }
 }
-
 export const deepClone = (obj: Value) => {
   if (!isObject(obj)) {
     return obj;
@@ -45,6 +44,13 @@ export const deepClone = (obj: Value) => {
   );
   return clone;
 };
+
+// export const deepClone = (obj: Value) => {
+//   if (!isObject(obj)) {
+//     return obj;
+//   }
+//   return JSON.parse(JSON.stringify(obj));
+// };
 
 export function isValidNumber(key: string): boolean {
   const maybeNumber = Number(key);
@@ -75,9 +81,8 @@ export const deepSet = (
       worker[key] = isValidNumber(keys[index + 1]) ? [] : {};
     }
     if (index === lastIndex) {
-      if (value === undefined) {
-        delete worker[key];
-      } else worker[key] = value;
+      if (value === undefined) delete worker[key];
+      else worker[key] = value;
     }
 
     worker = worker[key];

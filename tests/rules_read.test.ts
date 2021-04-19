@@ -3,7 +3,7 @@ import { Store } from "../src/Store.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 
-Deno.test("[Rules _red]", () => {
+Deno.test("[Rules _read] basic", () => {
   const rules = {
     readAllowed: {
       _read: () => true,

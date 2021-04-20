@@ -1,12 +1,15 @@
+// import { DeepProxy , proxyHandler} from "../src/deepProxy.js";
 import {
   deepClone,
   deepGet,
+  deepProxy,
   deepSet,
   findParam,
   isValidNumber,
   keysFromPath,
 } from "../src/helpers.ts";
-import { assertEquals } from "./test_deps.ts";
+
+import { assertEquals, assertThrows } from "./test_deps.ts";
 
 Deno.test("[Helpers] deepSet", () => {
   const data = {};
@@ -101,24 +104,31 @@ Deno.test("[Helpers] isValidNumber", () => {
   );
 });
 
-Deno.test("[Helpers] deepClone", () => {
-  const a = { foo: "bar", obj: { a: [], b: 2 } };
-  const b = deepClone(a);
-  assertEquals(a, b);
-  assertEquals(a !== b, true);
-  assertEquals(a === b, false);
-  assertEquals(a.obj !== b.obj, true);
-  assertEquals(a.obj === b.obj, false);
-  assertEquals(a.obj.a === b.obj.a, false);
+Deno.test("[Helpers] deepClone basic", () => {
+  const a = { b: { c: 1 } };
+  const A = deepClone(a);
+
+  assertEquals(a !== A, true);
+  assertEquals(a.b !== A.b, true);
+});
+
+Deno.test("[Helpers] deepClone arrays", () => {
   const c = [{ a: [], b: 2 }];
   const d = deepClone(c);
   assertEquals(c, d);
   assertEquals(Array.isArray(d), true);
   assertEquals(c === d, false);
   assertEquals(c[0].a === d[0].a, false);
+});
+
+Deno.test("[Helpers] deepClone primitives", () => {
   assertEquals(deepClone(undefined), undefined);
   assertEquals(deepClone(null), null);
   assertEquals(deepClone("a"), "a");
+  assertEquals(deepClone(1), 1);
+  assertEquals(deepClone(0), 0);
+  const sym = Symbol();
+  assertEquals(deepClone(sym), sym);
 });
 
 Deno.test("[Helpers] findParam", () => {
@@ -134,4 +144,46 @@ Deno.test("[Helpers] findParam", () => {
   const cloned = deepClone(obj);
   assertEquals(cloned, obj);
   assertEquals(findParam(obj), "$a");
+});
+
+Deno.test("[Helpers] deepProxy", () => {
+  // const a = { b: 1 } as any;
+  const a = { b: { c: { d: 1 } } } as any;
+  const A = deepProxy(a);
+  // A.b;
+  console.log({A});
+  console.log({a});
+
+  assertEquals(a, A);
+  assertEquals(a.b === A.b, true);
+  assertEquals(a.b, A.b);
+  assertEquals(a.b === A.b, true);
+  assertEquals(a.b.c, A.b.c);
+  assertEquals(a.b.c === A.b.c, true);
+
+  assertThrows(() => {
+    A.b.c.d = 2;
+  },Error,'Inmutable data');
+  assertThrows(() => {
+    A.b = 2;
+  },Error,'Inmutable data');
+
+  assertThrows(() => {
+    delete A.b ;
+  },Error,'Inmutable data');
+
+  assertEquals(a.b.c.d, 1);
+  assertEquals(A.b.c.d, 1);
+
+  assertThrows(() => {
+    a.b.c.d = 2;
+  },Error,'Inmutable data');
+  assertThrows(() => {
+    a.b.c = 2;
+  },Error,'Inmutable data');
+
+  assertThrows(() => {
+    delete a.b.c;
+  },Error,'Inmutable data');
+  assertEquals(A, { b: { c: { d: 1 } } });
 });

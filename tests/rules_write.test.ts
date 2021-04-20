@@ -106,9 +106,9 @@ Deno.test("[Rules _write] with .findOneAndRemove", () => {
     filename: "./tests/test.json",
   });
 
-  //  throw,  key 0 is not a object or array
   assertThrows(() => db.findOneAndRemove("arr.0", () => true));
   assertThrows(() => db.findOneAndRemove("arr", () => true));
+  //  throw,  key 0 is not a object or array
   assertThrows(() => db.findOneAndRemove("", () => true));
 });
 

@@ -2,6 +2,7 @@ import {
   addChildToKeys,
   deepClone,
   deepGet,
+deepProxy,
   deepSet,
   findRuleAndParams,
   isObject,
@@ -49,7 +50,8 @@ export class Store {
    */
   constructor(config?: BaseConfig) {
     this._rules = config?.rules ?? allowAllRules;
-    this._cloneData = config?.cloneData ?? false;
+    // this._cloneData = config?.cloneData ?? false;
+    this._cloneData = false;
   }
 
   private _get(keys: Keys): Value {
@@ -74,7 +76,8 @@ export class Store {
     return this._clone(this._get(keys));
   }
   private _set(keys: Keys, value: Value): void {
-    const cloned = deepClone(value)
+     // TODO CLONE?
+    const cloned = this._clone(value)
     deepSet(this._newData, keys, cloned);
     try {
       this._checkRule("_write", keys);
@@ -85,11 +88,12 @@ export class Store {
     this._commit(keys,cloned);
   }
   private _commit(keys: Keys, value: Value): void {
-    deepSet(this._data, keys, value);
     this._notify();
+    deepSet(this._data, keys, value);
   }
   private _rollBack(keys: Keys): void {
-    const oldData = (deepGet(this._data, keys)) // TODO CLONE?
+     // TODO CLONE?
+    const oldData = this._clone(deepGet(this._data, keys))
     deepSet(this._newData, keys, oldData);
   }
   /**
@@ -348,10 +352,10 @@ export class Store {
       const { path, callback } = subscription;
       const keys = keysFromPath(path);
       this._checkRule("_read", keys);
-      const value = deepClone(this._get(keys));
-      if (!equal(value, subscription.value)) {
-        callback(value);
-        subscription.value = value;
+      const data = deepGet(this._data,keys);;
+      const newData = deepGet(this._newData,keys);
+      if (!equal(data, newData)) {
+        callback(newData);
       }
     }
   }

@@ -266,7 +266,7 @@ Deno.test("[Store] push into an not array", () => {
 });
 
 Deno.test("[Store] Set inmutable behavior", () => {
-  const db = new Store({cloneData:true});
+  const db = new Store({ cloneData: true });
   const obj = { b: 1 };
   db.set("a", obj);
   obj.b = 2;
@@ -276,7 +276,7 @@ Deno.test("[Store] Set inmutable behavior", () => {
 });
 
 Deno.test("[Store] Get inmutable behavior", () => {
-  const db = new Store({cloneData:true});
+  const db = new Store({ cloneData: true });
   db.set("a", { b: 1 });
 
   const A = db.get("a");
@@ -471,3 +471,35 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
   assertEquals(removed, ["1", 2]);
   assertEquals(db.get("arr"), [1, 3]);
 });
+
+
+
+
+// Deno.test("[Store] _set", () => {
+//   const db = new Store();
+//   db.set("a.b", { c: { d: 1} });
+//   assertEquals(db.get("a.b"), { c: { d: 1} });
+//   assertEquals(db.get("a.b.c"), { d: 1} );
+
+//   assertEquals(db._newData.a, db._data.a);
+//   assertEquals(db._newData.a === db._data.a, false, ".a");
+//   // assertEquals(db._data.a.b === db._data.a.b, true, "_data.a.b");
+//   // TODO not sure what to think
+//   assertEquals(db._newData.a.b === db._data.a.b, false, "._newData.a.b");
+//   assertEquals(db._newData.a.b.c === db._data.a.b.c, false, "._newData.a.b.c");
+// });
+
+
+// Deno.test("[Store] _set", () => {
+//   const db = new Store();
+//   db.set("a.b", { c: { d: 1} });
+//   assertEquals(db.get("a.b"), { c: { d: 1} });
+//   assertEquals(db.get("a.b.c"), { d: 1} );
+
+//   assertEquals(db._newData.a, db._data.a);
+//   assertEquals(db._newData.a === db._data.a, false, ".a");
+//   // assertEquals(db._data.a.b === db._data.a.b, true, "_data.a.b");
+//   // TODO not sure what to think
+//   assertEquals(db._newData.a.b === db._data.a.b, false, "._newData.a.b");
+//   assertEquals(db._newData.a.b.c === db._data.a.b.c, false, "._newData.a.b.c");
+// });

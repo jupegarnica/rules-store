@@ -40,7 +40,7 @@ export class Store {
    * The actual data cache.
    */
   protected _data: Data = {};
-  protected _dataBackup = "{}";
+  protected _newData = {};
   protected _cloneData = false;
 
   /**
@@ -74,24 +74,23 @@ export class Store {
     return this._clone(this._get(keys));
   }
   private _set(keys: Keys, value: Value): void {
-    this._dataBackup = JSON.stringify(this._data);
-    deepSet(this._data, keys, value);
-
+    const cloned = deepClone(value)
+    deepSet(this._newData, keys, cloned);
     try {
       this._checkRule("_write", keys);
     } catch (error) {
-      this._rollBack();
+      this._rollBack(keys);
       throw error;
     }
-    this._commit();
+    this._commit(keys,cloned);
   }
-  private _commit(): void {
-    this._dataBackup = "{}";
+  private _commit(keys: Keys, value: Value): void {
+    deepSet(this._data, keys, value);
     this._notify();
   }
-  private _rollBack(): void {
-    this._data = JSON.parse(this._dataBackup);
-    this._dataBackup = "{}";
+  private _rollBack(keys: Keys): void {
+    const oldData = (deepGet(this._data, keys)) // TODO CLONE?
+    deepSet(this._newData, keys, oldData);
   }
   /**
    * Sets a value in the database by the specified path.
@@ -368,10 +367,10 @@ export class Store {
   ): RuleContext => ({
     params,
     get data(): Value {
-      return deepGet(JSON.parse(self._dataBackup), rulePath);
+      return deepGet(self._data, rulePath);
     },
     get newData(): Value {
-      return deepGet(self._data, rulePath);
+      return deepGet(self._newData, rulePath);
     },
     get rootData(): Data {
       return self._clone(self._data);

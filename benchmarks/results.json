@@ -1,1 +1,412 @@
-{"results":{"[Set] 100 children":{"totalRuns":38,"lastRun":1.3306389999997918,"diff":0.033461999999872205,"diffRatio":1.0257960170430669,"improvement":0.025796017043066888,"averageRun":1.7020743157894518},"[Set] 100 runs":{"totalRuns":3800,"lastRun":0.012271060000039143,"diff":0.0028006600000298927,"diffRatio":1.295727741175363,"improvement":0.29572774117536293,"averageRun":0.012448776842105226},"[Set Json] autoSave 100 children":{"totalRuns":38,"lastRun":8.214662999999746,"diff":0.3978439999996226,"diffRatio":1.0508958951204597,"improvement":0.05089589512045967,"averageRun":10.641202973684226},"[Set Bson] autoSave  100 children":{"totalRuns":38,"lastRun":24.855775999999878,"diff":-1.7775110000002314,"diffRatio":0.9332597962842429,"improvement":-0.06674020371575706,"averageRun":28.52510697368423},"[GetAll] assert 100 children":{"totalRuns":38,"lastRun":0.1269030000003113,"diff":0.002072000000225671,"diffRatio":1.0165984410941533,"improvement":0.016598441094153316,"averageRun":0.2023895789473643},"[Get] 100 children":{"totalRuns":38,"lastRun":0.7640900000001238,"diff":0.029661000000487547,"diffRatio":1.0403864771141966,"improvement":0.04038647711419663,"averageRun":0.5964102894736364},"[Get] 100 runs":{"totalRuns":3800,"lastRun":0.004956420000003164,"diff":0.0002951400000165451,"diffRatio":1.0633173720560432,"improvement":0.06331737205604315,"averageRun":0.007223310789476343},"[Load Json]  once 100 children":{"totalRuns":38,"lastRun":0.5615569999999934,"diff":0.268148999999994,"diffRatio":1.9139116861162424,"improvement":0.9139116861162424,"averageRun":0.3791338157894571},"[Load Json] 100 times":{"totalRuns":38,"lastRun":12.211818000000221,"diff":1.0114490000000842,"diffRatio":1.0903049712022945,"improvement":0.09030497120229453,"averageRun":13.432084078947272},"[Load Json] 100 runs":{"totalRuns":3800,"lastRun":0.1306783899999664,"diff":0.004864299999944727,"diffRatio":1.0386626013027944,"improvement":0.03866260130279442,"averageRun":0.14335564578947302},"[Load Bson]  once 100 children":{"totalRuns":38,"lastRun":1.3941270000000259,"diff":0.9123810000000958,"diffRatio":2.8939046717569594,"improvement":1.8939046717569594,"averageRun":0.7204420526316091},"[Load Bson] 100 times":{"totalRuns":38,"lastRun":24.868301999999858,"diff":-0.4384140000001935,"diffRatio":0.9826759821384887,"improvement":-0.017324017861511276,"averageRun":27.198021578947348},"[Load Bson] 100 runs":{"totalRuns":3800,"lastRun":0.20857178000001567,"diff":0.07728098999999472,"diffRatio":1.588624609540261,"improvement":0.588624609540261,"averageRun":0.1504803623684228},"[Write Json]  once 100 children":{"totalRuns":38,"lastRun":0.11234599999988859,"diff":-0.0032820000001265726,"diffRatio":0.9716158715871057,"improvement":-0.028384128412894283,"averageRun":0.12916023684209382},"[Write Json] 100 times":{"totalRuns":38,"lastRun":8.681214000000182,"diff":1.249449000000368,"diffRatio":1.1681227810621568,"improvement":0.16812278106215683,"averageRun":7.145735184210504},"[Write Bson]  once 100 children":{"totalRuns":38,"lastRun":0.1243400000003021,"diff":0.020301000000472413,"diffRatio":1.1951287498006098,"improvement":0.1951287498006098,"averageRun":0.1503346842105322},"[Write Bson] 100 times":{"totalRuns":38,"lastRun":5.892256999999972,"diff":0.19973299999992378,"diffRatio":1.0350868964276518,"improvement":0.03508689642765184,"averageRun":6.8009063684210345},"[Set] 1000 children":{"totalRuns":18,"lastRun":5.585551000000123,"diff":0.35168200000043726,"diffRatio":1.0671935044611278,"improvement":0.06719350446112782,"averageRun":7.510548055555597},"[Set] 1000 runs":{"totalRuns":17000,"lastRun":0.008343050999993011,"diff":0.0004932069999922534,"diffRatio":1.0628301657959325,"improvement":0.06283016579593248,"averageRun":0.010892651764705533},"[Set Json] autoSave 1000 children":{"totalRuns":17,"lastRun":352.05023600000004,"diff":106.40786000000026,"diffRatio":1.4331820174219465,"improvement":0.4331820174219465,"averageRun":456.0468849411764},"[Set Bson] autoSave  1000 children":{"totalRuns":17,"lastRun":527.5992429999997,"diff":54.873243,"diffRatio":1.116078326557033,"improvement":0.1160783265570331,"averageRun":610.5656535882353},"[GetAll] assert 1000 children":{"totalRuns":17,"lastRun":0.16902400000071793,"diff":-0.030589999999392603,"diffRatio":0.8467542356779801,"improvement":-0.15324576432201986,"averageRun":0.21040047058830383},"[Get] 1000 children":{"totalRuns":17,"lastRun":2.7883300000003146,"diff":-0.529236999999739,"diffRatio":0.8404743596739025,"improvement":-0.1595256403260975,"averageRun":3.515009411764662},"[Get] 1000 runs":{"totalRuns":17000,"lastRun":0.009554110000010042,"diff":0.0017879009999987828,"diffRatio":1.2302154114055122,"improvement":0.23021541140551216,"averageRun":0.010906558647061715},"[Load Json]  once 1000 children":{"totalRuns":17,"lastRun":0.5754249999999956,"diff":-0.49389500000052067,"diffRatio":0.5381223581338774,"improvement":-0.46187764186612257,"averageRun":0.8059191176471359},"[Load Json] 1000 times":{"totalRuns":17,"lastRun":345.129962,"diff":-26.57123700000011,"diffRatio":0.928514524377415,"improvement":-0.071485475622585,"averageRun":480.3064067058823},"[Load Json] 1000 runs":{"totalRuns":17000,"lastRun":0.814711453999972,"diff":0.3791525929999634,"diffRatio":1.8704967960689838,"improvement":0.8704967960689838,"averageRun":0.5456752249411776},"[Load Bson]  once 1000 children":{"totalRuns":17,"lastRun":2.7474560000000565,"diff":1.2170230000001538,"diffRatio":1.7952148182901384,"improvement":0.7952148182901384,"averageRun":2.8731186470588854},"[Load Bson] 1000 times":{"totalRuns":17,"lastRun":539.0040079999999,"diff":-11.7279410000001,"diffRatio":0.9787048108952181,"improvement":-0.021295189104781898,"averageRun":634.1093027647058},"[Load Bson] 1000 runs":{"totalRuns":17000,"lastRun":0.5190260900000158,"diff":-0.08309818699998683,"diffRatio":0.861991634992677,"improvement":-0.13800836500732305,"averageRun":0.6623731147647115},"[Write Json]  once 1000 children":{"totalRuns":17,"lastRun":0.3350289999998495,"diff":0.03395399999953952,"diffRatio":1.1127758864053958,"improvement":0.11277588640539582,"averageRun":0.37641676470593666},"[Write Json] 1000 times":{"totalRuns":17,"lastRun":269.05540100000144,"diff":20.114934000001085,"diffRatio":1.080802186331566,"improvement":0.080802186331566,"averageRun":342.73182558823527},"[Write Bson]  once 1000 children":{"totalRuns":17,"lastRun":0.38646799999878567,"diff":-0.1347170000008191,"diffRatio":0.7415178871208472,"improvement":-0.2584821128791528,"averageRun":0.5616397647054863},"[Write Bson] 1000 times":{"totalRuns":17,"lastRun":306.1210169999995,"diff":20.020760999999766,"diffRatio":1.0699781303236575,"improvement":0.06997813032365752,"averageRun":332.4111581176467},"[Set] 10000 children":{"totalRuns":1,"lastRun":67.31871300000012,"diff":67.31871300000012,"diffRatio":null,"improvement":null,"averageRun":67.31871300000012},"[Set] 10000 runs":{"totalRuns":10000,"lastRun":0.013796577799998022,"diff":0.013796577799998022,"diffRatio":null,"improvement":null,"averageRun":0.013796577799998022},"[Set Json] autoSave 10000 children":{"totalRuns":1,"lastRun":43233.242614999996,"diff":43233.242614999996,"diffRatio":null,"improvement":null,"averageRun":43233.242614999996},"[Set Bson] autoSave  10000 children":{"totalRuns":1,"lastRun":24866.605491000002,"diff":24866.605491000002,"diffRatio":null,"improvement":null,"averageRun":24866.605491000002},"[GetAll] assert 10000 children":{"totalRuns":1,"lastRun":0.2817730000097072,"diff":0.2817730000097072,"diffRatio":null,"improvement":null,"averageRun":0.2817730000097072},"[Get] 10000 children":{"totalRuns":1,"lastRun":35.34418799998821,"diff":35.34418799998821,"diffRatio":null,"improvement":null,"averageRun":35.34418799998821},"[Get] 10000 runs":{"totalRuns":10000,"lastRun":0.0196925949999204,"diff":0.0196925949999204,"diffRatio":null,"improvement":null,"averageRun":0.0196925949999204},"[Load Json]  once 10000 children":{"totalRuns":1,"lastRun":7.757842000006349,"diff":7.757842000006349,"diffRatio":null,"improvement":null,"averageRun":7.757842000006349},"[Load Json] 10000 times":{"totalRuns":1,"lastRun":51217.32902100001,"diff":51217.32902100001,"diffRatio":null,"improvement":null,"averageRun":51217.32902100001},"[Load Json] 10000 runs":{"totalRuns":10000,"lastRun":3.4988500575999817,"diff":3.4988500575999817,"diffRatio":null,"improvement":null,"averageRun":3.4988500575999817},"[Load Bson]  once 10000 children":{"totalRuns":1,"lastRun":23.17725100001553,"diff":23.17725100001553,"diffRatio":null,"improvement":null,"averageRun":23.17725100001553},"[Load Bson] 10000 times":{"totalRuns":1,"lastRun":54916.610516000015,"diff":54916.610516000015,"diffRatio":null,"improvement":null,"averageRun":54916.610516000015},"[Load Bson] 10000 runs":{"totalRuns":10000,"lastRun":5.398872457900015,"diff":5.398872457900015,"diffRatio":null,"improvement":null,"averageRun":5.398872457900015},"[Write Json]  once 10000 children":{"totalRuns":1,"lastRun":2.4097620000247844,"diff":2.4097620000247844,"diffRatio":null,"improvement":null,"averageRun":2.4097620000247844},"[Write Json] 10000 times":{"totalRuns":1,"lastRun":27175.121798000007,"diff":27175.121798000007,"diffRatio":null,"improvement":null,"averageRun":27175.121798000007},"[Write Bson]  once 10000 children":{"totalRuns":1,"lastRun":3.6366560000460595,"diff":3.6366560000460595,"diffRatio":null,"improvement":null,"averageRun":3.6366560000460595},"[Write Bson] 10000 times":{"totalRuns":1,"lastRun":32558.284798000008,"diff":32558.284798000008,"diffRatio":null,"improvement":null,"averageRun":32558.284798000008}}}
+{
+  "results": {
+    "[Set] 100 children": {
+      "totalRuns": 51,
+      "lastRun": 1.7007450000000972,
+      "diff": 0.40135000000009313,
+      "diffRatio": 1.3088745146780554,
+      "improvement": 0.3088745146780554,
+      "averageRun": 1.6323678235294121
+    },
+    "[Set] 100 runs": {
+      "totalRuns": 5100,
+      "lastRun": 0.015818780000022344,
+      "diff": 0.0077396700000144855,
+      "diffRatio": 1.9579854711728095,
+      "improvement": 0.9579854711728095,
+      "averageRun": 0.011848751960787475
+    },
+    "[Set Json] autoSave 100 children": {
+      "totalRuns": 51,
+      "lastRun": 10.343229999999949,
+      "diff": 2.6851090000000113,
+      "diffRatio": 1.350622430750315,
+      "improvement": 0.35062243075031496,
+      "averageRun": 10.210685941176498
+    },
+    "[Set Bson] autoSave  100 children": {
+      "totalRuns": 51,
+      "lastRun": 35.128619999999955,
+      "diff": 11.820638000000145,
+      "diffRatio": 1.5071497824221864,
+      "improvement": 0.5071497824221864,
+      "averageRun": 27.818180862745113
+    },
+    "[GetAll] assert 100 children": {
+      "totalRuns": 51,
+      "lastRun": 0.2826399999999012,
+      "diff": -0.5156550000006064,
+      "diffRatio": 0.35405457882076363,
+      "improvement": -0.6459454211792364,
+      "averageRun": 0.23823352941175757
+    },
+    "[Get] 100 children": {
+      "totalRuns": 51,
+      "lastRun": 1.4463709999999992,
+      "diff": -1.2962599999991653,
+      "diffRatio": 0.5273662406646902,
+      "improvement": -0.4726337593353098,
+      "averageRun": 0.7253392156862543
+    },
+    "[Get] 100 runs": {
+      "totalRuns": 5100,
+      "lastRun": 0.010140210000026855,
+      "diff": 0.003395640000035201,
+      "diffRatio": 1.5034627856244953,
+      "improvement": 0.5034627856244953,
+      "averageRun": 0.007351562745101207
+    },
+    "[Load Json]  once 100 children": {
+      "totalRuns": 51,
+      "lastRun": 0.27106800000001385,
+      "diff": -0.005455000000438304,
+      "diffRatio": 0.9802728886912503,
+      "improvement": -0.019727111308749712,
+      "averageRun": 0.37352954901959545
+    },
+    "[Load Json] 100 times": {
+      "totalRuns": 51,
+      "lastRun": 11.972197999999935,
+      "diff": -3.0651450000000295,
+      "diffRatio": 0.7961644553828401,
+      "improvement": -0.20383554461715991,
+      "averageRun": 13.061937392156796
+    },
+    "[Load Json] 100 runs": {
+      "totalRuns": 5100,
+      "lastRun": 0.1383663800000113,
+      "diff": -0.020971709999962507,
+      "diffRatio": 0.8683823183774454,
+      "improvement": -0.1316176816225546,
+      "averageRun": 0.13850904862744984
+    },
+    "[Load Bson]  once 100 children": {
+      "totalRuns": 51,
+      "lastRun": 0.5969119999999748,
+      "diff": -0.3408630000003541,
+      "diffRatio": 0.6365194209695988,
+      "improvement": -0.3634805790304012,
+      "averageRun": 0.678168725490231
+    },
+    "[Load Bson] 100 times": {
+      "totalRuns": 51,
+      "lastRun": 25.588071000000127,
+      "diff": 1.0052160000004733,
+      "diffRatio": 1.0408909380135256,
+      "improvement": 0.04089093801352561,
+      "averageRun": 26.446690470588226
+    },
+    "[Load Bson] 100 runs": {
+      "totalRuns": 5100,
+      "lastRun": 0.13470166999999036,
+      "diff": -0.028983680000060325,
+      "diffRatio": 0.822930518827425,
+      "improvement": -0.17706948117257504,
+      "averageRun": 0.14819829745098215
+    },
+    "[Write Json]  once 100 children": {
+      "totalRuns": 51,
+      "lastRun": 0.10807500000009895,
+      "diff": -0.1398110000000088,
+      "diffRatio": 0.4359867035655583,
+      "improvement": -0.5640132964344418,
+      "averageRun": 0.1310571764705874
+    },
+    "[Write Json] 100 times": {
+      "totalRuns": 51,
+      "lastRun": 6.354681999999684,
+      "diff": -2.1187740000000304,
+      "diffRatio": 0.7499516136036934,
+      "improvement": -0.25004838639630655,
+      "averageRun": 7.0674516078430925
+    },
+    "[Write Bson]  once 100 children": {
+      "totalRuns": 51,
+      "lastRun": 0.12039000000004307,
+      "diff": -0.5226710000006278,
+      "diffRatio": 0.18721396570452487,
+      "improvement": -0.8127860342954751,
+      "averageRun": 0.1556562745098139
+    },
+    "[Write Bson] 100 times": {
+      "totalRuns": 51,
+      "lastRun": 6.045963000000029,
+      "diff": -3.332036999999673,
+      "diffRatio": 0.6446964171465367,
+      "improvement": -0.3553035828534633,
+      "averageRun": 6.728728666666636
+    },
+    "[Set] 1000 children": {
+      "totalRuns": 28,
+      "lastRun": 8.437206000000515,
+      "diff": 1.3015824642861844,
+      "diffRatio": 1.1824062687404495,
+      "improvement": 0.18240626874044952,
+      "averageRun": 7.1356235357143305
+    },
+    "[Set] 1000 runs": {
+      "totalRuns": 27000,
+      "lastRun": 0.007842021999988902,
+      "diff": -0.002479574481492228,
+      "diffRatio": 0.7597683182111364,
+      "improvement": -0.24023168178886356,
+      "averageRun": 0.01032159648148113
+    },
+    "[Set Json] autoSave 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 333.4423719999995,
+      "diff": -86.11398081481525,
+      "diffRatio": 0.7947499060922942,
+      "improvement": -0.20525009390770577,
+      "averageRun": 419.5563528148148
+    },
+    "[Set Bson] autoSave  1000 children": {
+      "totalRuns": 27,
+      "lastRun": 370.2104760000002,
+      "diff": -195.69217533333313,
+      "diffRatio": 0.654194630697949,
+      "improvement": -0.34580536930205097,
+      "averageRun": 565.9026513333333
+    },
+    "[GetAll] assert 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 0.7196330000006128,
+      "diff": 0.3219929629635097,
+      "diffRatio": 1.8097599159348863,
+      "improvement": 0.8097599159348863,
+      "averageRun": 0.3976400370371031
+    },
+    "[Get] 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 3.2993329999999332,
+      "diff": -0.17326111111116127,
+      "diffRatio": 0.9501061438315563,
+      "improvement": -0.04989385616844366,
+      "averageRun": 3.4725941111110945
+    },
+    "[Get] 1000 runs": {
+      "totalRuns": 27000,
+      "lastRun": 0.011323912000006204,
+      "diff": 0.0015253505555599452,
+      "diffRatio": 1.1556708670153313,
+      "improvement": 0.15567086701533128,
+      "averageRun": 0.009798561444446258
+    },
+    "[Load Json]  once 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 0.55507900000066,
+      "diff": -0.176856740740176,
+      "diffRatio": 0.7583712190893033,
+      "improvement": -0.24162878091069673,
+      "averageRun": 0.731935740740836
+    },
+    "[Load Json] 1000 times": {
+      "totalRuns": 27,
+      "lastRun": 668.1562199999998,
+      "diff": 213.22420562962958,
+      "diffRatio": 1.4686946596289419,
+      "improvement": 0.46869465962894186,
+      "averageRun": 454.93201437037027
+    },
+    "[Load Json] 1000 runs": {
+      "totalRuns": 27000,
+      "lastRun": 0.37730892800000126,
+      "diff": -0.11246166918518535,
+      "diffRatio": 0.7703788879293164,
+      "improvement": -0.2296211120706836,
+      "averageRun": 0.4897705971851866
+    },
+    "[Load Bson]  once 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 1.3664269999999306,
+      "diff": -1.0591045555556438,
+      "diffRatio": 0.5633515659155987,
+      "improvement": -0.43664843408440135,
+      "averageRun": 2.4255315555555743
+    },
+    "[Load Bson] 1000 times": {
+      "totalRuns": 27,
+      "lastRun": 447.5308840000007,
+      "diff": -146.47507829629546,
+      "diffRatio": 0.7534114342387153,
+      "improvement": -0.24658856576128474,
+      "averageRun": 594.0059622962962
+    },
+    "[Load Bson] 1000 runs": {
+      "totalRuns": 27000,
+      "lastRun": 0.5071527609999966,
+      "diff": -0.12148761466667402,
+      "diffRatio": 0.8067454472076553,
+      "improvement": -0.1932545527923447,
+      "averageRun": 0.6286403756666706
+    },
+    "[Write Json]  once 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 0.2729689999996481,
+      "diff": -0.11343125925968373,
+      "diffRatio": 0.7064410373918654,
+      "improvement": -0.29355896260813463,
+      "averageRun": 0.3864002592593318
+    },
+    "[Write Json] 1000 times": {
+      "totalRuns": 27,
+      "lastRun": 214.7196359999998,
+      "diff": -125.08249514814838,
+      "diffRatio": 0.6318960839783125,
+      "improvement": -0.36810391602168746,
+      "averageRun": 339.8021311481482
+    },
+    "[Write Bson]  once 1000 children": {
+      "totalRuns": 27,
+      "lastRun": 0.35596999999870604,
+      "diff": -0.2040257407417676,
+      "diffRatio": 0.6356655490415203,
+      "improvement": -0.3643344509584797,
+      "averageRun": 0.5599957407404736
+    },
+    "[Write Bson] 1000 times": {
+      "totalRuns": 27,
+      "lastRun": 266.1758060000011,
+      "diff": -62.59167277777641,
+      "diffRatio": 0.809617201158501,
+      "improvement": -0.190382798841499,
+      "averageRun": 328.7674787777775
+    },
+    "[Set] 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 67.31871300000012,
+      "diff": 67.31871300000012,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 67.31871300000012
+    },
+    "[Set] 10000 runs": {
+      "totalRuns": 10000,
+      "lastRun": 0.013796577799998022,
+      "diff": 0.013796577799998022,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 0.013796577799998022
+    },
+    "[Set Json] autoSave 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 43233.242614999996,
+      "diff": 43233.242614999996,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 43233.242614999996
+    },
+    "[Set Bson] autoSave  10000 children": {
+      "totalRuns": 1,
+      "lastRun": 24866.605491000002,
+      "diff": 24866.605491000002,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 24866.605491000002
+    },
+    "[GetAll] assert 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 0.2817730000097072,
+      "diff": 0.2817730000097072,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 0.2817730000097072
+    },
+    "[Get] 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 35.34418799998821,
+      "diff": 35.34418799998821,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 35.34418799998821
+    },
+    "[Get] 10000 runs": {
+      "totalRuns": 10000,
+      "lastRun": 0.0196925949999204,
+      "diff": 0.0196925949999204,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 0.0196925949999204
+    },
+    "[Load Json]  once 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 7.757842000006349,
+      "diff": 7.757842000006349,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 7.757842000006349
+    },
+    "[Load Json] 10000 times": {
+      "totalRuns": 1,
+      "lastRun": 51217.32902100001,
+      "diff": 51217.32902100001,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 51217.32902100001
+    },
+    "[Load Json] 10000 runs": {
+      "totalRuns": 10000,
+      "lastRun": 3.4988500575999817,
+      "diff": 3.4988500575999817,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 3.4988500575999817
+    },
+    "[Load Bson]  once 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 23.17725100001553,
+      "diff": 23.17725100001553,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 23.17725100001553
+    },
+    "[Load Bson] 10000 times": {
+      "totalRuns": 1,
+      "lastRun": 54916.610516000015,
+      "diff": 54916.610516000015,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 54916.610516000015
+    },
+    "[Load Bson] 10000 runs": {
+      "totalRuns": 10000,
+      "lastRun": 5.398872457900015,
+      "diff": 5.398872457900015,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 5.398872457900015
+    },
+    "[Write Json]  once 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 2.4097620000247844,
+      "diff": 2.4097620000247844,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 2.4097620000247844
+    },
+    "[Write Json] 10000 times": {
+      "totalRuns": 1,
+      "lastRun": 27175.121798000007,
+      "diff": 27175.121798000007,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 27175.121798000007
+    },
+    "[Write Bson]  once 10000 children": {
+      "totalRuns": 1,
+      "lastRun": 3.6366560000460595,
+      "diff": 3.6366560000460595,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 3.6366560000460595
+    },
+    "[Write Bson] 10000 times": {
+      "totalRuns": 1,
+      "lastRun": 32558.284798000008,
+      "diff": 32558.284798000008,
+      "diffRatio": null,
+      "improvement": null,
+      "averageRun": 32558.284798000008
+    }
+  }
+}

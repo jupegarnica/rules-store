@@ -43,79 +43,6 @@ export const deepClone = (obj: Value) => {
   return clone;
 };
 
-type AnyObject = { [key: string ]: any };
-const makeHandler = (path: Keys) => {
-  return {
-    set(target: AnyObject, key: string, value: any, receiver: AnyObject) {
-      throw new Error("Inmutable data");
-
-      // if (typeof value === "object") {
-      //   value = deepProxy(value, [...path, key]);
-      // }
-      // target[key] = value;
-
-      // // if (dp._handler.set) {
-      // //   dp._handler.set(target, [...path, key], value, receiver);
-      // // }
-      // return true;
-    },
-
-    deleteProperty(target: AnyObject, key: string) {
-      throw new Error("Inmutable data");
-
-      // if (Reflect.has(target, key)) {
-      //   let deleted = Reflect.deleteProperty(target, key);
-      //   return deleted;
-      // }
-      // return false;
-    },
-  };
-};
-
-// ( {
-//   get(target: AnyObject, key: string, receiver: AnyObject) {
-//     // const _target = Reflect.get(target, dataToSet) ?? target;
-//     // console.log(Reflect.get(target, dataToSet));
-//     console.log("get", key);
-
-//     return target[key];
-//   },
-//   deleteProperty(target: AnyObject, key: string | symbol) {
-//     console.log("del", key);
-
-//     if (key === allowSetOnProxy) {
-//       delete target[key];
-
-//       return true;
-//     }
-
-//     throw new Error("Inmutable data delete");
-//   },
-//   set(target: AnyObject, key: string, value: any, receiver: AnyObject) {
-//     const allowSet = Reflect.get(target, allowSetOnProxy);
-//     // console.log(key, allowSet);
-//     console.log("set", key);
-
-//     if (allowSet) {
-//       Reflect.set(target, key, value);
-//       return true;
-//     }
-//     throw new Error("Inmutable data");
-//     // return false;
-//   })
-
-export const deepProxy = (obj: Value, path: Keys = []) => {
-  if (!isObject(obj)) return obj;
-
-  for (const key in obj) {
-    Reflect.set(obj, key, deepProxy(obj[key], [...path, key]));
-  }
-
-  // const root = { root: obj };
-  const proxy = (new Proxy(obj, makeHandler(path))) as Value;
-  return proxy;
-};
-
 // export const deepClone = (obj: Value) => {
 //   if (!isObject(obj)) {
 //     return obj;
@@ -238,3 +165,44 @@ export function findRuleAndParams(
 //     }
 //   };
 // }
+
+
+// type AnyObject = { [key: string ]: any };
+// const makeHandler = (path: Keys) => {
+//   return {
+//     set(target: AnyObject, key: string, value: any, receiver: AnyObject) {
+//       throw new Error("Inmutable data");
+
+//       // if (typeof value === "object") {
+//       //   value = deepProxy(value, [...path, key]);
+//       // }
+//       // target[key] = value;
+
+//       // // if (dp._handler.set) {
+//       // //   dp._handler.set(target, [...path, key], value, receiver);
+//       // // }
+//       // return true;
+//     },
+
+//     deleteProperty(target: AnyObject, key: string) {
+//       throw new Error("Inmutable data");
+
+//       // if (Reflect.has(target, key)) {
+//       //   let deleted = Reflect.deleteProperty(target, key);
+//       //   return deleted;
+//       // }
+//       // return false;
+//     },
+//   };
+// };
+// export const deepProxy = (obj: Value, path: Keys = []) => {
+//   if (!isObject(obj)) return obj;
+
+//   for (const key in obj) {
+//     Reflect.set(obj, key, deepProxy(obj[key], [...path, key]));
+//   }
+
+//   // const root = { root: obj };
+//   const proxy = (new Proxy(obj, makeHandler(path))) as Value;
+//   return proxy;
+// };

@@ -2,7 +2,6 @@ import {
   addChildToKeys,
   deepClone,
   deepGet,
-deepProxy,
   deepSet,
   findRuleAndParams,
   isObject,

@@ -8,8 +8,6 @@ import type {
   Value,
 } from "./types.ts";
 
-import { allowSetOnProxy, dataToSet } from "./symbols.ts";
-
 export function isObject(obj: unknown): boolean {
   return typeof obj === "object" && obj !== null;
 }
@@ -34,6 +32,7 @@ export function findParam(obj: ObjectKind): string | void {
   }
 }
 export const deepClone = (obj: Value) => {
+  // return obj;
   if (!isObject(obj)) return obj;
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
@@ -165,7 +164,6 @@ export function findRuleAndParams(
 //     }
 //   };
 // }
-
 
 // type AnyObject = { [key: string ]: any };
 // const makeHandler = (path: Keys) => {

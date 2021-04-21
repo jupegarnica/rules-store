@@ -39,25 +39,28 @@ export class Store {
   /**
    * The actual data cache.
    */
-  protected _data: Data = {};
-  protected _newData = {};
-  protected _cloneData = false;
-
+   #data: Data = {};
+   #newData: Data = {};
+  // protected _newData = {};
+  public get _data() {
+    return this.#data;
+  }
+  protected setData(data:Data) {
+    this.#data = data;
+  }
+  public get _newData() {
+    return this.#newData;
+  }
   /**
    * Create a new {Store} instance without persistance.
    *
    */
   constructor(config?: BaseConfig) {
     this._rules = config?.rules ?? allowAllRules;
-    // this._cloneData = config?.cloneData ?? false;
-    this._cloneData = false;
   }
 
   private _get(keys: Keys): Value {
-    return deepGet(this._data, keys);
-  }
-  private _clone(data: Value): Value {
-    return this._cloneData ? deepClone(data) : data;
+    return deepGet(this.#data, keys);
   }
   /**
    * Retrieves a value from database by specified path.
@@ -71,12 +74,17 @@ export class Store {
    */
   public get(path: string): Value {
     const keys = keysFromPath(path);
-    this._checkRule("_read", keys);
-    return this._clone(this._get(keys));
+    return deepClone(this._getAndCheck(keys));
   }
+
+  private _getAndCheck(keys: Keys): Value {
+    this._checkRule("_read", keys);
+    return (this._get(keys));
+  }
+
   private _set(keys: Keys, value: Value): void {
-     // TODO CLONE?
-    const cloned = this._clone(value)
+    // TODO CLONE?
+    const cloned = (value);
     deepSet(this._newData, keys, cloned);
     try {
       this._checkRule("_write", keys);
@@ -84,15 +92,15 @@ export class Store {
       this._rollBack(keys);
       throw error;
     }
-    this._commit(keys,cloned);
+    this._commit(keys, cloned);
   }
   private _commit(keys: Keys, value: Value): void {
     this._notify();
-    deepSet(this._data, keys, value);
+    deepSet(this.#data, keys, value);
   }
   private _rollBack(keys: Keys): void {
-     // TODO CLONE?
-    const oldData = this._clone(deepGet(this._data, keys))
+    // TODO CLONE?
+    const oldData = (deepGet(this.#data, keys));
     deepSet(this._newData, keys, oldData);
   }
   /**
@@ -119,10 +127,10 @@ export class Store {
 
     let newValue;
     if (typeof valueOrFunction === "function") {
-      const oldValue = this.get(pathFromKeys(keys));
-      newValue = valueOrFunction(oldValue);
+      const oldValue = this._getAndCheck(keys);
+      newValue = valueOrFunction(deepClone(oldValue));
     } else {
-      newValue = this._clone(valueOrFunction);
+      newValue = deepClone(valueOrFunction);
     }
 
     this._set(keys, newValue);
@@ -176,7 +184,7 @@ export class Store {
       throw new TypeError("Target is not an Array");
     }
 
-    const cloned = this._clone(values);
+    const cloned = (values);
     const initialLength = oldValue.length;
     for (const index in cloned) {
       const targetIndex = initialLength + Number(index);
@@ -200,7 +208,7 @@ export class Store {
     if (!isObject(target)) {
       throw new TypeError("Target not object or array");
     }
-    target = this._clone(target);
+    target = deepClone(target);
     const results = [] as [string, Value][];
     for (const key in target) {
       this._checkRule("_read", addChildToKeys(keys, key));
@@ -224,12 +232,13 @@ export class Store {
     path: string,
     finder: Finder,
   ): [string, Value] | void {
-    let target = this.get(path);
+    const keys = keysFromPath(path);
+
+    let target = this._getAndCheck(keys);
     if (!isObject(target)) {
       throw new TypeError("Target not object or array");
     }
-    target = this._clone(target);
-    const keys = keysFromPath(path);
+    target = deepClone(target);
     for (const key in target) {
       this._checkRule("_read", addChildToKeys(keys, key));
       const value = target[key];
@@ -279,8 +288,8 @@ export class Store {
     const result = returnsRemoved ? this.findOne(path, finder) : undefined;
     const keys = keysFromPath(path);
     if (result) {
-      const pathToRemove = addChildToKeys(keys, result[0]);
-      this.remove(pathFromKeys(pathToRemove), returnsRemoved);
+      const keysToRemove = addChildToKeys(keys, result[0]);
+      this.remove(pathFromKeys(keysToRemove), returnsRemoved);
     }
 
     return result;
@@ -351,8 +360,8 @@ export class Store {
       const { path, callback } = subscription;
       const keys = keysFromPath(path);
       this._checkRule("_read", keys);
-      const data = deepGet(this._data,keys);;
-      const newData = deepGet(this._newData,keys);
+      const data = deepGet(this.#data, keys);
+      const newData = deepGet(this._newData, keys);
       if (!equal(data, newData)) {
         callback(newData);
       }
@@ -370,13 +379,13 @@ export class Store {
   ): RuleContext => ({
     params,
     get data(): Value {
-      return deepGet(self._data, rulePath);
+      return deepClone(deepGet(self.#data, rulePath));
     },
     get newData(): Value {
-      return deepGet(self._newData, rulePath);
+      return deepClone(deepGet(self._newData, rulePath));
     },
     get rootData(): Data {
-      return self._clone(self._data);
+      return deepClone(self.#data);
     },
     set data(_: Value) {
       throw new Error("please do not set data");
@@ -396,13 +405,13 @@ export class Store {
   ): RuleContext => ({
     params,
     get data(): Value {
-      return deepGet(self._data, rulePath);
+      return deepClone(deepGet(self.#data, rulePath));
     },
     get newData(): Value {
       return undefined;
     },
     get rootData(): Data {
-      return self._clone(self._data);
+      return deepClone(self.#data);
     },
     set data(_: Value) {
       throw new Error("please do not set data");

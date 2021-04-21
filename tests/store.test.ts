@@ -265,27 +265,6 @@ Deno.test("[Store] push into an not array", () => {
   });
 });
 
-Deno.test("[Store] Set inmutable behavior", () => {
-  const db = new Store({ cloneData: true });
-  const obj = { b: 1 };
-  db.set("a", obj);
-  obj.b = 2;
-
-  const B = db.get("a.b");
-  assertEquals(B, 1);
-});
-
-Deno.test("[Store] Get inmutable behavior", () => {
-  const db = new Store({ cloneData: true });
-  db.set("a", { b: 1 });
-
-  const A = db.get("a");
-  A.b = 2;
-
-  const B = db.get("a.b");
-  assertEquals(B, 1);
-});
-
 Deno.test("[Store] Set with a function", () => {
   const db = new Store();
   db.set("a", { b: 1 });
@@ -472,9 +451,6 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
   assertEquals(db.get("arr"), [1, 3]);
 });
 
-
-
-
 // Deno.test("[Store] _set", () => {
 //   const db = new Store();
 //   db.set("a.b", { c: { d: 1} });
@@ -488,7 +464,6 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
 //   assertEquals(db._newData.a.b === db._data.a.b, false, "._newData.a.b");
 //   assertEquals(db._newData.a.b.c === db._data.a.b.c, false, "._newData.a.b.c");
 // });
-
 
 // Deno.test("[Store] _set", () => {
 //   const db = new Store();

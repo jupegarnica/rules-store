@@ -7,22 +7,20 @@ import type {
   BenchmarkRunProgress,
 } from "https://deno.land/std@0.93.0/testing/bench.ts";
 
-import {duration} from 'https://deno.land/x/tims/mod.ts';
+import { duration } from "https://deno.land/x/tims/mod.ts";
 import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
 // deno-lint-ignore no-explicit-any
-const d = (time:any) => {
+const d = (time: any) => {
   if (time > 1000) {
-    return duration(time, {format:'second', locale:'en'})
+    return duration(time, { format: "second", locale: "en" });
   }
-  return time.toFixed(2)
-
-}
-const RUNS =
-1e3;
+  return time.toFixed(2);
+};
+const RUNS = 1e3;
 1e2;
 1e4;
 1e5;
@@ -46,8 +44,7 @@ const benchOptions: [
   // only: /(Load)|(Write)/,
   // only: /(BSON)|(JSON)/i,
   silent: true,
-},
-// (p: BenchmarkRunProgress) => {
+}// (p: BenchmarkRunProgress) => {
   // initial progress data
 
   // console.log(p.state);
@@ -56,7 +53,7 @@ const benchOptions: [
   //     `Starting benchmarking. Queued: ${p.queued?.length}, filtered: ${p.filtered}`,
   //   );
   // }
-// }
+  // }
 ];
 
 const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -101,7 +98,6 @@ bench({
     b.stop();
   },
 });
-
 
 bench({
   name: `[Set Bson] autoSave  ${RUNS} children`,
@@ -358,14 +354,13 @@ for (const result of results) {
   dbResults.set(
     `results/${name}`,
     (old: { [k: string]: number }) => {
-
       // const lastOld = old?.lastRun ?? 0;
       const totalRunsOld = old?.totalRuns ?? 0;
       const averageRunOld = old?.averageRun ?? 0;
       const totalRuns = (totalRunsOld) + runsCount;
 
       const averageRun = ((averageRunOld * totalRunsOld) +
-      (measuredRunsAvgMs * runsCount)) / totalRuns;
+        (measuredRunsAvgMs * runsCount)) / totalRuns;
 
       const diff = measuredRunsAvgMs - averageRun;
       const diffRatio = measuredRunsAvgMs / averageRun;
@@ -386,10 +381,10 @@ for (const result of results) {
       console.group(colors.dim(name));
       console.debug(
         colors.bold(imp),
-        ' '.repeat((7-text.length) ),
-        colors.bold(colors.blue(d( measuredRunsAvgMs))),
-        colors.blue(d( averageRun)),
-        colors.yellow( diffRatio.toFixed(2)),
+        " ".repeat((7 - text.length)),
+        colors.bold(colors.blue(d(measuredRunsAvgMs))),
+        colors.blue(d(averageRun)),
+        colors.yellow(diffRatio.toFixed(2)),
       );
       console.groupEnd();
 

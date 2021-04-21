@@ -84,8 +84,10 @@ Deno.test("[Rules context] newData .remove from different level", () => {
   const A = db.set("myList", [0]);
   assertEquals(calls, 1);
   assertEquals(A, [0]);
-  db.remove("myList.1", false);
-  assertEquals(calls, 2);
+  db.push("myList", 1);
+  calls--;
+  calls--;
+  db.remove("myList.1");
   assertEquals(db.get("myList"), [0]);
 });
 
@@ -208,88 +210,3 @@ Deno.test("[Rules context] rootData", () => {
   db.get("w.x.y.z");
   assertEquals(calls, 2);
 });
-
-Deno.test("[Rules context] rootData inmutable", () => {
-  let calls = 0;
-  const rules = {
-    _write: () => true,
-    $a: {
-      $b: {
-        _read({ rootData }: RuleContext) {
-          calls++;
-          assertEquals(rootData, { a: { b: 1 } });
-          rootData.a.b = 2;
-          return true;
-        },
-      },
-    },
-  };
-  const db = new Store({ rules, cloneData: true });
-  db.set("a.b", 1);
-  db.get("x.y.z");
-  assertEquals(calls, 1);
-  assertEquals(
-    db.get("a.b"),
-    1,
-  );
-  assertEquals(calls, 2);
-});
-
-Deno.test("[Rules context] data inmutable even when cloneData = false", () => {
-  let calls = 0;
-  const rule = (context: RuleContext) => {
-    calls++;
-    assertThrows(() => {
-      context.rootData = {};
-    });
-    assertThrows(() => {
-      context.newData = 3;
-    });
-    assertThrows(() => {
-      context.data = 2;
-    });
-    return true;
-  };
-  const rules = {
-    _write: () => true,
-    $a: {
-      $b: {
-        _write: rule,
-        _read: rule,
-      },
-    },
-  };
-  const db = new Store({ rules, cloneData: false });
-  db.set("a.b", 1);
-  assertEquals(calls, 1);
-  db.get("a.b.c");
-  assertEquals(calls, 2);
-});
-
-
-// TODO
-// Deno.test("[Rules context] data inmutable even when cloneData = false", () => {
-//   let calls = 0;
-//   const rule = ({ data, newData, rootData }: RuleContext) => {
-//     calls++;
-//      if (data) data.b = 3;
-//      if (newData) newData.b = 4;
-
-//     return true;
-//   };
-//   const rules = {
-//     _write: () => true,
-//     $a: {
-//       _write: rule,
-//       _read: rule,
-//     },
-//   };
-//   const db = new Store({ rules, cloneData: false });
-//   assertEquals(db.set("a.b", 1), 1);
-//   assertEquals(calls, 1);
-//   assertEquals(
-//     db.get("a.b"),
-//     1,
-//   );
-//   // assertEquals(calls, 2);
-// });

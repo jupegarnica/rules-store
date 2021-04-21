@@ -10,7 +10,7 @@ export type Value = any;
 //   | Value[];
 
 // deno-lint-ignore no-explicit-any
-export type ObjectKind = { [key: string ]: any } | any[];
+export type ObjectKind = { [key: string]: any } | any[];
 export type Data = { [key: string]: Value };
 export type Keys = string[];
 
@@ -47,7 +47,6 @@ export type Rules = {
 
 export type BaseConfig = {
   rules?: Rules;
-  cloneData?: boolean;
 };
 export type Config = BaseConfig & {
   autoSave?: boolean;

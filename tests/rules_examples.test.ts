@@ -14,9 +14,9 @@ Deno.test("[Rules Examples] counter", () => {
 
   const db = new Store({ rules });
   db.set("count", 0);
-  assertEquals(db.get("count"),0)
+  assertEquals(db.get("count"), 0);
   db.set("count", 1);
-  assertEquals(db.get("count"),1)
+  assertEquals(db.get("count"), 1);
   assertThrows(() => db.set("count", 10));
   assertThrows(() => db.set("count", 11));
 });

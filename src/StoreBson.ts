@@ -19,11 +19,8 @@ export class StoreBson extends StoreFile {
 
     // Load data from file.
     const data = Deno.readFileSync(storePath);
-    // const decoder = new TextDecoder("utf-8");
-    // const decoded = JSON.parse(decoder.decode(data));
-
     // Store new data.
-    this._data = Bson.deserialize(data);
+    this.setData(Bson.deserialize(data));
 
     return;
   }
@@ -35,8 +32,6 @@ export class StoreBson extends StoreFile {
    *
    */
   public write(): void {
-    // const data = JSON.stringify(this._data);
-    // const encoder = new TextEncoder();
     const data = Bson.serialize(this._data);
     return Deno.writeFileSync(
       this._storePath,

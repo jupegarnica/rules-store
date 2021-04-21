@@ -105,7 +105,6 @@ Deno.test("[StoreJson] autoSave config on remove", () => {
   assertEquals(existsSync(db.storePath), false);
 });
 
-
 Deno.test("[StoreJson] autoSave config on findAndRemove", () => {
   const db = new StoreJson({
     filename: testStorePath,
@@ -130,7 +129,6 @@ Deno.test("[StoreJson] autoSave config on findOneAndRemove", () => {
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
-
 
 Deno.test("[StoreJson] set and get null", () => {
   const db = new StoreJson();

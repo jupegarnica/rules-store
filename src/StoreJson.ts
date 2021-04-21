@@ -21,7 +21,7 @@ export class StoreJson extends StoreFile {
     const decoded = JSON.parse(decoder.decode(data));
 
     // Store new data.
-    this._data = decoded;
+    this.setData(decoded);
 
     return;
   }

@@ -1,5 +1,5 @@
-import { StoreJson } from "../src/StoreJson.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
+// import { StoreJson } from "../src/StoreJson.ts";
+// import { assertEquals, assertThrows } from "./test_deps.ts";
 
 // Deno.test("[StoreJson] initialDataIfNoFile", () => {
 //   const db = new StoreJson({ initialDataIfNoFile: [1, 2] });

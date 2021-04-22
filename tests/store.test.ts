@@ -465,7 +465,6 @@ Deno.test("[Store] Set negative array index", () => {
   db.set("arr.-3", -1);
   assertEquals(db.get("arr"), [-1, -2, -3]);
 
-
   assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
 });
 

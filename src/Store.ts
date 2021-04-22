@@ -5,8 +5,8 @@ import {
   deepGet,
   deepSet,
   findRuleAndParams,
-  isObject,
   isNumberKey,
+  isObject,
   keysFromPath,
   pathFromKeys,
 } from "./helpers.ts";

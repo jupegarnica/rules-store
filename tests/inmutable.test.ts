@@ -273,6 +273,18 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
   assertEquals(res[0][1].c.d, 1);
 });
 
+Deno.test("[Store] find sort", () => {
+  const db = new Store();
+
+  const a = [{ b: 1 }, { b: 2 }, { b: 3 }];
+  db.set("a", a);
+  // deno-lint-ignore no-explicit-any
+  const res = db.find("a", () => true).sort(([, x]: any, [, y]: any) =>
+    y.b - x.b
+  );
+  assertEquals(res.map(([, v]) => v), [{ b: 3 }, { b: 2 }, { b: 1 }]);
+  assertEquals(db.get("a"), [{ b: 1 }, { b: 2 }, { b: 3 }]);
+});
 // Deno.test("[Store] Proxy a keyValue", () => {
 //   const obj = { b: 1 };
 //   const _pair = ["a", { b: 9 }] as KeyValue;

@@ -444,36 +444,9 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
   db.set("arr", [1, 2, 3]);
   const removed = db.findOneAndRemove(
     "arr",
-    ([, value]) => value > 1,
+    // deno-lint-ignore no-explicit-any
+    ([, value]: any) => value > 1,
   );
   assertEquals(removed, ["1", 2]);
   assertEquals(db.get("arr"), [1, 3]);
 });
-
-// Deno.test("[Store] _set", () => {
-//   const db = new Store();
-//   db.set("a.b", { c: { d: 1} });
-//   assertEquals(db.get("a.b"), { c: { d: 1} });
-//   assertEquals(db.get("a.b.c"), { d: 1} );
-
-//   assertEquals(db._newData.a, db._data.a);
-//   assertEquals(db._newData.a === db._data.a, false, ".a");
-//   // assertEquals(db._data.a.b === db._data.a.b, true, "_data.a.b");
-//   // TODO not sure what to think
-//   assertEquals(db._newData.a.b === db._data.a.b, false, "._newData.a.b");
-//   assertEquals(db._newData.a.b.c === db._data.a.b.c, false, "._newData.a.b.c");
-// });
-
-// Deno.test("[Store] _set", () => {
-//   const db = new Store();
-//   db.set("a.b", { c: { d: 1} });
-//   assertEquals(db.get("a.b"), { c: { d: 1} });
-//   assertEquals(db.get("a.b.c"), { d: 1} );
-
-//   assertEquals(db._newData.a, db._data.a);
-//   assertEquals(db._newData.a === db._data.a, false, ".a");
-//   // assertEquals(db._data.a.b === db._data.a.b, true, "_data.a.b");
-//   // TODO not sure what to think
-//   assertEquals(db._newData.a.b === db._data.a.b, false, "._newData.a.b");
-//   assertEquals(db._newData.a.b.c === db._data.a.b.c, false, "._newData.a.b.c");
-// });

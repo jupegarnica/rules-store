@@ -5,7 +5,7 @@ import {
   // deepProxy,
   deepSet,
   findParam,
-  isValidNumber,
+  isNumberKey,
   keysFromPath,
 } from "../src/helpers.ts";
 
@@ -88,18 +88,18 @@ Deno.test("[Helpers] keysFromPath", () => {
   assertEquals(keysFromPath("\\x.y/z\\"), ["x", "y", "z"]);
 });
 
-Deno.test("[Helpers] isValidNumber", () => {
-  assertEquals(isValidNumber("0"), true);
-  assertEquals(isValidNumber("3"), true);
-  assertEquals(isValidNumber("3e3"), true);
+Deno.test("[Helpers] isNumberKey", () => {
+  assertEquals(isNumberKey("0"), true);
+  assertEquals(isNumberKey("3"), true);
+  assertEquals(isNumberKey("3e3"), true);
+  assertEquals(isNumberKey("-3"), true);
 
-  assertEquals(isValidNumber("a3"), false);
-  assertEquals(isValidNumber("3a3"), false);
-  assertEquals(isValidNumber("-3"), false);
-  assertEquals(isValidNumber("z"), false);
-  assertEquals(isValidNumber("z"), false);
+  assertEquals(isNumberKey("a3"), false);
+  assertEquals(isNumberKey("3a3"), false);
+  assertEquals(isNumberKey("z"), false);
+  assertEquals(isNumberKey("z"), false);
   assertEquals(
-    isValidNumber(`${Number.MAX_SAFE_INTEGER + 100}`),
+    isNumberKey(`${Number.MAX_SAFE_INTEGER + 100}`),
     false,
   );
 });

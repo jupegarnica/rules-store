@@ -1,6 +1,5 @@
 import { Store } from "../src/Store.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-
 // Non persistance Store
 ////////////////////////
 
@@ -16,11 +15,6 @@ Deno.test("[Store] Simple set and get", () => {
 
 Deno.test("[Store] setting arrays", () => {
   const db = new Store();
-  db.set("a", [1]);
-  const A = db.get("a");
-  assertEquals(A, [1]);
-  const length = db.get("a.length");
-  assertEquals(length, 1);
 
   db.set("b.0.a", 1);
   const B = db.get("b");
@@ -450,3 +444,45 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
   assertEquals(removed, ["1", 2]);
   assertEquals(db.get("arr"), [1, 3]);
 });
+
+Deno.test("[Store] invalid set", () => {
+  const db = new Store();
+  db.set("arr", [1, 2]);
+  db.set("obj", { a: 1 });
+  assertThrows(() => db.set("obj.1", 3), TypeError, "not Object");
+  assertThrows(() => db.set("arr.a", 3), TypeError, "not Array");
+});
+
+Deno.test("[Store] Set negative array index", () => {
+  const db = new Store();
+  db.set("arr", [1, 2, 3]);
+
+  db.set("arr.-1", -3);
+
+  assertEquals(db.get("arr"), [1, 2, -3]);
+  db.set("arr.-2", -2);
+  assertEquals(db.get("arr"), [1, -2, -3]);
+  db.set("arr.-3", -1);
+  assertEquals(db.get("arr"), [-1, -2, -3]);
+
+
+  assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
+});
+
+Deno.test("[Store] Get negative array index", () => {
+  const db = new Store();
+  db.set("arr", [1, 2, 3]);
+  assertEquals(db.get("arr.-1"), 3);
+  assertEquals(db.get("arr.-2"), 2);
+  assertEquals(db.get("arr.-3"), 1);
+  assertEquals(db.get("arr.-7"), undefined);
+});
+
+// Deno.test("experimental", () => {
+//   const db = new Store();
+//   db.set("a", [1]);
+//   const A = db.get("a");
+//   assertEquals(A, [1]);
+//   const length = db.get("a.length");
+//   assertEquals(length, 1);
+// });

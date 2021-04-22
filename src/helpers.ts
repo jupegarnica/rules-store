@@ -70,21 +70,45 @@ export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
 //   return JSON.parse(JSON.stringify(obj));
 // };
 
-export function isValidNumber(key: string): boolean {
+export function isNumberKey(key: string): boolean {
   const maybeNumber = Number(key);
   return (
-    maybeNumber >= 0 && maybeNumber <= Number.MAX_SAFE_INTEGER
+    maybeNumber >= Number.MIN_SAFE_INTEGER &&
+    maybeNumber <= Number.MAX_SAFE_INTEGER
   );
 }
 
-// export const isValidNumber = memo(_isValidNumber);
+function get(obj: Value, key: string) {
+  // return obj[key];
+  if (obj && !Array.isArray(obj)) return obj[key];
+
+  let n = Number(key);
+  if (n < 0) n += obj.length;
+  if (n < 0 || n >= obj.length) return undefined;
+  return obj[n];
+}
 
 export const deepGet = (object: Data, keys: Keys): Value => {
   return keys.reduce(
-    (xs, x) => (xs && xs[x] !== undefined ? xs[x] : undefined),
+    (xs, x) => (xs && get(xs, x) !== undefined ? get(xs, x) : undefined),
     object,
   );
 };
+
+function setToObject(
+  obj: Data,
+  key: string | symbol,
+  value: Value,
+): void {
+  Reflect.set(obj, key, value);
+}
+
+function setToArray(arr: Data, key: string, value: Value): void {
+  let n = Number(key);
+  if (n < 0) n += arr.length;
+  if (n < 0) throw new TypeError(n + ": Invalid index");
+  Reflect.set(arr, (n), value);
+}
 
 export const deepSet = (
   obj: Data,
@@ -93,20 +117,32 @@ export const deepSet = (
 ): Value => {
   let worker = obj;
   const lastIndex = keys.length - 1;
-  let index = 0;
+  let index = -1;
   for (const key of keys) {
     if (!key) break;
     if (!worker) break;
+    index++;
+    const _isNumberKey = isNumberKey(key);
+    const isArray = Array.isArray(worker);
+
+    if (isArray && !_isNumberKey) {
+      throw new TypeError("target is not Array");
+    }
+    if (!isArray && _isNumberKey) {
+      throw new TypeError("target is not Object");
+    }
+
+    const set = (isArray ? setToArray : setToObject);
+
     if (!isObject(worker[key])) {
-      worker[key] = isValidNumber(keys[index + 1]) ? [] : {};
+      set(worker, key, isNumberKey(keys[index + 1]) ? [] : {});
     }
     if (index === lastIndex) {
       if (value === undefined) delete worker[key];
-      else worker[key] = value;
+      else set(worker, key, value);
     }
 
     worker = worker[key];
-    index++;
   }
 
   return obj;

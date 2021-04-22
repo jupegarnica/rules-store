@@ -6,7 +6,7 @@ import {
   deepSet,
   findRuleAndParams,
   isObject,
-  isValidNumber,
+  isNumberKey,
   keysFromPath,
   pathFromKeys,
 } from "./helpers.ts";
@@ -27,10 +27,7 @@ import type {
 } from "./types.ts";
 import { PermissionError, SubscriptionNotFoundError } from "./Errors.ts";
 
-const allowAllRules = {
-  _read: () => true,
-  _write: () => true,
-};
+import { allowAll } from "./rules.ts";
 
 /**
  * A database in RAM heavily inspired from firebase realtime database.
@@ -56,12 +53,14 @@ export class Store {
    * Create a new Store instance.
    *
    * @param {BaseConfig} config - The configuration
-   * @param {Rules} config.rules - it defaults to allowAllRules
+   * @param {Rules} config.rules - it defaults to allowAll
    *
    * */
 
   constructor(config?: BaseConfig) {
-    this._rules = config?.rules ?? allowAllRules;
+    this._rules = config?.rules ?? allowAll;
+    this.#data = config?.initialDataIfNoFile ?? {};
+    this.#newData = config?.initialDataIfNoFile ?? {};
   }
 
   private _get(keys: Keys): Value {
@@ -155,7 +154,7 @@ export class Store {
     if (returnRemoved) {
       oldValue = this.get(pathFromKeys(keys));
     }
-    if (isValidNumber(lastKey)) {
+    if (isNumberKey(lastKey)) {
       // remove array child
       this._set(keys, undefined);
       keys.pop();

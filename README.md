@@ -8,8 +8,9 @@
 - [x] find, findOne, findAndRemove, findOneAndRemove
 - [x] rules write and read
 - [x] performance benchmarks
-- [ ] inmutable behavior
+- [x] inmutable behavior
 - [ ] Support for JSON5?
+- [ ] do not allow set to undefined
 - [ ] parse json with wasm
 - [ ] findAndUpdate
 - [ ] rule validate

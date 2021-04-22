@@ -4,13 +4,16 @@ import {
   stringify,
 } from "https://deno.land/std@0.92.0/encoding/yaml.ts";
 
-import type { Value } from "./types.ts";
+import type { Value,Config } from "./types.ts";
 import { StoreFile } from "./StoreFile.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
  */
 export class StoreYaml extends StoreFile {
+  constructor(config?: Config) {
+    super(config);
+  }
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.

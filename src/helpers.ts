@@ -1,6 +1,7 @@
 import type {
   Data,
   Keys,
+  KeyValue,
   ObjectKind,
   Params,
   Rule,
@@ -40,6 +41,26 @@ export const deepClone = (obj: Value) => {
     (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
   );
   return clone;
+};
+
+export const applyCloneOnGet = (obj: ObjectKind, key:string,value: Value) => {
+  let data: Value;
+
+  Object.defineProperty(obj, key, {
+    set(val:Value) {
+      // Reflect.set(obj, key, val);
+      throw new Error('context must be inmutable')
+    },
+    get() {
+      if (data) {
+        return data;
+      }
+      data = deepClone(value);
+      console.assert(true,'cloned')
+      return data;
+    },
+  });
+  return obj;
 };
 
 // export const deepClone = (obj: Value) => {

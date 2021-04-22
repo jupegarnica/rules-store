@@ -2,12 +2,16 @@ import { existsSync } from "./deps.ts";
 
 import { StoreFile } from "./StoreFile.ts";
 import { Bson } from "https://deno.land/x/bson@v0.1.3/mod.ts";
+import type { Config } from "./types.ts";
 
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
  */
 export class StoreBson extends StoreFile {
+  constructor(config?: Config) {
+    super(config);
+  }
   /**
    * Load stored data from disk into cache.
    * Won't update cache values if hash in store file matches current cache file.

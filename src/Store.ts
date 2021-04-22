@@ -1,5 +1,6 @@
 import {
   addChildToKeys,
+  applyCloneOnGet,
   deepClone,
   deepGet,
   deepSet,
@@ -16,6 +17,7 @@ import type {
   Data,
   Finder,
   Keys,
+  KeyValue,
   Params,
   RuleContext,
   Rules,
@@ -39,13 +41,13 @@ export class Store {
   /**
    * The actual data cache.
    */
-   #data: Data = {};
-   #newData: Data = {};
+  #data: Data = {};
+  #newData: Data = {};
   // protected _newData = {};
   public get _data() {
     return this.#data;
   }
-  protected setData(data:Data) {
+  protected setData(data: Data) {
     this.#data = data;
   }
   public get _newData() {
@@ -74,6 +76,7 @@ export class Store {
    */
   public get(path: string): Value {
     const keys = keysFromPath(path);
+    // return (this._getAndCheck(keys));
     return deepClone(this._getAndCheck(keys));
   }
 
@@ -202,19 +205,22 @@ export class Store {
    * (value: any, key: string) => any
    * @returns  An array of pairs [key,value] found
    */
-  public find(path: string, finder: Finder): [string, Value][] {
+  public find(path: string, finder: Finder): KeyValue[] {
     const keys = keysFromPath(path);
     let target = this._get(keys);
     if (!isObject(target)) {
       throw new TypeError("Target not object or array");
     }
-    target = deepClone(target);
-    const results = [] as [string, Value][];
+    target = (target);
+    const results = [] as KeyValue[];
     for (const key in target) {
       this._checkRule("_read", addChildToKeys(keys, key));
-      const value = target[key];
-      if (finder(value, key)) {
-        results.push([key, value]);
+      const value = (target[key]);
+      const pair = [key, value] as KeyValue;
+
+      applyCloneOnGet(pair, "1", value);
+      if (finder(pair)) {
+        results.push(pair);
       }
     }
     return results;
@@ -231,21 +237,25 @@ export class Store {
   public findOne(
     path: string,
     finder: Finder,
-  ): [string, Value] | void {
+  ): KeyValue {
     const keys = keysFromPath(path);
 
-    let target = this._getAndCheck(keys);
+    const target = this._getAndCheck(keys);
     if (!isObject(target)) {
       throw new TypeError("Target not object or array");
     }
-    target = deepClone(target);
+    // target = deepClone(target);
     for (const key in target) {
       this._checkRule("_read", addChildToKeys(keys, key));
       const value = target[key];
-      if (finder(value, key)) {
-        return [key, value];
+      const pair = [key, value] as KeyValue;
+
+      applyCloneOnGet(pair, "1", value);
+      if (finder(pair)) {
+        return pair;
       }
     }
+    return ["", undefined];
   }
 
   /**
@@ -260,7 +270,7 @@ export class Store {
     path: string,
     finder: Finder,
     returnsRemoved = true,
-  ): [string, Value][] {
+  ): KeyValue[] {
     const results = returnsRemoved ? this.find(path, finder) : [];
     const keys = keysFromPath(path);
     for (let index = results.length - 1; index >= 0; index--) {
@@ -284,7 +294,7 @@ export class Store {
     path: string,
     finder: Finder,
     returnsRemoved = true,
-  ): [string, Value] | void {
+  ): KeyValue | void {
     const result = returnsRemoved ? this.findOne(path, finder) : undefined;
     const keys = keysFromPath(path);
     if (result) {
@@ -370,59 +380,63 @@ export class Store {
 
   // RULES
   ////////
-  protected _findRuleAndParams = (findRuleAndParams);
   protected _rules: Rules;
-  protected _getRuleContextWrite = (
-    params: Params,
-    rulePath: Keys,
-    self: Store,
-  ): RuleContext => ({
-    params,
-    get data(): Value {
-      return deepClone(deepGet(self.#data, rulePath));
-    },
-    get newData(): Value {
-      return deepClone(deepGet(self._newData, rulePath));
-    },
-    get rootData(): Data {
-      return deepClone(self.#data);
-    },
-    set data(_: Value) {
-      throw new Error("please do not set data");
-    },
-    set newData(_: Value) {
-      throw new Error("please do not set newData");
-    },
-    set rootData(_: Data) {
-      throw new Error("please do not set rootData");
-    },
-  });
+  // protected _getRuleContextWrite = (
+  //   params: Params,
+  //   rulePath: Keys,
+  //   self: Store,
+  // ): RuleContext => ({
+  //   params,
+  //   get data(): Value {
+  //     // console.debug('get data()');
+  //     return deepClone(deepGet(self.#data, rulePath));
+  //   },
+  //   get newData(): Value {
+  //     // console.debug('get newData()');
+  //     return deepClone(deepGet(self.#newData, rulePath));
+  //   },
+  //   get rootData(): Data {
+  //     // console.debug('get rootData()');
+  //     return deepClone(self.#data);
+  //   },
+  //   set data(_: Value) {
+  //     // throw new Error("please do not set data");
+  //   },
+  //   set newData(_: Value) {
+  //     // throw new Error("please do not set newData");
+  //   },
+  //   set rootData(_: Data) {
+  //     // throw new Error("please do not set rootData");
+  //   },
+  // });
 
-  protected _getRuleContextRead = (
-    params: Params,
-    rulePath: Keys,
-    self: Store,
-  ): RuleContext => ({
-    params,
-    get data(): Value {
-      return deepClone(deepGet(self.#data, rulePath));
-    },
-    get newData(): Value {
-      return undefined;
-    },
-    get rootData(): Data {
-      return deepClone(self.#data);
-    },
-    set data(_: Value) {
-      throw new Error("please do not set data");
-    },
-    set newData(_: Value) {
-      throw new Error("please do not set newData");
-    },
-    set rootData(_: Data) {
-      throw new Error("please do not set rootData");
-    },
-  });
+  // protected _getRuleContextRead = (
+  //   params: Params,
+  //   rulePath: Keys,
+  //   self: Store,
+  // ): RuleContext => ({
+  //   params,
+  //   get data(): Value {
+  //     // console.debug('get data()');
+  //     return deepClone(deepGet(self.#data, rulePath));
+  //   },
+  //   get newData(): Value {
+  //     return undefined;
+  //   },
+  //   get rootData(): Data {
+  //     // console.debug('get rootData()');
+  //     return deepClone(self.#data);
+  //   },
+  //   set data(_: Value) {
+  //     // throw new Error("please do not set data");
+  //   },
+  //   set newData(_: Value) {
+  //     // throw new Error("please do not set newData");
+  //   },
+  //   set rootData(_: Data) {
+  //     // throw new Error("please do not set rootData");
+  //   },
+  // });
 
   private _checkRule(
     ruleType: "_read" | "_write",
@@ -448,12 +462,18 @@ export class Store {
           }`,
         );
       }
-      let ruleContext;
+      const ruleContext = {
+        params,
+      };
+      applyCloneOnGet(ruleContext, "data", deepGet(this.#data, rulePath));
+      applyCloneOnGet(ruleContext, "rootData", this.#data);
+
       if (ruleType === "_write") {
-        ruleContext = this._getRuleContextWrite(params, rulePath, this);
-      }
-      if (ruleType === "_read") {
-        ruleContext = this._getRuleContextRead(params, rulePath, this);
+        applyCloneOnGet(
+          ruleContext,
+          "newData",
+          deepGet(this.#newData, rulePath),
+        );
       }
       const allowed = rule?.(ruleContext as RuleContext);
 

@@ -17,8 +17,9 @@ export type Keys = string[];
 export type ValueOrFunction = Value | ((value: Value) => Value);
 export type Subscriber = (data: Value) => void;
 
+export type KeyValue = [string, Value];
 // deno-lint-ignore no-explicit-any
-export type Finder = (value: Value, key: string) => any;
+export type Finder = (pair: KeyValue) => any;
 
 export type Subscription = {
   callback: Subscriber;

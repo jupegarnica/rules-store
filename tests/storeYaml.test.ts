@@ -1,6 +1,6 @@
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { existsSync } from "../src/deps.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
+import { assertEquals, assertThrows , delay} from "./test_deps.ts";
 const testStorePath = "../test.store.yaml";
 
 // Persistance StoreYaml
@@ -66,30 +66,30 @@ Deno.test("[StoreYaml] DB write and delete store", () => {
   assertEquals(exists, false);
 });
 
-Deno.test("[StoreYaml] autoSave config on set", () => {
+Deno.test("[StoreYaml] autoSave config on set", async () => {
   const db = new StoreYaml({ filename: testStorePath, autoSave: true });
   db.set("number5", 5);
-
+  await delay(2);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
 
-Deno.test("[StoreYaml] autoSave config on push", () => {
+Deno.test("[StoreYaml] autoSave config on push", async () => {
   const db = new StoreYaml({ filename: testStorePath, autoSave: true });
   db.set("arr", []);
-  Deno.removeSync(testStorePath);
   db.push("arr", 1, 2);
+  await delay(2);
 
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
-Deno.test("[StoreYaml] autoSave config on remove", () => {
+Deno.test("[StoreYaml] autoSave config on remove", async () => {
   const db = new StoreYaml({ filename: testStorePath, autoSave: true });
   db.set("arr", [1, 2]);
-  Deno.removeSync(testStorePath);
   db.remove("arr.0");
+  await delay(2);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);

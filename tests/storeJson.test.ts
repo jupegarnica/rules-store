@@ -1,6 +1,6 @@
 import { StoreJson } from "../src/StoreJson.ts";
 import { existsSync } from "../src/deps.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
+import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 const testStorePath = "../test.store.json";
 
 // Persistance StoreJson
@@ -67,64 +67,64 @@ Deno.test("[StoreJson] DB write and delete store", () => {
   assertEquals(exists, false);
 });
 
-Deno.test("[StoreJson] autoSave config on set", () => {
+Deno.test("[StoreJson] autoSave config on set", async () => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
   });
   db.set("number5", 5);
-
+  await delay(5);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
 
-Deno.test("[StoreJson] autoSave config on push", () => {
+Deno.test("[StoreJson] autoSave config on push", async () => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
   });
   db.set("arr", []);
-  Deno.removeSync(testStorePath);
   db.push("arr", 1, 2);
-
+  await delay(5);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
-Deno.test("[StoreJson] autoSave config on remove", () => {
+Deno.test("[StoreJson] autoSave config on remove", async () => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
   });
   db.set("arr", [1, 2]);
-  Deno.removeSync(testStorePath);
   db.remove("arr.0");
+  await delay(5);
+
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
 
-Deno.test("[StoreJson] autoSave config on findAndRemove", () => {
+Deno.test("[StoreJson] autoSave config on findAndRemove", async () => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
   });
   db.set("arr", [1, 2]);
-  Deno.removeSync(testStorePath);
   db.findAndRemove("arr", () => true);
+  await delay(5);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);
 });
-Deno.test("[StoreJson] autoSave config on findOneAndRemove", () => {
+Deno.test("[StoreJson] autoSave config on findOneAndRemove", async() => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
   });
   db.set("arr", [1, 2]);
-  Deno.removeSync(testStorePath);
   db.findOneAndRemove("arr", () => true);
+  await delay(5);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
   assertEquals(existsSync(db.storePath), false);

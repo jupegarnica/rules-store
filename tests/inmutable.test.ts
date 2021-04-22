@@ -1,8 +1,7 @@
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import { Store } from "../src/Store.ts";
 import type { Spy } from "./test_deps.ts";
-import type { ObjectKind, RuleContext, Value } from "../src/types.ts";
-// import { deepClone } from "../src/helpers.ts";
+import type {  RuleContext, Value } from "../src/types.ts";
 
 Deno.test("[Store] Set inmutable behavior", () => {
   const db = new Store();

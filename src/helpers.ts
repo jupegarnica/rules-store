@@ -1,7 +1,7 @@
 import type {
   Data,
   Keys,
-  KeyValue,
+  // KeyValue,
   ObjectKind,
   Params,
   Rule,
@@ -43,20 +43,20 @@ export const deepClone = (obj: Value) => {
   return clone;
 };
 
-export const applyCloneOnGet = (obj: ObjectKind, key:string,value: Value) => {
+export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
   let data: Value;
 
   Object.defineProperty(obj, key, {
-    set(val:Value) {
+    set(val: Value) {
       // Reflect.set(obj, key, val);
-      throw new Error('context must be inmutable')
+      throw new Error("context must be inmutable");
     },
     get() {
       if (data) {
         return data;
       }
       data = deepClone(value);
-      console.assert(true,'cloned')
+      console.assert(true, "cloned");
       return data;
     },
   });
@@ -158,6 +158,41 @@ export function findRuleAndParams(
   return result;
 }
 
+// // deno-lint-ignore no-explicit-any
+// export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
+//   let timeoutId: number;
+//   // deno-lint-ignore no-explicit-any
+//   return function (...args: any[]) {
+//     clearTimeout(timeoutId);
+//     timeoutId = setTimeout(() => fn.apply(self, args), ms);
+//   };
+// };
+
+
+// deno-lint-ignore no-explicit-any
+export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
+  let timeoutId: number;
+  // deno-lint-ignore no-explicit-any
+  const pending: {resolve:(data:any)=> void,reject:(data:any)=> void }[] = [];
+  // deno-lint-ignore no-explicit-any
+  return  (...args: any[]) =>
+    new Promise((res, rej) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const currentPending = [...pending];
+        pending.length = 0;
+        Promise.resolve(fn.apply(self, args)).then(
+          (data) => {
+            currentPending.forEach(({ resolve }) => resolve(data));
+          },
+          (error) => {
+            currentPending.forEach(({ reject }) => reject(error));
+          },
+        );
+      }, ms);
+      pending.push({ resolve: res, reject: rej });
+    });
+};
 // export function memo(fun: (...args: Value[]) => Value) {
 //   const cache: { [key: string]: Value } = {};
 //   return function (...args: Value[]) {

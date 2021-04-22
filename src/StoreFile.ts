@@ -2,6 +2,8 @@ import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
 import { StoreNotFoundError } from "./Errors.ts";
 import type { Config, Finder, Value, ValueOrFunction } from "./types.ts";
+
+import { debounce } from "./helpers.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  * For non persistance use Store
@@ -40,21 +42,21 @@ export abstract class StoreFile extends Store {
   ): Value {
     const returned = super.set(path, valueOrFunction);
     if (this._autoSave) {
-      this.write();
+      this.writeLazy();
     }
     return returned;
   }
   public push(path: string, ...values: Value[]): Value {
     const returned = super.push(path, ...values);
     if (this._autoSave) {
-      this.write();
+      this.writeLazy();
     }
     return returned;
   }
   public remove(path: string, returnRemoved = true): Value {
     const returned = super.remove(path, returnRemoved);
     if (this._autoSave) {
-      this.write();
+      this.writeLazy();
     }
     return returned;
   }
@@ -66,7 +68,7 @@ export abstract class StoreFile extends Store {
   ): Value {
     const returned = super.findAndRemove(path, finder, returnRemoved);
     if (this._autoSave) {
-      this.write();
+      this.writeLazy();
     }
     return returned;
   }
@@ -78,27 +80,35 @@ export abstract class StoreFile extends Store {
   ): Value {
     const returned = super.findOneAndRemove(path, finder, returnRemoved);
     if (this._autoSave) {
-      this.write();
+      this.writeLazy();
     }
     return returned;
   }
 
   /**
    * Load stored data from disk into cache.
-   * Won't update cache values if hash in store file matches current cache file.
-   *
    */
   abstract load(): void;
   /**
    * Writes cached data to disk.
-   * Won't perform write if the last known hash from the store file
-   * matches the current cache hash.
    *
    */
   abstract write(): void;
 
+  // public writeLazy = () => {
+  //   this.write();
+  //   console.count('written');
+  // }
+  public writeLazy: () => void = debounce(
+    () => {
+      this.write();
+    },
+    0,
+    this,
+  );
+
   /**
-   * Deletes a store file / directory.
+   * Deletes a store file .
    *
    */
   public deleteStore(): void {

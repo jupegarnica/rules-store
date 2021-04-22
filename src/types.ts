@@ -13,8 +13,10 @@ export type Value = any;
 export type ObjectKind = { [key: string]: any } | any[];
 export type Data = { [key: string]: Value };
 export type Keys = string[];
+// deno-lint-ignore no-explicit-any
+export type Callable = (...a: any[]) => any;
 
-export type ValueOrFunction = Value | ((value: Value) => Value);
+export type ValueOrFunction = Value | Callable;
 export type Subscriber = (data: Value) => void;
 
 export type KeyValue = [string, Value];

@@ -1,6 +1,6 @@
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { existsSync } from "../src/deps.ts";
-import { assertEquals, assertThrows , delay} from "./test_deps.ts";
+import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 const testStorePath = "../test.store.yaml";
 
 // Persistance StoreYaml

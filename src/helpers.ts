@@ -1,7 +1,7 @@
 import type {
+  Callable,
   Data,
   Keys,
-  // KeyValue,
   ObjectKind,
   Params,
   Rule,
@@ -169,12 +169,11 @@ export function findRuleAndParams(
 // };
 
 // deno-lint-ignore no-explicit-any
-export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
+export const debounce = (fn: Callable, ms = 0, self: any) => {
   let timeoutId: number;
-  // deno-lint-ignore no-explicit-any
   const pending: {
-    resolve: (data: any) => void;
-    reject: (data: any) => void;
+    resolve: (data: Callable) => void;
+    reject: (data: Callable) => void;
   }[] = [];
   // deno-lint-ignore no-explicit-any
   return (...args: any[]) =>

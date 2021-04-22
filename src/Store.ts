@@ -33,16 +33,16 @@ const allowAllRules = {
 };
 
 /**
- * A database in RAM without persistance.
- * For persistance use StoreJson
+ * A database in RAM heavily inspired from firebase realtime database.
+ *
  */
 export class Store {
   /**
-   * The actual data cache.
+   * The actual store cache.
    */
   #data: Data = {};
   #newData: Data = {};
-  // protected _newData = {};
+
   public get _data() {
     return this.#data;
   }
@@ -53,9 +53,13 @@ export class Store {
     return this.#newData;
   }
   /**
-   * Create a new {Store} instance without persistance.
+   * Create a new Store instance.
    *
-   */
+   * @param {BaseConfig} config - The configuration
+   * @param {Rules} config.rules - it defaults to allowAllRules
+   *
+   * */
+
   constructor(config?: BaseConfig) {
     this._rules = config?.rules ?? allowAllRules;
   }
@@ -75,7 +79,6 @@ export class Store {
    */
   public get(path: string): Value {
     const keys = keysFromPath(path);
-    // return (this._getAndCheck(keys));
     return deepClone(this._getAndCheck(keys));
   }
 
@@ -85,23 +88,20 @@ export class Store {
   }
 
   private _set(keys: Keys, value: Value): void {
-    // TODO CLONE?
-    const cloned = (value);
-    deepSet(this._newData, keys, cloned);
+    deepSet(this._newData, keys, value);
     try {
       this._checkRule("_write", keys);
     } catch (error) {
       this._rollBack(keys);
       throw error;
     }
-    this._commit(keys, cloned);
+    this._commit(keys, value);
   }
   private _commit(keys: Keys, value: Value): void {
     this._notify();
     deepSet(this.#data, keys, value);
   }
   private _rollBack(keys: Keys): void {
-    // TODO CLONE?
     const oldData = (deepGet(this.#data, keys));
     deepSet(this._newData, keys, oldData);
   }
@@ -115,7 +115,7 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    *
    * @param valueOrFunction The new value or a function to run with the oldValue
-   * @returns  The cloned value added
+   * @returns  The value added
    *
    */
   public set(
@@ -201,7 +201,7 @@ export class Store {
    *
    * @param path The path to the target to perform the search
    * @param finder If the finder returns a truthy value that key (or item in an array) will be returned
-   * (value: any, key: string) => any
+   * ([key,value]) => any
    * @returns  An array of pairs [key,value] found
    */
   public find(path: string, finder: Finder): KeyValue[] {
@@ -230,7 +230,7 @@ export class Store {
    *
    * @param path The path to the target to perform the search
    * @param finder If the finder returns a truthy value that key (or item in an array) will be returned
-   * (value: any, key: string) => any
+   * ([key,value]) => any
    * @returns  A pair [key,value] returned
    */
   public findOne(
@@ -260,9 +260,10 @@ export class Store {
   /**
    * Find some children and remove it
    *
-   * @param path The path to the target to perform the search
-   * @param finder If the finder returns a truthy value that key (or item in an array) will be remove
-   * (value: any, key: string) => any
+   * @param {string}  path The path to the target to perform the search
+   * @param {Function} finder If the finder returns a truthy value that key (or item in an array) will be remove
+   * ([key,value]) => any
+   * @param {boolean} returnsRemoved do not return the removed value in order to not check against the read rule.  Defaults to true,
    * @returns  An array of pairs [key,value] removed
    */
   public findAndRemove(
@@ -286,7 +287,7 @@ export class Store {
    *
    * @param path The path to the target to perform the search
    * @param finder If the finder returns a truthy value that key (or item in an array) will be remove
-   * (value: any, key: string) => any
+   * ([key,value]) => any
    * @returns  A pair [key,value] removed
    */
   public findOneAndRemove(
@@ -380,62 +381,6 @@ export class Store {
   // RULES
   ////////
   protected _rules: Rules;
-  // protected _getRuleContextWrite = (
-  //   params: Params,
-  //   rulePath: Keys,
-  //   self: Store,
-  // ): RuleContext => ({
-  //   params,
-  //   get data(): Value {
-  //     // console.debug('get data()');
-  //     return deepClone(deepGet(self.#data, rulePath));
-  //   },
-  //   get newData(): Value {
-  //     // console.debug('get newData()');
-  //     return deepClone(deepGet(self.#newData, rulePath));
-  //   },
-  //   get rootData(): Data {
-  //     // console.debug('get rootData()');
-  //     return deepClone(self.#data);
-  //   },
-  //   set data(_: Value) {
-  //     // throw new Error("please do not set data");
-  //   },
-  //   set newData(_: Value) {
-  //     // throw new Error("please do not set newData");
-  //   },
-  //   set rootData(_: Data) {
-  //     // throw new Error("please do not set rootData");
-  //   },
-  // });
-
-  // protected _getRuleContextRead = (
-  //   params: Params,
-  //   rulePath: Keys,
-  //   self: Store,
-  // ): RuleContext => ({
-  //   params,
-  //   get data(): Value {
-  //     // console.debug('get data()');
-  //     return deepClone(deepGet(self.#data, rulePath));
-  //   },
-  //   get newData(): Value {
-  //     return undefined;
-  //   },
-  //   get rootData(): Data {
-  //     // console.debug('get rootData()');
-  //     return deepClone(self.#data);
-  //   },
-  //   set data(_: Value) {
-  //     // throw new Error("please do not set data");
-  //   },
-  //   set newData(_: Value) {
-  //     // throw new Error("please do not set newData");
-  //   },
-  //   set rootData(_: Data) {
-  //     // throw new Error("please do not set rootData");
-  //   },
-  // });
 
   private _checkRule(
     ruleType: "_read" | "_write",

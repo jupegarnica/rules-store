@@ -7,9 +7,6 @@ scripts:
     - deno coverage --unstable coverage --lcov > coverage/coverage.lcov
     - genhtml -o coverage/html coverage/coverage.lcov
     - deno run -A https://deno.land/std/http/file_server.ts coverage/html
-  # dev:
-  #   cmd: vr test
-  #   watch: true
   lint: deno lint --unstable
   format: deno fmt  **/*.ts
   format-check: deno fmt --check -q **/*.ts

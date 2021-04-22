@@ -1,30 +1,23 @@
 import { existsSync } from "./deps.ts";
 
 import { StoreFile } from "./StoreFile.ts";
-import type { Config } from "./types.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
- * For non persistance use Store
+ *
  */
 export class StoreJson extends StoreFile {
-  constructor(config?: Config) {
-    super(config);
-  }
   /**
    * Load stored data from disk into cache.
-   * Won't update cache values if hash in store file matches current cache file.
    *
    */
   load(): void {
     const storePath = this.storePath;
     if (!existsSync(storePath)) return;
 
-    // Load data from file.
     const data = Deno.readFileSync(storePath);
     const decoder = new TextDecoder("utf-8");
     const decoded = JSON.parse(decoder.decode(data));
 
-    // Store new data.
     this.setData(decoded);
 
     return;
@@ -32,8 +25,6 @@ export class StoreJson extends StoreFile {
 
   /**
    * Writes cached data to disk.
-   * Won't perform write if the last known hash from the store file
-   * matches the current cache hash.
    *
    */
   public write(): void {

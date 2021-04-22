@@ -5,6 +5,7 @@ import type { Config, Finder, Value, ValueOrFunction } from "./types.ts";
 import { debounce } from "./helpers.ts";
 /**
  * A database in RAM  with persistance plain text as JSON.
+ *
  */
 export abstract class StoreFile extends Store {
   /**
@@ -15,11 +16,15 @@ export abstract class StoreFile extends Store {
   #writeLazyDelay: number;
 
   /**
-   * Create a new {Store} instance.
-   * If no custom path is given, it defaults to mainModulePath/.store.yaml
+   * Create a new Store instance.
    *
-   * @param config type Config
-   */
+   * @param {Config} config - The configuration
+   * @param {string} config.filename - it defaults to .store.db
+   * @param {string} config.folder - it defaults to mainModulePath
+   * @param {boolean} config.autoSave - whether or not should be lazily write to disk after every update.
+   * @param {number} config.writeLazyDelay - The debounce delay for .writeLazy.  It defaults to 0
+   * */
+
   constructor(config?: Config) {
     super(config);
     this.#autoSave = config?.autoSave ?? false;
@@ -102,7 +107,7 @@ export abstract class StoreFile extends Store {
   abstract write(): void;
 
   /**
-   * Writes cached data to disk asynchronously debounced with a delay defined at      config.writeLazyDelay
+   * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
    */
   public writeLazy: () => Promise<void>;
 

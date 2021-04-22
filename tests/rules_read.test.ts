@@ -15,12 +15,19 @@ Deno.test("[Rules _read] basic", () => {
   const db = new Store({ rules });
   const A = db.get("readAllowed");
   assertEquals(A, undefined);
-  assertThrows(() => db.get("readForbidden.a.b.c"),PermissionError, "/readForbidden");
+  assertThrows(
+    () => db.get("readForbidden.a.b.c"),
+    PermissionError,
+    "/readForbidden",
+  );
 
-  assertThrows(() => db.get("readForbidden"),PermissionError, "/readForbidden");
-  assertThrows(() => db.get(""),PermissionError, "explicit");
+  assertThrows(
+    () => db.get("readForbidden"),
+    PermissionError,
+    "/readForbidden",
+  );
+  assertThrows(() => db.get(""), PermissionError, "explicit");
 });
-
 
 Deno.test("[Rules _red] do not allow if not explicit", () => {
   const rules = {};

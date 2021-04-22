@@ -18,7 +18,6 @@ import type {
   Finder,
   Keys,
   KeyValue,
-  Params,
   RuleContext,
   Rules,
   Subscriber,

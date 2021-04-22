@@ -14,7 +14,7 @@ import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-1e4;
+  1e4;
 
 1e3;
 1e5;
@@ -55,14 +55,14 @@ const benchOptions: [
   // }
   // }
 ];
-const d = (time: number):string => {
+const d = (time: number): string => {
   if (time > 5000) {
     return duration(time, { format: "second", locale: "en" });
   }
   return time.toFixed(2);
 };
-const toOpsEverySecond = (timeInMs:number, ops:number)=> ops * 1000 / timeInMs
-
+const toOpsEverySecond = (timeInMs: number, ops: number) =>
+  ops * 1000 / timeInMs;
 
 const db = new StoreJson({ filename: `./data/${RUNS}.json` });
 // SET
@@ -74,7 +74,7 @@ bench({
   func(b): void {
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, {i:{i:{i}}});
+      db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
     db.write();
@@ -89,13 +89,12 @@ bench({
     });
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, {i:{i:{i}}});
+      db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
     db.write();
   },
 });
-
 
 bench({
   name: `[Set Yaml] ${RUNS} children`,
@@ -106,7 +105,7 @@ bench({
     });
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, {i:{i:{i}}});
+      db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
     db.write();
@@ -122,7 +121,7 @@ bench({
     });
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, {i:{i:{i}}});
+      db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
   },
@@ -138,7 +137,7 @@ bench({
     });
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, {i:{i:{i}}});
+      db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
   },
@@ -154,7 +153,7 @@ bench({
     });
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, {i:{i:{i}}});
+      db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
     db.write();
@@ -208,7 +207,7 @@ bench({
   runs: 1,
   func(b): void {
     b.start();
-    const results = db.find("", ([,value]) => value );
+    const results = db.find("", ([, value]) => value);
     b.stop();
     if (results.length !== RUNS) {
       throw new Error(`not ${RUNS} children, ${results.length}`);
@@ -439,11 +438,15 @@ for (const result of results) {
       console.debug(
         colors.bold(imp),
         " ".repeat((9 - text.length)),
-        colors.yellow('x'+diffRatio.toFixed(2)),
+        colors.yellow("x" + diffRatio.toFixed(2)),
         colors.bold(colors.blue(d(measuredRunsAvgMs))),
-        colors.white(`${toOpsEverySecond(measuredRunsAvgMs, RUNS).toFixed(0) }o/s`) ,
+        colors.white(
+          `${toOpsEverySecond(measuredRunsAvgMs, RUNS).toFixed(0)}o/s`,
+        ),
         colors.blue(d(averageRun)),
-        colors.brightWhite(`${toOpsEverySecond(averageRun, RUNS).toFixed(0) }o/s`) ,
+        colors.brightWhite(
+          `${toOpsEverySecond(averageRun, RUNS).toFixed(0)}o/s`,
+        ),
       );
       console.groupEnd();
 

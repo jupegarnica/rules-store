@@ -1,7 +1,7 @@
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import { Store } from "../src/Store.ts";
 import type { Spy } from "./test_deps.ts";
-import type {  RuleContext, Value } from "../src/types.ts";
+import type { RuleContext, Value } from "../src/types.ts";
 
 Deno.test("[Store] Set inmutable behavior", () => {
   const db = new Store();
@@ -149,15 +149,27 @@ Deno.test("[Rules context] data inmutable even root", () => {
   let calls = 0;
   const rule = (context: RuleContext) => {
     calls++;
-    assertThrows(() => {
-      context.rootData = {};
-    },Error,'inmutable');
-    assertThrows(() => {
-      context.newData = 3;
-    },Error,'inmutable');
-    assertThrows(() => {
-      context.data = 2;
-    },Error,'inmutable');
+    assertThrows(
+      () => {
+        context.rootData = {};
+      },
+      Error,
+      "inmutable",
+    );
+    assertThrows(
+      () => {
+        context.newData = 3;
+      },
+      Error,
+      "inmutable",
+    );
+    assertThrows(
+      () => {
+        context.data = 2;
+      },
+      Error,
+      "inmutable",
+    );
 
     return true;
   };
@@ -226,12 +238,11 @@ Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
   db.get("a.b");
   assertEquals(mock.calls.length, 4);
   mock.restore();
-
 });
 
 Deno.test("[Store] find clone data only on get value", () => {
   const db = new Store();
-  const mock: Spy<Console> = spy(console,'assert');
+  const mock: Spy<Console> = spy(console, "assert");
 
   const a = [{ b: 1 }, { b: 2 }, { b: 3 }];
   db.set("a", a);
@@ -241,14 +252,13 @@ Deno.test("[Store] find clone data only on get value", () => {
   assertEquals(mock.calls.length, 0);
 
   db.find("a", (pair) => {
-    console.log('cloned?');
+    console.log("cloned?");
     pair[1];
 
     return true;
   });
   assertEquals(mock.calls.length, 3);
   mock.restore();
-
 });
 
 Deno.test("[Store] find inmutable behavior on returned", () => {
@@ -262,7 +272,6 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
   db.set("a.b.c.d", 2);
   assertEquals(res[0][1].c.d, 1);
 });
-
 
 // Deno.test("[Store] Proxy a keyValue", () => {
 //   const obj = { b: 1 };

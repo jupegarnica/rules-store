@@ -4,7 +4,7 @@ import {
   stringify,
 } from "https://deno.land/std@0.92.0/encoding/yaml.ts";
 
-import type { Value,Config } from "./types.ts";
+import type { Config, Value } from "./types.ts";
 import { StoreFile } from "./StoreFile.ts";
 /**
  * A database in RAM with persistance plain text as JSON.

@@ -47,7 +47,7 @@ export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
   let data: Value;
 
   Object.defineProperty(obj, key, {
-    set(val: Value) {
+    set() {
       // Reflect.set(obj, key, val);
       throw new Error("context must be inmutable");
     },
@@ -168,14 +168,16 @@ export function findRuleAndParams(
 //   };
 // };
 
-
 // deno-lint-ignore no-explicit-any
 export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
   let timeoutId: number;
   // deno-lint-ignore no-explicit-any
-  const pending: {resolve:(data:any)=> void,reject:(data:any)=> void }[] = [];
+  const pending: {
+    resolve: (data: any) => void;
+    reject: (data: any) => void;
+  }[] = [];
   // deno-lint-ignore no-explicit-any
-  return  (...args: any[]) =>
+  return (...args: any[]) =>
     new Promise((res, rej) => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {

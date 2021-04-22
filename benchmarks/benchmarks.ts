@@ -13,22 +13,15 @@ import { StoreJson } from "../src/StoreJson.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
-// deno-lint-ignore no-explicit-any
-const d = (time: any) => {
-  if (time > 5000) {
-    return duration(time, { format: "second", locale: "en" });
-  }
-  return time.toFixed(2);
-};
 const RUNS = Number(Deno.args[0]) ||
+1e4;
+
+1e3;
+1e5;
+
 3e6;
 1e7;
 1e6;
-1e5;
-1e4;
-
-1e2;
-1e3;
 
 const resultsOptions = {
   filename: `./results.json`,
@@ -46,7 +39,7 @@ const benchOptions: [
   // only: /Write/,
   // only: /Load/,
   // only: /(Load)|(Write)/,
-  only: /(Set)|(Load)|(Write)/,
+  only: /(Get)|(Set)|(Load)|(Write)/,
   // only: /(Find)|(FindOne)|(Set)/,
   // only: /(BSON)|(JSON)/i,
   // silent: true,
@@ -61,6 +54,14 @@ const benchOptions: [
   // }
   // }
 ];
+const d = (time: number):string => {
+  if (time > 5000) {
+    return duration(time, { format: "second", locale: "en" });
+  }
+  return time.toFixed(2);
+};
+const toOpsEverySecond = (timeInMs:number, ops:number)=> ops * 1000 / timeInMs
+
 
 const db = new StoreJson({ filename: `./data/${RUNS}.json` });
 // SET
@@ -433,7 +434,6 @@ for (const result of results) {
 
       const text = `${(data.improvement * 100).toFixed(2)}`;
       const imp = data.improvement > 0 ? colors.red(text) : colors.green(text);
-      const toOpsEverySecond = (timeInMs:number, ops:number)=> ops * 1000 / timeInMs
       console.group(colors.dim(name));
       console.debug(
         colors.bold(imp),

@@ -12,7 +12,7 @@ export abstract class StoreFile extends Store {
    */
   #storePath: string;
   #autoSave = false;
-  #writeLazyDelay;
+  #writeLazyDelay: number;
 
   /**
    * Create a new {Store} instance.

@@ -18,7 +18,7 @@ jobs:
         run: deno --version
 
       - name: Format
-        run: deno fmt --check
+        run: deno fmt --check **/*.ts
 
       - name: Lint
         run: deno lint --unstable

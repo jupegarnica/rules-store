@@ -67,7 +67,6 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
   await Deno.remove(db.storePath);
 });
 
-
 Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
   const RUNS = 3;
 

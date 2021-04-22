@@ -172,11 +172,11 @@ export function findRuleAndParams(
 export const debounce = (fn: Callable, ms = 0, self: any) => {
   let timeoutId: number;
   const pending: {
-    resolve: (data: Callable) => void;
-    reject: (data: Callable) => void;
+    resolve: Callable;
+    reject: Callable;
   }[] = [];
   // deno-lint-ignore no-explicit-any
-  return (...args: any[]) =>
+  return (...args: any[]): Promise<void> =>
     new Promise((res, rej) => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
@@ -194,6 +194,29 @@ export const debounce = (fn: Callable, ms = 0, self: any) => {
       pending.push({ resolve: res, reject: rej });
     });
 };
+
+// export const debounce = (fn: Callable, ms = 0, self: any) => {
+//   let timeoutId: number;
+//   const pending:any[] = [];
+//   // deno-lint-ignore no-explicit-any
+//   return (...args: any[]): Promise<void> =>
+//   {
+//       // Run the function after a certain amount of time
+//       clearTimeout(timeoutId);
+//       timeoutId = setTimeout(() => {
+//         // Get the result of the inner function, then apply it to the resolve function of
+//         // each promise that has been created since the last time the inner function was run
+//         for (const _ of pending) {
+//           fn.apply(self, args)
+//         }
+
+//         pending.length = 0;
+//       }, ms);
+
+//       return new Promise(r => pending.push(r));
+//   };
+// };
+
 // export function memo(fun: (...args: Value[]) => Value) {
 //   const cache: { [key: string]: Value } = {};
 //   return function (...args: Value[]) {

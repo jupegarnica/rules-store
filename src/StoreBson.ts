@@ -18,7 +18,7 @@ export class StoreBson extends StoreFile {
    *
    */
   load(): void {
-    const storePath = this._storePath;
+    const storePath = this.storePath;
     if (!existsSync(storePath)) return;
 
     // Load data from file.
@@ -38,7 +38,7 @@ export class StoreBson extends StoreFile {
   public write(): void {
     const data = Bson.serialize(this._data);
     return Deno.writeFileSync(
-      this._storePath,
+      this.storePath,
       data,
     );
   }

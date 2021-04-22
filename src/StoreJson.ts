@@ -16,7 +16,7 @@ export class StoreJson extends StoreFile {
    *
    */
   load(): void {
-    const storePath = this._storePath;
+    const storePath = this.storePath;
     if (!existsSync(storePath)) return;
 
     // Load data from file.
@@ -40,7 +40,7 @@ export class StoreJson extends StoreFile {
     const data = JSON.stringify(this._data);
     const encoder = new TextEncoder();
     return Deno.writeFileSync(
-      this._storePath,
+      this.storePath,
       encoder.encode(data),
     );
   }

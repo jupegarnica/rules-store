@@ -22,7 +22,7 @@ export class StoreYaml extends StoreFile {
    * @param force Ignore hash comparison and force read
    */
   public load(): void {
-    const storePath = this._storePath;
+    const storePath = this.storePath;
     if (!existsSync(storePath)) return;
 
     // Load data from file.

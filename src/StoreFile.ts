@@ -2,38 +2,45 @@ import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
 import { StoreNotFoundError } from "./Errors.ts";
 import type { Config, Finder, Value, ValueOrFunction } from "./types.ts";
-
 import { debounce } from "./helpers.ts";
 /**
- * A database in RAM with persistance plain text as JSON.
- * For non persistance use Store
+ * A database in RAM  with persistance plain text as JSON.
  */
 export abstract class StoreFile extends Store {
   /**
-   * The file path in which to store the data in.
+   * Config state
    */
-  protected _storePath: string;
-  protected _autoSave = false;
+  #storePath: string;
+  #autoSave = false;
+  #writeLazyDelay;
 
   /**
    * Create a new {Store} instance.
    * If no custom path is given, it defaults to mainModulePath/.store.yaml
    *
-   * @param storePath A custom path where to write data
+   * @param config type Config
    */
   constructor(config?: Config) {
     super(config);
-    this._autoSave = config?.autoSave ?? false;
+    this.#autoSave = config?.autoSave ?? false;
+    this.#writeLazyDelay = config?.writeLazyDelay ?? 0;
     const filename = config?.filename || ".store.db";
     const folder = config?.folder || fromFileUrl(dirname(Deno.mainModule));
-    this._storePath = resolve(folder, filename);
+    this.#storePath = resolve(folder, filename);
     this.load();
+    this.writeLazy = debounce(
+      () => {
+        this.write();
+      },
+      this.#writeLazyDelay,
+      this,
+    );
   }
   /**
    * Return internal storePath.
    */
   public get storePath(): string {
-    return this._storePath;
+    return this.#storePath;
   }
 
   public set(
@@ -41,21 +48,21 @@ export abstract class StoreFile extends Store {
     valueOrFunction: ValueOrFunction,
   ): Value {
     const returned = super.set(path, valueOrFunction);
-    if (this._autoSave) {
+    if (this.#autoSave) {
       this.writeLazy();
     }
     return returned;
   }
   public push(path: string, ...values: Value[]): Value {
     const returned = super.push(path, ...values);
-    if (this._autoSave) {
+    if (this.#autoSave) {
       this.writeLazy();
     }
     return returned;
   }
   public remove(path: string, returnRemoved = true): Value {
     const returned = super.remove(path, returnRemoved);
-    if (this._autoSave) {
+    if (this.#autoSave) {
       this.writeLazy();
     }
     return returned;
@@ -67,7 +74,7 @@ export abstract class StoreFile extends Store {
     returnRemoved = true,
   ): Value {
     const returned = super.findAndRemove(path, finder, returnRemoved);
-    if (this._autoSave) {
+    if (this.#autoSave) {
       this.writeLazy();
     }
     return returned;
@@ -79,7 +86,7 @@ export abstract class StoreFile extends Store {
     returnRemoved = true,
   ): Value {
     const returned = super.findOneAndRemove(path, finder, returnRemoved);
-    if (this._autoSave) {
+    if (this.#autoSave) {
       this.writeLazy();
     }
     return returned;
@@ -90,29 +97,21 @@ export abstract class StoreFile extends Store {
    */
   abstract load(): void;
   /**
-   * Writes cached data to disk.
-   *
+   * Writes cached data to disk synchronously
    */
   abstract write(): void;
 
-  // public writeLazy = () => {
-  //   this.write();
-  //   console.count('written');
-  // }
-  public writeLazy: () => void = debounce(
-    () => {
-      this.write();
-    },
-    0,
-    this,
-  );
+  /**
+   * Writes cached data to disk asynchronously debounced with a delay defined at      config.writeLazyDelay
+   */
+  public writeLazy: () => Promise<void>;
 
   /**
    * Deletes a store file .
    *
    */
   public deleteStore(): void {
-    const storePath = this._storePath;
+    const storePath = this.#storePath;
     if (!existsSync(storePath)) {
       throw new StoreNotFoundError(`${storePath} not exists`);
     }

@@ -55,4 +55,5 @@ export type Config = BaseConfig & {
   autoSave?: boolean;
   filename?: string;
   folder?: string;
+  writeLazyDelay?: number
 };

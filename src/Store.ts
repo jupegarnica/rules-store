@@ -129,6 +129,7 @@ export class Store {
    * @returns  The value added
    *
    */
+// TODO add derrota =false
   public set(
     path: string,
     valueOrFunction: ValueOrFunction,

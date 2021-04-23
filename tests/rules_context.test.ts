@@ -3,6 +3,23 @@ import { assertEquals, assertThrows } from "./test_deps.ts";
 import type { RuleContext } from "../src/types.ts";
 import { PermissionError } from "../src/Errors.ts";
 
+Deno.test("[Rules context] _write assert data and newData", () => {
+  let calls = 0;
+  const rules = {
+    a: {
+      _write({ data, newData }: RuleContext) {
+        calls++;
+        assertEquals(data, 0);
+        assertEquals(newData, 2);
+        return true;
+      },
+    },
+  };
+  const db = new Store({ rules, initialDataIfNoFile: { a: 0 } });
+  db.set("a", 2);
+  assertEquals(calls, 1);
+});
+
 Deno.test("[Rules context] _write newData", () => {
   let calls = 0;
   const rules = {
@@ -134,9 +151,9 @@ Deno.test("[Rules context] params _read at root", () => {
   const rules = {
     _write: () => true,
     $rootKey: {
-      _read({ params, data }: RuleContext) {
+      _read({ $rootKey, data }: RuleContext) {
         return (
-          params.rootKey === "people" &&
+          $rootKey === "people" &&
           typeof data === "object" &&
           data
         );
@@ -156,8 +173,8 @@ Deno.test("[Rules context] params _read at root", () => {
 Deno.test("[Rules context] params _write at root", () => {
   const rules = {
     $rootKey: {
-      _write({ params }: RuleContext) {
-        return params.rootKey === "people";
+      _write({ $rootKey }: RuleContext) {
+        return $rootKey === "people";
       },
     },
   };
@@ -173,9 +190,9 @@ Deno.test("[Rules context] params multiple params", () => {
     $a: {
       $b: {
         $c: {
-          _write({ params }: RuleContext) {
+          _write({ $a, $b, $c }: RuleContext) {
             calls++;
-            return params.a === "a" && params.b === "b" && params.c === "c";
+            return $a === "a" && $b === "b" && $c === "c";
           },
         },
       },

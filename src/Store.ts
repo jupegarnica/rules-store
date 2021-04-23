@@ -4,6 +4,7 @@ import {
   deepClone,
   deepGet,
   deepSet,
+  findAllRules,
   findDeepestRule,
   isNumberKey,
   isObject,
@@ -25,7 +26,11 @@ import type {
   Value,
   ValueOrFunction,
 } from "./types.ts";
-import { PermissionError, SubscriptionNotFoundError } from "./Errors.ts";
+import {
+  PermissionError,
+  SubscriptionNotFoundError,
+  ValidationError,
+} from "./Errors.ts";
 
 import { allowAll } from "./rules.ts";
 
@@ -40,14 +45,14 @@ export class Store {
   #data: Data = {};
   #newData: Data = {};
 
-  public get _data() {
-    return this.#data;
+  public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#data : {};
   }
   protected setData(data: Data) {
     this.#data = data;
   }
-  public get _newData() {
-    return this.#newData;
+  public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#newData : {};
   }
   /**
    * Create a new Store instance.
@@ -76,20 +81,26 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    * @returns The cloned value found or undefined if not found
    */
-  public get(path: string): Value {
+  public get(path: string, getClone = true): Value {
     const keys = keysFromPath(path);
-    return deepClone(this._getAndCheck(keys));
+    let data = this._getAndCheck(keys);
+    if (getClone) {
+      data = deepClone(data);
+    }
+    return data;
   }
 
   private _getAndCheck(keys: Keys): Value {
-    this._checkRule("_read", keys);
+    this._checkPermission("_read", keys);
     return (this._get(keys));
   }
 
   private _set(keys: Keys, value: Value): void {
-    deepSet(this._newData, keys, value);
+    deepSet(this.#newData, keys, value);
+
     try {
-      this._checkRule("_write", keys);
+      this._checkPermission("_write", keys);
+      this._checkValidation(keys, value);
     } catch (error) {
       this._rollBack(keys);
       throw error;
@@ -102,7 +113,7 @@ export class Store {
   }
   private _rollBack(keys: Keys): void {
     const oldData = (deepGet(this.#data, keys));
-    deepSet(this._newData, keys, oldData);
+    deepSet(this.#newData, keys, oldData);
   }
   /**
    * Sets a value in the database by the specified path.
@@ -212,7 +223,7 @@ export class Store {
     target = (target);
     const results = [] as KeyValue[];
     for (const key in target) {
-      this._checkRule("_read", addChildToKeys(keys, key));
+      this._checkPermission("_read", addChildToKeys(keys, key));
       const value = (target[key]);
       const pair = [key, value] as KeyValue;
 
@@ -244,7 +255,7 @@ export class Store {
     }
     // target = deepClone(target);
     for (const key in target) {
-      this._checkRule("_read", addChildToKeys(keys, key));
+      this._checkPermission("_read", addChildToKeys(keys, key));
       const value = target[key];
       const pair = [key, value] as KeyValue;
 
@@ -317,7 +328,7 @@ export class Store {
    */
   public subscribe(path: string, callback: Subscriber): Value {
     const keys = keysFromPath(path);
-    this._checkRule("_read", keys);
+    this._checkPermission("_read", keys);
     const value = deepClone(this._get(keys));
     this._subscriptions.push({
       callback,
@@ -368,9 +379,9 @@ export class Store {
     for (const subscription of this._subscriptions) {
       const { path, callback } = subscription;
       const keys = keysFromPath(path);
-      this._checkRule("_read", keys);
+      this._checkPermission("_read", keys);
       const data = deepGet(this.#data, keys);
-      const newData = deepGet(this._newData, keys);
+      const newData = deepGet(this.#newData, keys);
       if (!equal(data, newData)) {
         callback(newData);
       }
@@ -381,7 +392,7 @@ export class Store {
   ////////
   protected _rules: Rules;
 
-  private _checkRule(
+  private _checkPermission(
     ruleType: "_read" | "_write",
     keys: Keys,
   ): void {
@@ -406,7 +417,7 @@ export class Store {
         );
       }
       const ruleContext = {
-        params,
+        ...params,
       };
       applyCloneOnGet(ruleContext, "data", deepGet(this.#data, rulePath));
       applyCloneOnGet(ruleContext, "rootData", this.#data);
@@ -433,6 +444,33 @@ export class Store {
       return;
     } catch (error) {
       throw error;
+    }
+  }
+  private _checkValidation(keys: Keys, value: Value): void {
+    const rootShape = Array.isArray(this.#newData) ? [] : {};
+    const diff = deepSet(rootShape, keys, value);
+    const validations = findAllRules("_validate", diff, this._rules);
+    let currentPath: Keys = [];
+    const isValid = validations.every(({ params, rulePath, _validate }) => {
+      const ruleContext = {
+        ...params,
+      };
+      applyCloneOnGet(ruleContext, "data", deepGet(this.#data, rulePath));
+      applyCloneOnGet(ruleContext, "rootData", this.#data);
+      applyCloneOnGet(
+        ruleContext,
+        "newData",
+        deepGet(this.#newData, rulePath),
+      );
+      currentPath = rulePath;
+      // console.log({ currentPath });
+
+      return _validate(ruleContext);
+    });
+    if (!isValid) {
+      throw new ValidationError(
+        "Validation fails at path " + pathFromKeys(currentPath),
+      );
     }
   }
 }

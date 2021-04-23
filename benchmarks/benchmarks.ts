@@ -14,11 +14,9 @@ import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-  1e4;
-
-1e3;
+  1e3;
+1e4;
 1e5;
-
 3e6;
 1e7;
 1e6;
@@ -32,10 +30,10 @@ const benchOptions: [
   ((progress: BenchmarkRunProgress) => void | Promise<void>),
 ] = [{
   // skip: /Yaml/i,
-  skip: /(Bson)/i,
+  skip: /(Bson)|(Yaml)/i,
   // skip: /(autoSave)|(Bson)/i,
-  only: /Set Json. autoSave/,
-  // only: /Set/,
+  // only: /Set Json. autoSave/,
+  // only: /GetAll/,
   // only: /\[Set\]/,
   // only: /Write/,
   // only: /Load/,
@@ -174,6 +172,16 @@ bench({
     if (length !== RUNS) {
       throw new Error(`not ${RUNS} children, ${length}`);
     }
+  },
+});
+
+bench({
+  name: `[GetAll] not getClone = false ${RUNS} children`,
+  runs: 1,
+  func(b): void {
+    b.start();
+    db.get(``, false);
+    b.stop();
   },
 });
 
@@ -438,6 +446,7 @@ for (const result of results) {
       console.debug(
         colors.bold(imp),
         " ".repeat((9 - text.length)),
+        colors.brightYellow(totalRuns + ""),
         colors.yellow("x" + diffRatio.toFixed(2)),
         colors.bold(colors.blue(d(measuredRunsAvgMs))),
         colors.white(

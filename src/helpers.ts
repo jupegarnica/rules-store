@@ -5,6 +5,7 @@ import type {
   ObjectKind,
   Params,
   Rule,
+  RuleFound,
   Rules,
   Value,
 } from "./types.ts";
@@ -43,6 +44,10 @@ export const deepClone = (obj: Value) => {
   return clone;
 };
 
+export const testCalled: { noop: () => void } = {
+  noop: () => {},
+};
+
 export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
   let data: Value;
 
@@ -56,7 +61,8 @@ export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
         return data;
       }
       data = deepClone(value);
-      console.assert(true, "cloned");
+      console.log("applyCloneOnGet", { data });
+      testCalled.noop();
       return data;
     },
   });
@@ -152,9 +158,7 @@ export function findDeepestRule(
   keys: Keys,
   ruleType: string,
   rules: Rules,
-): { params: Params; rulePath: Keys } & {
-  [rule: string]: Rule | undefined;
-} {
+): RuleFound {
   const params: Params = {};
   const currentPath = [] as Keys;
   let rulePath = [] as Keys;
@@ -175,7 +179,7 @@ export function findDeepestRule(
       worker = child;
     } else {
       if (maybeParam) {
-        params[maybeParam.replace("$", "")] = key;
+        params[maybeParam] = key;
         worker = worker[maybeParam];
       } else {
         break;
@@ -192,6 +196,44 @@ export function findDeepestRule(
 
   const result = { params, [ruleType]: rule, rulePath };
   return result;
+}
+
+export function findAllRules(
+  ruleType: string,
+  target: ObjectKind,
+  rules: Rules,
+  currentParams: Params = {},
+  currentPath: Keys = [],
+): RuleFound[] {
+  const rulesFound = [] as RuleFound[];
+  const params = { ...currentParams } as Params;
+  const maybeRule = rules[ruleType];
+  const maybeParam = findParam(rules);
+  if (typeof maybeRule === "function") {
+    rulesFound.push({
+      params: { ...currentParams },
+      rulePath: currentPath,
+      [ruleType]: maybeRule,
+    });
+  }
+  for (const key in target) {
+    let rulesChild = rules[key] as Value;
+    const targetChild = target[key];
+
+    if (maybeParam && !rulesChild) {
+      params[maybeParam] = key;
+      rulesChild = rules[maybeParam];
+    }
+    if (rulesChild) {
+      rulesFound.push(
+        ...findAllRules(ruleType, targetChild, rulesChild, params, [
+          ...currentPath,
+          key,
+        ]),
+      );
+    }
+  }
+  return rulesFound;
 }
 
 // // deno-lint-ignore no-explicit-any

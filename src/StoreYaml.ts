@@ -32,7 +32,9 @@ export class StoreYaml extends StoreFile {
    *
    */
   public write(): void {
-    const data = stringify(this._data);
+    const data = stringify(
+      this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    );
     const encoder = new TextEncoder();
     return Deno.writeFileSync(this.storePath, encoder.encode(data));
   }

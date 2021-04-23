@@ -10,7 +10,7 @@ export type Value = any;
 //   | Value[];
 
 // deno-lint-ignore no-explicit-any
-export type ObjectKind = { [key: string]: any } | any[];
+export type ObjectKind = { [key: string]: any };
 export type Data = { [key: string]: Value };
 export type Keys = string[];
 // deno-lint-ignore no-explicit-any
@@ -30,11 +30,23 @@ export type Subscription = {
 };
 
 export type Params = { [key: string]: string };
+
+// export type RuleFound = {
+//   params: Params;
+//   rulePath: Keys;
+//   [rule: string]: Params | Keys | Rule | undefined;
+// };
+
+export type RuleFound = {
+  params: Params;
+  rulePath: Keys;
+  [rule: string]: Value;
+};
 export type RuleContext = {
   data: Value;
-  params: Params;
   newData: Value;
   rootData: Data;
+  [param: string]: string | Data;
 };
 
 // deno-lint-ignore no-explicit-any

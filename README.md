@@ -8,14 +8,13 @@
 - [x] find, findOne, findAndRemove, findOneAndRemove
 - [x] rules write and read
 - [x] performance benchmarks
-- [x] inmutable behavior
+- [ ] config to not get cloned data
 - [ ] Support for JSON5?
 - [ ] do not allow set to undefined
 - [ ] parse json with wasm
 - [ ] findAndUpdate
 - [ ] rule validate
 - [ ] rule transform
-- [ ] not allow set to undefined
 - [ ] .setTransaction({path: value, path2:value})
 - [ ] bundle StoreLocalStorage
 - [ ] maybe .sort(fn)

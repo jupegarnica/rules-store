@@ -2,6 +2,7 @@ import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import { Store } from "../src/Store.ts";
 import type { Spy } from "./test_deps.ts";
 import type { RuleContext, Value } from "../src/types.ts";
+import { testCalled } from "../src/helpers.ts";
 
 Deno.test("[Store] Set inmutable behavior", () => {
   const db = new Store();
@@ -9,7 +10,10 @@ Deno.test("[Store] Set inmutable behavior", () => {
   db.set("a", obj);
   obj.b = 2;
 
-  assertEquals(db._data.a.b, 1);
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b,
+    1,
+  );
 });
 
 Deno.test("[Store] Set function inmutable behavior", () => {
@@ -17,17 +21,38 @@ Deno.test("[Store] Set function inmutable behavior", () => {
   const a = { b: 1 };
   db.set("a", a);
   db.set("a", (data: Value) => {
-    assertEquals(db._data !== data, true);
-    assertEquals(db._data.b !== data.b, true);
-    assertEquals(db._newData !== data, true);
-    assertEquals(db._newData.b !== data.b, true);
+    assertEquals(
+      db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }) !== data,
+      true,
+    );
+    assertEquals(
+      db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).b !==
+        data.b,
+      true,
+    );
+    assertEquals(
+      db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }) !==
+        data,
+      true,
+    );
+    assertEquals(
+      db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).b !==
+        data.b,
+      true,
+    );
     data.b = 2;
     return { b: 1 };
   });
   const B = db.get("a.b");
   assertEquals(B, 1);
-  assertEquals(db._newData.a.b, 1);
-  assertEquals(db._data.a.b, 1);
+  assertEquals(
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b,
+    1,
+  );
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b,
+    1,
+  );
 });
 
 Deno.test("[Store] find inmutable behavior", () => {
@@ -38,7 +63,10 @@ Deno.test("[Store] find inmutable behavior", () => {
     data.c.d = 2;
     return true;
   });
-  assertEquals(db._data.a.b.c.d, 1);
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
+    1,
+  );
   const B = db.get("a.b.c.d");
   assertEquals(B, 1);
 });
@@ -51,7 +79,10 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
     return true;
   });
   res[0][1].c.d = 2;
-  assertEquals(db._data.a.b.c.d, 1);
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
+    1,
+  );
   const B = db.get("a.b.c.d");
   assertEquals(B, 1);
 });
@@ -64,7 +95,10 @@ Deno.test("[Store] findOne inmutable behavior", () => {
     data.c.d = 2;
     return true;
   });
-  assertEquals(db._data.a.b.c.d, 1);
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
+    1,
+  );
   const B = db.get("a.b.c.d");
   assertEquals(B, 1);
 });
@@ -79,7 +113,10 @@ Deno.test("[Store] findOne inmutable behavior on returned", () => {
 
   value.c.d = 2;
 
-  assertEquals(db._data.a.b.c.d, 1);
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
+    1,
+  );
   const B = db.get("a.b.c.d");
   assertEquals(B, 1);
 });
@@ -216,7 +253,8 @@ Deno.test("[Rules context] data, newData, rootData inmutable", () => {
 });
 
 Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
-  const mock: Spy<Console> = spy(console, "assert");
+  // deno-lint-ignore no-explicit-any
+  const mock: Spy<{ noop: () => any }> = spy(testCalled, "noop");
   const rules = {
     a: {
       _read: (context: RuleContext) => {
@@ -242,7 +280,8 @@ Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
 
 Deno.test("[Store] find clone data only on get value", () => {
   const db = new Store();
-  const mock: Spy<Console> = spy(console, "assert");
+  // deno-lint-ignore no-explicit-any
+  const mock: Spy<{ noop: () => any }> = spy(testCalled, "noop");
 
   const a = [{ b: 1 }, { b: 2 }, { b: 3 }];
   db.set("a", a);

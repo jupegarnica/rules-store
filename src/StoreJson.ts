@@ -28,7 +28,9 @@ export class StoreJson extends StoreFile {
    *
    */
   public write(): void {
-    const data = JSON.stringify(this._data);
+    const data = JSON.stringify(
+      this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    );
     const encoder = new TextEncoder();
     return Deno.writeFileSync(
       this.storePath,

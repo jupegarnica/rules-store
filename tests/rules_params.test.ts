@@ -17,7 +17,7 @@ Deno.test("[Rules params] findDeepestRule basic", () => {
     rules,
   );
 
-  assertEquals(found.params.name, "garn");
+  assertEquals(found.params.$name, "garn");
   assertEquals(found._read?.(context), true);
 });
 
@@ -65,7 +65,7 @@ Deno.test(
       rules,
     );
     assertEquals(found._read?.(context), 3);
-    assertEquals(found.params, { name: "garn" });
+    assertEquals(found.params, { $name: "garn" });
   },
 );
 
@@ -88,7 +88,7 @@ Deno.test("[Rules params] findDeepestRule root rule", () => {
     rules,
   );
   assertEquals(found._read?.(context), 0);
-  assertEquals(found.params, { name: "garn" });
+  assertEquals(found.params, { $name: "garn" });
 });
 
 Deno.test("[Rules params] findDeepestRule two ways", () => {
@@ -112,13 +112,13 @@ Deno.test("[Rules params] findDeepestRule two ways", () => {
     rules,
   );
 
-  assertEquals(first.params, { name: "garn" });
+  assertEquals(first.params, { $name: "garn" });
   assertEquals(first._read?.(context), 1);
   const second = findDeepestRule(
     ["clients", "garn", "age"],
     "_read",
     rules,
   );
-  assertEquals(second.params, { foo: "clients", bar: "garn" });
+  assertEquals(second.params, { $foo: "clients", $bar: "garn" });
   assertEquals(second._read?.(context), 2);
 });

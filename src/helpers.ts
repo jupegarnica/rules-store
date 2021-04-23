@@ -10,7 +10,7 @@ import type {
   Value,
 } from "./types.ts";
 
-export function isObject(obj: unknown): boolean {
+export function isObjectOrArray(obj: unknown): boolean {
   return typeof obj === "object" && obj !== null;
 }
 // match "\" "/" o "."
@@ -33,16 +33,6 @@ export function findParam(obj: ObjectKind): string | void {
     if (key.match(paramRegex)) return key;
   }
 }
-export const deepClone = (obj: Value) => {
-  // return obj;
-  if (!isObject(obj)) return obj;
-  const initialShape = Array.isArray(obj) ? [] : {};
-  const clone = Object.assign(initialShape, obj);
-  Object.keys(clone).forEach(
-    (key) => (clone[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key]),
-  );
-  return clone;
-};
 
 export const testCalled: { noop: () => void } = {
   noop: () => {},
@@ -68,55 +58,89 @@ export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
   return obj;
 };
 
+export const deepClone = (obj: Value) => {
+  if (!isObjectOrArray(obj)) return obj;
+  const initialShape = Array.isArray(obj) ? [] : {};
+  const clone = Object.assign(initialShape, obj);
+  Object.keys(clone).forEach(
+    (
+      key,
+    ) => (clone[key] = isObjectOrArray(obj[key])
+      ? deepClone(obj[key])
+      : obj[key]),
+  );
+  return clone;
+};
 // export const deepClone = (obj: Value) => {
-//   if (!isObject(obj)) {
+//   if (!isObjectOrArray(obj)) {
 //     return obj;
 //   }
 //   return JSON.parse(JSON.stringify(obj));
 // };
 
-export function isNumberKey(key: string): boolean {
-  const maybeNumber = Number(key);
-  return (
-    maybeNumber >= Number.MIN_SAFE_INTEGER &&
-    maybeNumber <= Number.MAX_SAFE_INTEGER
-  );
-}
-
-function get(obj: Value, key: string) {
-  // return obj[key];
-  if (obj && !Array.isArray(obj)) return obj[key];
-
-  let n = Number(key);
-  if (n < 0) n += obj.length;
-  if (n < 0 || n >= obj.length) return undefined;
-  return obj[n];
-}
-
-export const deepGet = (object: Data, keys: Keys): Value => {
+export const deepGet = (object: ObjectKind, keys: Keys): Value => {
   return keys.reduce(
     (xs, x) => (xs && get(xs, x) !== undefined ? get(xs, x) : undefined),
     object,
   );
 };
 
-function setToObject(
-  obj: Data,
+export function isNumberKey(key: string): boolean {
+  const maybeNumber = Number(key);
+  return maybeNumber <= Number.MAX_SAFE_INTEGER;
+}
+
+// export function isNumberKey(key: string): boolean {
+//   const maybeNumber = Number(key);
+//   return (
+//     maybeNumber >= Number.MIN_SAFE_INTEGER &&
+//     maybeNumber <= Number.MAX_SAFE_INTEGER
+//   );
+// }
+// function get(obj: Value, key: string) {
+//   // return obj[key];
+//   if (obj && !Array.isArray(obj)) return obj[key];
+
+//   let n = Number(key);
+//   if (n < 0) n += obj.length;
+//   if (n < 0 || n >= obj.length) return undefined;
+//   return obj[n];
+// }
+// function setToObject(
+//   obj: Data,
+//   key: string | symbol,
+//   value: Value,
+// ): void {
+//   Reflect.set(obj, key, value);
+// }
+
+// function setToArray(arr: Data, key: string, value: Value): void {
+//   // let n = Number(key);
+//   // if (n < 0) n += arr.length;
+//   // if (n < 0) throw new TypeError("Invalid index: " + n);
+//   // Reflect.set(arr, (n), value);
+//   Reflect.set(arr, key, value);
+// }
+
+function get(
+  maybeObj: Value,
+  key: string | symbol,
+): Value {
+  return maybeObj && maybeObj[key];
+}
+
+function set(
+  obj: ObjectKind,
   key: string | symbol,
   value: Value,
 ): void {
   Reflect.set(obj, key, value);
 }
-
-function setToArray(arr: Data, key: string, value: Value): void {
-  let n = Number(key);
-  if (n < 0) n += arr.length;
-  if (n < 0) throw new TypeError(n + ": Invalid index");
-  Reflect.set(arr, (n), value);
+function del(obj: ObjectKind, key: string): void {
+  delete obj[key];
 }
-
 export const deepSet = (
-  obj: Data,
+  obj: ObjectKind,
   keys: Keys,
   value: Value,
 ): Value => {
@@ -129,6 +153,7 @@ export const deepSet = (
     index++;
     const _isNumberKey = isNumberKey(key);
     const isArray = Array.isArray(worker);
+    // const isObject = !isArray && worker && typeof worker === "object";
 
     if (isArray && !_isNumberKey) {
       throw new TypeError("target is not Array");
@@ -137,14 +162,16 @@ export const deepSet = (
       throw new TypeError("target is not Object");
     }
 
-    const set = (isArray ? setToArray : setToObject);
+    // const set = (isArray ? setToArray : setToObject);
+    const lastRound = index === lastIndex;
 
-    if (!isObject(worker[key])) {
-      set(worker, key, isNumberKey(keys[index + 1]) ? [] : {});
-    }
-    if (index === lastIndex) {
-      if (value === undefined) delete worker[key];
+    if (lastRound) {
+      if (value === undefined) del(worker, key);
       else set(worker, key, value);
+    } else {
+      if (!isObjectOrArray(worker[key])) {
+        set(worker, key, isNumberKey(keys[index + 1]) ? [] : {});
+      }
     }
 
     worker = worker[key];
@@ -174,7 +201,7 @@ export function findDeepestRule(
     let maybeRule = worker[ruleType];
 
     if (maybeRule) rule = maybeRule;
-    if (isObject(child)) {
+    if (isObjectOrArray(child)) {
       worker = child;
     } else {
       if (maybeParam) {
@@ -351,7 +378,7 @@ export const debounce = (fn: Callable, ms = 0, self: any) => {
 //   };
 // };
 // export const deepProxy = (obj: Value, path: Keys = []) => {
-//   if (!isObject(obj)) return obj;
+//   if (!isObjectOrArray(obj)) return obj;
 
 //   for (const key in obj) {
 //     Reflect.set(obj, key, deepProxy(obj[key], [...path, key]));

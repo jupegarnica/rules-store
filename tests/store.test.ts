@@ -453,29 +453,33 @@ Deno.test("[Store] invalid set", () => {
   assertThrows(() => db.set("arr.a", 3), TypeError, "not Array");
 });
 
-Deno.test("[Store] Set negative array index", () => {
-  const db = new Store();
-  db.set("arr", [1, 2, 3]);
 
-  db.set("arr.-1", -3);
 
-  assertEquals(db.get("arr"), [1, 2, -3]);
-  db.set("arr.-2", -2);
-  assertEquals(db.get("arr"), [1, -2, -3]);
-  db.set("arr.-3", -1);
-  assertEquals(db.get("arr"), [-1, -2, -3]);
+// Deno.test("[Store] Set negative array index", () => {
+//   const db = new Store();
+//   db.set("arr", [1, 2, 3]);
 
-  assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
-});
+//   db.set("arr.-1", -3);
 
-Deno.test("[Store] Get negative array index", () => {
-  const db = new Store();
-  db.set("arr", [1, 2, 3]);
-  assertEquals(db.get("arr.-1"), 3);
-  assertEquals(db.get("arr.-2"), 2);
-  assertEquals(db.get("arr.-3"), 1);
-  assertEquals(db.get("arr.-7"), undefined);
-});
+//   assertEquals(db.get("arr"), [1, 2, -3]);
+//   db.set("arr.-2", -2);
+//   assertEquals(db.get("arr"), [1, -2, -3]);
+//   db.set("arr.-3", -1);
+//   assertEquals(db.get("arr"), [-1, -2, -3]);
+
+//   assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
+// });
+
+
+
+// Deno.test("[Store] Get negative array index", () => {
+//   const db = new Store();
+//   db.set("arr", [1, 2, 3]);
+//   assertEquals(db.get("arr.-1"), 3);
+//   assertEquals(db.get("arr.-2"), 2);
+//   assertEquals(db.get("arr.-3"), 1);
+//   assertEquals(db.get("arr.-7"), undefined);
+// });
 
 // Deno.test("experimental", () => {
 //   const db = new Store();

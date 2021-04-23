@@ -7,7 +7,7 @@ import {
   findAllRules,
   findDeepestRule,
   isNumberKey,
-  isObject,
+  isObjectOrArray,
   keysFromPath,
   pathFromKeys,
 } from "./helpers.ts";
@@ -112,10 +112,12 @@ export class Store {
   private _commit(keys: Keys, value: Value): void {
     this._notify();
     deepSet(this.__data, keys, value);
+
   }
   private _rollBack(keys: Keys): void {
     const oldData = (deepGet(this.__data, keys));
     deepSet(this.__newData, keys, oldData);
+
   }
   /**
    * Sets a value in the database by the specified path.
@@ -219,7 +221,7 @@ export class Store {
   public find(path: string, finder: Finder): KeyValue[] {
     const keys = keysFromPath(path);
     let target = this._get(keys);
-    if (!isObject(target)) {
+    if (!isObjectOrArray(target)) {
       throw new TypeError("Target not object or array");
     }
     target = (target);
@@ -252,7 +254,7 @@ export class Store {
     const keys = keysFromPath(path);
 
     const target = this._getAndCheck(keys);
-    if (!isObject(target)) {
+    if (!isObjectOrArray(target)) {
       throw new TypeError("Target not object or array");
     }
     // target = deepClone(target);
@@ -465,7 +467,6 @@ export class Store {
         deepGet(this.__newData, rulePath),
       );
       currentPath = rulePath;
-      // console.log({ currentPath });
 
       return _validate(ruleContext);
     });

@@ -42,17 +42,17 @@ export class Store {
   /**
    * The actual store cache.
    */
-  #data: Data = {};
-  #newData: Data = {};
+  __data: Data = {};
+  __newData: Data = {};
 
   public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
-    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#data : {};
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__data : {};
   }
   protected setData(data: Data) {
-    this.#data = data;
+    this.__data = data;
   }
   public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
-    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#newData : {};
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__newData : {};
   }
   /**
    * Create a new Store instance.
@@ -63,13 +63,14 @@ export class Store {
    * */
 
   constructor(config?: BaseConfig) {
-    this._rules = config?.rules ?? allowAll;
-    this.#data = config?.initialDataIfNoFile ?? {};
-    this.#newData = config?.initialDataIfNoFile ?? {};
+    this._rules = deepClone(config?.rules ?? allowAll);
+    this.__data = deepClone(config?.initialDataIfNoFile ?? {});
+
+    this.__newData = deepClone(config?.initialDataIfNoFile ?? {});
   }
 
   private _get(keys: Keys): Value {
-    return deepGet(this.#data, keys);
+    return deepGet(this.__data, keys);
   }
   /**
    * Retrieves a value from database by specified path.
@@ -96,7 +97,8 @@ export class Store {
   }
 
   private _set(keys: Keys, value: Value): void {
-    deepSet(this.#newData, keys, value);
+
+    deepSet(this.__newData, keys, value);
 
     try {
       this._checkPermission("_write", keys);
@@ -109,11 +111,11 @@ export class Store {
   }
   private _commit(keys: Keys, value: Value): void {
     this._notify();
-    deepSet(this.#data, keys, value);
+    deepSet(this.__data, keys, value);
   }
   private _rollBack(keys: Keys): void {
-    const oldData = (deepGet(this.#data, keys));
-    deepSet(this.#newData, keys, oldData);
+    const oldData = (deepGet(this.__data, keys));
+    deepSet(this.__newData, keys, oldData);
   }
   /**
    * Sets a value in the database by the specified path.
@@ -380,8 +382,8 @@ export class Store {
       const { path, callback } = subscription;
       const keys = keysFromPath(path);
       this._checkPermission("_read", keys);
-      const data = deepGet(this.#data, keys);
-      const newData = deepGet(this.#newData, keys);
+      const data = deepGet(this.__data, keys);
+      const newData = deepGet(this.__newData, keys);
       if (!equal(data, newData)) {
         callback(newData);
       }
@@ -419,14 +421,14 @@ export class Store {
       const ruleContext = {
         ...params,
       };
-      applyCloneOnGet(ruleContext, "data", deepGet(this.#data, rulePath));
-      applyCloneOnGet(ruleContext, "rootData", this.#data);
+      applyCloneOnGet(ruleContext, "data", deepGet(this.__data, rulePath));
+      applyCloneOnGet(ruleContext, "rootData", this.__data);
 
       if (ruleType === "_write") {
         applyCloneOnGet(
           ruleContext,
           "newData",
-          deepGet(this.#newData, rulePath),
+          deepGet(this.__newData, rulePath),
         );
       }
       const allowed = rule?.(ruleContext as RuleContext);
@@ -447,7 +449,7 @@ export class Store {
     }
   }
   private _checkValidation(keys: Keys, value: Value): void {
-    const rootShape = Array.isArray(this.#newData) ? [] : {};
+    const rootShape = Array.isArray(this.__newData) ? [] : {};
     const diff = deepSet(rootShape, keys, value);
     const validations = findAllRules("_validate", diff, this._rules);
     let currentPath: Keys = [];
@@ -455,12 +457,12 @@ export class Store {
       const ruleContext = {
         ...params,
       };
-      applyCloneOnGet(ruleContext, "data", deepGet(this.#data, rulePath));
-      applyCloneOnGet(ruleContext, "rootData", this.#data);
+      applyCloneOnGet(ruleContext, "data", deepGet(this.__data, rulePath));
+      applyCloneOnGet(ruleContext, "rootData", this.__data);
       applyCloneOnGet(
         ruleContext,
         "newData",
-        deepGet(this.#newData, rulePath),
+        deepGet(this.__newData, rulePath),
       );
       currentPath = rulePath;
       // console.log({ currentPath });

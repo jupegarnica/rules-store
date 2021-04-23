@@ -61,7 +61,6 @@ export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
         return data;
       }
       data = deepClone(value);
-      console.log("applyCloneOnGet", { data });
       testCalled.noop();
       return data;
     },

@@ -200,31 +200,21 @@ Deno.test("[Rules _validate] on object", () => {
   );
 });
 
-Deno.test("[Rules _validate] based on newData", () => {
+Deno.test("[Rules _validate] assert context values", () => {
+  let calls = 0;
   const rules = {
     _write: () => true,
     a: {
-      $x: {
-        _validate: ({ data, newData, rootData }: RuleContext) => {
-          console.log(data, newData, rootData);
-
-          return data % 2 === 0;
-        },
+      _validate({ data, newData,rootData }: RuleContext) {
+        calls++;
+        assertEquals(data, 0);
+        assertEquals(rootData.a, 0);
+        assertEquals(newData, 2);
+        return true;
       },
     },
   };
-
-  const db = new Store({ rules, initialDataIfNoFile: { a: { b: 0, c: 1 } } });
-
-  // assertThrows(
-  //   () => db.set("a", 1),
-  //   ValidationError,
-  //   "/a",
-  // );
-  db.set("a.b", 3);
-  assertThrows(
-    () => db.set("a.b", 1),
-    ValidationError,
-    "/a/b",
-  );
+  const db = new Store({ rules, initialDataIfNoFile: { a: 0 } });
+  db.set("a", 2);
+  assertEquals(calls, 1);
 });

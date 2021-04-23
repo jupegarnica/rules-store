@@ -453,8 +453,6 @@ Deno.test("[Store] invalid set", () => {
   assertThrows(() => db.set("arr.a", 3), TypeError, "not Array");
 });
 
-
-
 // Deno.test("[Store] Set negative array index", () => {
 //   const db = new Store();
 //   db.set("arr", [1, 2, 3]);
@@ -469,8 +467,6 @@ Deno.test("[Store] invalid set", () => {
 
 //   assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
 // });
-
-
 
 // Deno.test("[Store] Get negative array index", () => {
 //   const db = new Store();

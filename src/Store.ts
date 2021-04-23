@@ -15,10 +15,10 @@ import {
 import { equal } from "./deps.ts";
 import type {
   BaseConfig,
-  Data,
   Finder,
   Keys,
   KeyValue,
+  ObjectOrArray,
   RuleContext,
   Rules,
   Subscriber,
@@ -42,13 +42,13 @@ export class Store {
   /**
    * The actual store cache.
    */
-  __data: Data = {};
-  __newData: Data = {};
+  __data: ObjectOrArray = {};
+  __newData: ObjectOrArray = {};
 
   public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
     return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__data : {};
   }
-  protected setData(data: Data) {
+  protected setData(data: ObjectOrArray) {
     this.__data = data;
   }
   public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
@@ -97,7 +97,6 @@ export class Store {
   }
 
   private _set(keys: Keys, value: Value): void {
-
     deepSet(this.__newData, keys, value);
 
     try {
@@ -112,12 +111,10 @@ export class Store {
   private _commit(keys: Keys, value: Value): void {
     this._notify();
     deepSet(this.__data, keys, value);
-
   }
   private _rollBack(keys: Keys): void {
     const oldData = (deepGet(this.__data, keys));
     deepSet(this.__newData, keys, oldData);
-
   }
   /**
    * Sets a value in the database by the specified path.

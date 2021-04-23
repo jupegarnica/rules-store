@@ -1,8 +1,8 @@
 import type {
   Callable,
-  Data,
   Keys,
-  ObjectKind,
+  ObjectOrArray,
+  ObjectOrArray,
   Params,
   Rule,
   RuleFound,
@@ -28,7 +28,7 @@ export function addChildToKeys(keys: Keys, ...rest: Keys): Keys {
 
 const paramRegex = /^\$.+/;
 
-export function findParam(obj: ObjectKind): string | void {
+export function findParam(obj: ObjectOrArray): string | void {
   for (const key in obj) {
     if (key.match(paramRegex)) return key;
   }
@@ -38,7 +38,11 @@ export const testCalled: { noop: () => void } = {
   noop: () => {},
 };
 
-export const applyCloneOnGet = (obj: ObjectKind, key: string, value: Value) => {
+export const applyCloneOnGet = (
+  obj: ObjectOrArray,
+  key: string,
+  value: Value,
+) => {
   let data: Value;
 
   Object.defineProperty(obj, key, {
@@ -78,7 +82,7 @@ export const deepClone = (obj: Value) => {
 //   return JSON.parse(JSON.stringify(obj));
 // };
 
-export const deepGet = (object: ObjectKind, keys: Keys): Value => {
+export const deepGet = (object: ObjectOrArray, keys: Keys): Value => {
   return keys.reduce(
     (xs, x) => (xs && get(xs, x) !== undefined ? get(xs, x) : undefined),
     object,
@@ -107,14 +111,14 @@ export function isNumberKey(key: string): boolean {
 //   return obj[n];
 // }
 // function setToObject(
-//   obj: Data,
+//   obj: ObjectOrArray,
 //   key: string | symbol,
 //   value: Value,
 // ): void {
 //   Reflect.set(obj, key, value);
 // }
 
-// function setToArray(arr: Data, key: string, value: Value): void {
+// function setToArray(arr: ObjectOrArray, key: string, value: Value): void {
 //   // let n = Number(key);
 //   // if (n < 0) n += arr.length;
 //   // if (n < 0) throw new TypeError("Invalid index: " + n);
@@ -130,17 +134,17 @@ function get(
 }
 
 function set(
-  obj: ObjectKind,
+  obj: ObjectOrArray,
   key: string | symbol,
   value: Value,
 ): void {
   Reflect.set(obj, key, value);
 }
-function del(obj: ObjectKind, key: string): void {
+function del(obj: ObjectOrArray, key: string): void {
   delete obj[key];
 }
 export const deepSet = (
-  obj: ObjectKind,
+  obj: ObjectOrArray,
   keys: Keys,
   value: Value,
 ): Value => {
@@ -226,7 +230,7 @@ export function findDeepestRule(
 
 export function findAllRules(
   ruleType: string,
-  target: ObjectKind,
+  target: ObjectOrArray,
   rules: Rules,
   currentParams: Params = {},
   currentPath: Keys = [],

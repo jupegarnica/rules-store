@@ -1,7 +1,7 @@
 // import { findAllRules } from "../src/helpers.ts";
 import { Store } from "../src/Store.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
-import type { RuleContext } from "../src/types.ts";
+// import { assertEquals, assertThrows } from "./test_deps.ts";
+// import type { RuleContext } from "../src/types.ts";
 // import { ValidationError } from "../src/Errors.ts";
 
 // let calls = 0;
@@ -20,7 +20,7 @@ import type { RuleContext } from "../src/types.ts";
 // assertEquals(calls, 1);
 
 {
-  const db = new Store({initialDataIfNoFile: {arr: [1,2,3]}});
+  const db = new Store({ initialDataIfNoFile: { arr: [1, 2, 3] } });
 
   db.set("arr.-1", -3);
 

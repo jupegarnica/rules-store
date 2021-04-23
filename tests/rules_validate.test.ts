@@ -137,7 +137,7 @@ Deno.test("[Rules _validate] list of numbers", () => {
   const rules = {
     _write: () => true,
     numbers: {
-      _validate: ({ newData }: any) => Array.isArray(newData),
+      _validate: ({ newData }: RuleContext) => Array.isArray(newData),
       $index: {
         _validate: ({ newData }: RuleContext) => {
           return typeof newData === "number";
@@ -205,7 +205,7 @@ Deno.test("[Rules _validate] assert context values", () => {
   const rules = {
     _write: () => true,
     a: {
-      _validate({ data, newData,rootData }: RuleContext) {
+      _validate({ data, newData, rootData }: RuleContext) {
         calls++;
         assertEquals(data, 0);
         assertEquals(rootData.a, 0);

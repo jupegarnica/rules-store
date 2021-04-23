@@ -7,7 +7,7 @@ Deno.test("[Rules context] _write assert context values", () => {
   let calls = 0;
   const rules = {
     a: {
-      _write({ data, newData,rootData }: RuleContext) {
+      _write({ data, newData, rootData }: RuleContext) {
         calls++;
         assertEquals(data, 0);
         assertEquals(rootData.a, 0);

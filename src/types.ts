@@ -10,8 +10,8 @@ export type Value = any;
 //   | Value[];
 
 // deno-lint-ignore no-explicit-any
-export type ObjectKind = { [key: string]: any };
-export type Data = { [key: string]: Value };
+export type ObjectOrArray = { [key: string]: any };
+
 export type Keys = string[];
 // deno-lint-ignore no-explicit-any
 export type Callable = (...a: any[]) => any;
@@ -45,8 +45,8 @@ export type RuleFound = {
 export type RuleContext = {
   data: Value;
   newData: Value;
-  rootData: Data;
-  [param: string]: string | Data;
+  rootData: ObjectOrArray;
+  [param: string]: string | ObjectOrArray;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -62,7 +62,7 @@ export type Rules = {
 
 export type BaseConfig = {
   rules?: Rules;
-  initialDataIfNoFile?: Data;
+  initialDataIfNoFile?: ObjectOrArray;
 };
 export type Config = BaseConfig & {
   autoSave?: boolean;

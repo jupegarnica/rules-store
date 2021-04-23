@@ -81,9 +81,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
     db.set(`item` + i, i);
     await delay(2);
   }
-
   assertEquals(mock.calls.length, RUNS);
   assertEquals(existsSync(db.storePath), true);
   await Deno.remove(db.storePath);
-
 });

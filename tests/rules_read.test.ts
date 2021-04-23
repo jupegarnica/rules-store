@@ -198,7 +198,7 @@ Deno.test("[Rules _read] find with one child not allowed", () => {
   );
 });
 
-Deno.test("[Rules _read]  findOn with one child not allowed", () => {
+Deno.test("[Rules _read]  findOne with one child not allowed", () => {
   const rules = {
     arr: { _read: () => true, "0": { _read: () => false } },
   };

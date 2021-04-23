@@ -1,9 +1,9 @@
-import { findRuleAndParams } from "../src/helpers.ts";
+import { findDeepestRule } from "../src/helpers.ts";
 import { assertEquals } from "./test_deps.ts";
 
 const context = { data: "bar", params: {}, newData: undefined, rootData: {} };
 
-Deno.test("[Rules params] findRuleAndParams basic", () => {
+Deno.test("[Rules params] findDeepestRule basic", () => {
   const rules = {
     people: {
       $name: {
@@ -11,7 +11,7 @@ Deno.test("[Rules params] findRuleAndParams basic", () => {
       },
     },
   };
-  const found = findRuleAndParams(
+  const found = findDeepestRule(
     ["people", "garn", "age"],
     "_read",
     rules,
@@ -21,7 +21,7 @@ Deno.test("[Rules params] findRuleAndParams basic", () => {
   assertEquals(found._read?.(context), true);
 });
 
-Deno.test("[Rules params] findRuleAndParams not found", () => {
+Deno.test("[Rules params] findDeepestRule not found", () => {
   const rules = {
     people: {
       $name: {
@@ -30,7 +30,7 @@ Deno.test("[Rules params] findRuleAndParams not found", () => {
     },
   };
 
-  const notFound = findRuleAndParams(
+  const notFound = findDeepestRule(
     ["404", "garn", "age"],
     "_read",
     rules,
@@ -45,7 +45,7 @@ Deno.test("[Rules params] findRuleAndParams not found", () => {
 });
 
 Deno.test(
-  "[Rules params] findRuleAndParams multiple rules",
+  "[Rules params] findDeepestRule multiple rules",
   () => {
     const rules = {
       _read: () => 0,
@@ -59,7 +59,7 @@ Deno.test(
         },
       },
     };
-    const found = findRuleAndParams(
+    const found = findDeepestRule(
       ["people", "garn", "age"],
       "_read",
       rules,
@@ -69,7 +69,7 @@ Deno.test(
   },
 );
 
-Deno.test("[Rules params] findRuleAndParams root rule", () => {
+Deno.test("[Rules params] findDeepestRule root rule", () => {
   const rules = {
     _read: () => 0,
     people: {
@@ -82,7 +82,7 @@ Deno.test("[Rules params] findRuleAndParams root rule", () => {
       },
     },
   };
-  const found = findRuleAndParams(
+  const found = findDeepestRule(
     ["people", "garn", "age"],
     "_read",
     rules,
@@ -91,7 +91,7 @@ Deno.test("[Rules params] findRuleAndParams root rule", () => {
   assertEquals(found.params, { name: "garn" });
 });
 
-Deno.test("[Rules params] findRuleAndParams two ways", () => {
+Deno.test("[Rules params] findDeepestRule two ways", () => {
   const rules = {
     providers: {
       $name: {
@@ -106,7 +106,7 @@ Deno.test("[Rules params] findRuleAndParams two ways", () => {
       },
     },
   };
-  const first = findRuleAndParams(
+  const first = findDeepestRule(
     ["providers", "garn", "age"],
     "_read",
     rules,
@@ -114,7 +114,7 @@ Deno.test("[Rules params] findRuleAndParams two ways", () => {
 
   assertEquals(first.params, { name: "garn" });
   assertEquals(first._read?.(context), 1);
-  const second = findRuleAndParams(
+  const second = findDeepestRule(
     ["clients", "garn", "age"],
     "_read",
     rules,

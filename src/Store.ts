@@ -4,7 +4,7 @@ import {
   deepClone,
   deepGet,
   deepSet,
-  findRuleAndParams,
+  findDeepestRule,
   isNumberKey,
   isObject,
   keysFromPath,
@@ -385,7 +385,7 @@ export class Store {
     ruleType: "_read" | "_write",
     keys: Keys,
   ): void {
-    const ruleAndParams = findRuleAndParams(
+    const ruleAndParams = findDeepestRule(
       keys,
       ruleType,
       this._rules,

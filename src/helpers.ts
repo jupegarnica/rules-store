@@ -148,7 +148,7 @@ export const deepSet = (
   return obj;
 };
 
-export function findRuleAndParams(
+export function findDeepestRule(
   keys: Keys,
   ruleType: string,
   rules: Rules,

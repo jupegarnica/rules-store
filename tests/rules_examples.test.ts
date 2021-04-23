@@ -47,3 +47,7 @@ Deno.test("[Rules Examples] list of numbers", () => {
   assertThrows(() => db.push("myNumbers", 0, null));
   assertThrows(() => db.set("myNumbers", null));
 });
+
+
+// TODO Deno.test("[Rules Examples] Mongo structure")
+// TODO Deno.test("[Rules Examples] Tables structure")

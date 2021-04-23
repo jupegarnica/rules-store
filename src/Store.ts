@@ -380,11 +380,17 @@ export class Store {
     for (const subscription of this._subscriptions) {
       const { path, callback } = subscription;
       const keys = keysFromPath(path);
-      this._checkPermission("_read", keys);
+      // TODO NEEDED?
+      // this._checkPermission("_read", keys);
       const data = deepGet(this.__data, keys);
       const newData = deepGet(this.__newData, keys);
       if (!equal(data, newData)) {
-        callback(newData);
+        try {
+          callback(newData);
+        } catch (error) {
+          // Do not throw
+          console.error(error);
+        }
       }
     }
   }

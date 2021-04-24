@@ -131,9 +131,7 @@ Deno.test("[Store] push into an not array", () => {
 Deno.test("[Store] Set with a function", () => {
   const db = new Store();
   db.set("a", { b: 1 });
-  // deno-lint-ignore no-explicit-any
-  const B = db.set("a.b", (oldValue: any) => oldValue + 1);
-
+  const B = db.set("a.b", (oldValue: number) => oldValue + 1);
   assertEquals(B, 2);
 });
 

@@ -1,8 +1,8 @@
 import { Store } from "../src/Store.ts";
+import { Value } from "../src/types.ts";
 import { assertEquals } from "./test_deps.ts";
 
-
-Deno.test("[Store] DB subscription with .subscribe", () => {
+Deno.test("[Store subscription] .subscribe", () => {
   const db = new Store();
 
   db.set("A", 0);
@@ -22,7 +22,28 @@ Deno.test("[Store] DB subscription with .subscribe", () => {
   db.set("A", 2);
   assertEquals(called, 2);
 });
-Deno.test("[Store] DB subscription with .on", () => {
+
+Deno.test("[Store subscription] .subscribe with deeper set",()=>{
+  const db = new Store();
+  db.set("a.b", { c:0, d:0 } );
+
+  let called = 0;
+  const onChange = (data:Value) => {
+    // console.log({cbData:data});
+    called++;
+    assertEquals(data.c, 1);
+
+  };
+  db.subscribe("a.b", onChange);
+
+  assertEquals(called, 0);
+  db.set("a.b.c", 1);
+  assertEquals(called, 1);
+  db.set("a.b.d", 2);
+  assertEquals(called, 2);
+
+})
+Deno.test("[Store subscription] .on", () => {
   const db = new Store();
 
   db.set("A", 1);
@@ -43,7 +64,7 @@ Deno.test("[Store] DB subscription with .on", () => {
   assertEquals(called, 3);
 });
 
-Deno.test("[Store] DB subscription off", () => {
+Deno.test("[Store subscription] off", () => {
   const db = new Store();
 
   db.set("A", 1);
@@ -130,5 +151,23 @@ Deno.test("[Store] Deep complex subscription", () => {
   assertEquals(called, 4);
 });
 
+Deno.test("[Store] inmutable subscribe callback", () => {
+  const db = new Store();
+  db.set("a.b.c", 0);
 
-// TODO inmutable subscribe callback
+  let called = 0;
+  const onChange = (data: Value) => {
+    called++;
+    assertEquals(data, { c: 1 });
+    data.c = 2;
+    assertEquals(data, { c: 2 });
+
+  };
+  db.subscribe("a.b", onChange);
+
+  assertEquals(called, 0);
+  db.set("a.b.c", 1);
+  assertEquals(called, 1);
+  assertEquals(db.get('a.b.c'),1);
+
+});

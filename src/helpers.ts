@@ -61,6 +61,25 @@ export const applyCloneOnGet = (
   return obj;
 };
 
+export const assertDeepClone = (a: Value, b: Value): void => {
+  if (!isObjectOrArray(a)) {
+    if (a !== b) {
+      throw new Error("not clone");
+    }
+    return;
+  }
+  if (a === b) {
+    throw new Error("not clone");
+  }
+
+  for (const key in b) {
+    assertDeepClone(a[key], b[key]);
+  }
+  for (const key in a) {
+    assertDeepClone(a[key], b[key]);
+  }
+};
+
 export const deepClone = (obj: Value) => {
   if (!isObjectOrArray(obj)) return obj;
   const initialShape = Array.isArray(obj) ? [] : {};
@@ -72,6 +91,7 @@ export const deepClone = (obj: Value) => {
       ? deepClone(obj[key])
       : obj[key]),
   );
+  // assertDeepClone(obj, clone);
   return clone;
 };
 // export const deepClone = (obj: Value) => {
@@ -134,10 +154,11 @@ function get(
 
 function set(
   obj: ObjectOrArray,
-  key: string | symbol,
+  key: string,
   value: Value,
 ): void {
   Reflect.set(obj, key, value);
+  // obj[key] = value
 }
 function del(obj: ObjectOrArray, key: string): void {
   delete obj[key];
@@ -160,7 +181,7 @@ export const deepSet = (
     if (isArray && !_isNumberKey) {
       throw new TypeError("target is not Object");
     }
-    if (!isArray && _isNumberKey && typeof worker === 'object' ) {
+    if (!isArray && _isNumberKey && typeof worker === "object") {
       throw new TypeError("target is not Array");
     }
     // const set = (isArray ? setToArray : setToObject);

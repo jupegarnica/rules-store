@@ -1,6 +1,7 @@
 import {
   addChildToKeys,
   applyCloneOnGet,
+  assertDeepClone,
   deepClone,
   deepGet,
   deepSet,
@@ -11,6 +12,7 @@ import {
   keysFromPath,
   pathFromKeys,
 } from "./helpers.ts";
+import { assertEquals } from "../tests/test_deps.ts";
 
 import { equal } from "./deps.ts";
 import type {
@@ -34,6 +36,7 @@ import {
 
 import { allowAll } from "./rules.ts";
 
+var DEBUG = true;
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -49,11 +52,13 @@ export class Store {
     return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__data : {};
   }
   protected setData(data: ObjectOrArray) {
-    this.__data = data;
+    this.__data = (data);
+    this.__newData = deepClone(data);
   }
   public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
     return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__newData : {};
   }
+
   /**
    * Create a new Store instance.
    *
@@ -64,9 +69,7 @@ export class Store {
 
   constructor(config?: BaseConfig) {
     this._rules = deepClone(config?.rules ?? allowAll);
-    this.__data = deepClone(config?.initialDataIfNoFile ?? {});
-
-    this.__newData = deepClone(config?.initialDataIfNoFile ?? {});
+    this.setData(deepClone(config?.initialDataIfNoFile ?? {}));
   }
 
   private _get(keys: Keys): Value {
@@ -97,7 +100,7 @@ export class Store {
   }
 
   private _set(keys: Keys, value: Value): void {
-    deepSet(this.__newData, keys, value);
+    deepSet(this.__newData, keys, deepClone(value));
 
     try {
       this._checkPermission("_write", keys);
@@ -110,11 +113,21 @@ export class Store {
   }
   private _commit(keys: Keys, value: Value): void {
     this._notify();
-    deepSet(this.__data, keys, value);
+    deepSet(this.__data, keys, deepClone(value));
+    // TODO REMOVE DEBUG:
+    if (DEBUG) {
+      assertEquals(this.__data, this.__newData);
+      assertDeepClone(this.__data, this.__newData);
+    }
   }
   private _rollBack(keys: Keys): void {
-    const oldData = (deepGet(this.__data, keys));
+    const oldData = deepClone(deepGet(this.__data, keys));
     deepSet(this.__newData, keys, oldData);
+    // TODO REMOVE DEBUG:
+    if (DEBUG) {
+      assertEquals(this.__data, this.__newData);
+      assertDeepClone(this.__data, this.__newData);
+    }
   }
   /**
    * Sets a value in the database by the specified path.
@@ -129,7 +142,6 @@ export class Store {
    * @returns  The value added
    *
    */
-// TODO add derrota =false
   public set(
     path: string,
     valueOrFunction: ValueOrFunction,
@@ -139,15 +151,15 @@ export class Store {
       throw new PermissionError("Root path cannot be set");
     }
 
-    let newValue;
+    let newValue = valueOrFunction;
     if (typeof valueOrFunction === "function") {
       const oldValue = this._getAndCheck(keys);
       newValue = valueOrFunction(deepClone(oldValue));
     } else {
-      newValue = deepClone(valueOrFunction);
+      newValue = (valueOrFunction);
     }
 
-    this._set(keys, newValue);
+    this._set(keys, (newValue));
 
     return newValue;
   }
@@ -255,7 +267,6 @@ export class Store {
     if (!isObjectOrArray(target)) {
       throw new TypeError("Target not object or array");
     }
-    // target = deepClone(target);
     for (const key in target) {
       this._checkPermission("_read", addChildToKeys(keys, key));
       const value = target[key];
@@ -387,7 +398,7 @@ export class Store {
       const newData = deepGet(this.__newData, keys);
       if (!equal(data, newData)) {
         try {
-          callback(newData);
+          callback(deepClone(newData));
         } catch (error) {
           // Do not throw
           console.error(error);

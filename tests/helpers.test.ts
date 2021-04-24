@@ -1,8 +1,9 @@
 // import { DeepProxy , proxyHandler} from "../src/deepProxy.js";
 import {
+  // deepProxy,
+  assertDeepClone,
   deepClone,
   deepGet,
-  // deepProxy,
   deepSet,
   findParam,
   isNumberKey,
@@ -160,6 +161,24 @@ Deno.test("[Helpers] findParam", () => {
   assertEquals(findParam(obj), "$a");
 });
 
+Deno.test("[Helpers] assertDeepClone", () => {
+  const x = {
+    a: { b: 1 },
+  };
+  const y = {
+    a: { b: 1 },
+  };
+  const z = {
+    a: x.a,
+  };
+  const i = {
+    a: { b: 1, c: 2 },
+  };
+  assertDeepClone(x, y);
+  assertDeepClone(y, z);
+  assertThrows(() => assertDeepClone(x, z));
+  assertThrows(() => assertDeepClone(x, i));
+});
 // Deno.test("[Helpers] deepProxy", () => {
 //   // const a = { b: 1 } as any;
 //   const a = { b: { c: { d: 1 } } } as any;

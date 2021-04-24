@@ -58,6 +58,8 @@ Deno.test("[Rules _write] .remove", () => {
 
 Deno.test("[Rules _write] .remove _write true but _read false ", () => {
   const rules = {
+    _read: () => true,
+
     arr: {
       _write: () => true,
       _read: () => false,
@@ -70,7 +72,7 @@ Deno.test("[Rules _write] .remove _write true but _read false ", () => {
 
   assertThrows(() => {
     db.remove("arr.0");
-  });
+  }, Error, 'read disallow');
 
   assertEquals(
     db.remove("arr.0", false),

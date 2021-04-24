@@ -13,9 +13,8 @@ export type Value = any;
 export type ObjectOrArray = { [key: string]: any };
 
 export type Keys = string[];
-// deno-lint-ignore no-explicit-any
-export type Callable = (...a: any[]) => any;
 
+export type Callable = (...a: Value[]) => Value;
 export type ValueOrFunction = Value | Callable;
 export type Subscriber = (data: Value) => void;
 

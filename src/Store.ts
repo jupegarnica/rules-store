@@ -1,7 +1,6 @@
 import {
   addChildToKeys,
   applyCloneOnGet,
-  assertDeepClone,
   deepClone,
   deepGet,
   deepSet,
@@ -12,7 +11,6 @@ import {
   keysFromPath,
   pathFromKeys,
 } from "./helpers.ts";
-import { assertEquals } from "../tests/test_deps.ts";
 
 import { equal } from "./deps.ts";
 import type {
@@ -36,7 +34,6 @@ import {
 
 import { allowAll } from "./rules.ts";
 
-var DEBUG = false;
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *

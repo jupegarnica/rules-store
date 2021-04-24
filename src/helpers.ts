@@ -321,6 +321,14 @@ export const debounce = (fn: Callable, ms = 0, self: any) => {
     });
 };
 
+// export const debounce = (fn, ms = 0, self) => {
+//   let timeoutId;
+//   return function(...args) {
+//     clearTimeout(timeoutId);
+//     timeoutId = setTimeout(() => fn.apply(self, args), ms);
+//   };
+// };
+
 // export const debounce = (fn: Callable, ms = 0, self: any) => {
 //   let timeoutId: number;
 //   const pending:any[] = [];

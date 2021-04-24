@@ -14,12 +14,12 @@ import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-  1e3;
-1e4;
+  1e6;
 1e5;
-3e6;
+1e3;
+1e4;
 1e7;
-1e6;
+3e6;
 
 const resultsOptions = {
   filename: `./results.json`,
@@ -30,7 +30,7 @@ const benchOptions: [
   ((progress: BenchmarkRunProgress) => void | Promise<void>),
 ] = [{
   // skip: /Yaml/i,
-  skip: /(Bson)|(Yaml)/i,
+  skip: /(Bson)|(Yaml)|(autoSave)/i,
   // skip: /(autoSave)|(Bson)/i,
   // only: /Set Json. autoSave/,
   // only: /GetAll/,
@@ -185,7 +185,9 @@ bench({
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
 
     b.start();
-    db.get(``, { UNSAFELY_DO_NOT_GET_CLONED_DATA_TO_IMPROVE_PERFORMANCE: true });
+    db.get(``, {
+      UNSAFELY_DO_NOT_GET_CLONED_DATA_TO_IMPROVE_PERFORMANCE: true,
+    });
     b.stop();
   },
 });
@@ -254,8 +256,6 @@ bench({
   name: `[Load Json]  once ${RUNS} children`,
   runs: 1,
   func(b): void {
-    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
-
     b.start();
     new StoreJson({ filename: `./data/${RUNS}.json` });
     b.stop();
@@ -459,20 +459,37 @@ for (const result of results) {
       console.debug(
         colors.bold(imp),
         " ".repeat((9 - text.length)),
-        colors.brightYellow(totalRuns + ""),
-        colors.yellow("x" + diffRatio.toFixed(2)),
         colors.bold(colors.blue(d(measuredRunsAvgMs))),
-        colors.white(
-          `${toOpsEverySecond(measuredRunsAvgMs, RUNS).toFixed(0)}o/s`,
+        colors.inverse(
+          `${parseNumberToString(toOpsEverySecond(measuredRunsAvgMs, RUNS))}`,
         ),
         colors.blue(d(averageRun)),
         colors.brightWhite(
-          `${toOpsEverySecond(averageRun, RUNS).toFixed(0)}o/s`,
+          `${parseNumberToString(toOpsEverySecond(averageRun, RUNS))}`,
         ),
+        colors.brightYellow(totalRuns + ""),
+        colors.yellow("x" + diffRatio.toFixed(2)),
       );
       console.groupEnd();
 
       return data;
     },
   );
+}
+
+function parseNumberToString(
+  num: number,
+  decimalLength = 0,
+  decimalsChar = ",",
+  milesChar = ".",
+) {
+  if (typeof num !== "number") return num;
+
+  const fixed = num
+    .toFixed(decimalLength)
+    .replace(".", decimalsChar);
+
+  let [intPart] = fixed.split(decimalsChar);
+  intPart = intPart.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1" + milesChar);
+  return [intPart].join(decimalsChar);
 }

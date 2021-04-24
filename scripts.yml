@@ -1,6 +1,7 @@
 scripts:
   test: deno test --allow-read --allow-write --unstable
   test-watch: deno run -A --unstable --watch tests/test-watch.ts
+  test-manual: deno run -A  --no-check --unstable --watch tests/test-manual.ts
   bench: deno run -A --unstable benchmarks/benchmarks.ts
   bench-watch: deno run --no-check -A --unstable --watch benchmarks/benchmarks.ts
   coverage:

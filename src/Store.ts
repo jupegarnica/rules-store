@@ -36,7 +36,7 @@ import {
 
 import { allowAll } from "./rules.ts";
 
-var DEBUG = true;
+var DEBUG = false;
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -85,10 +85,15 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    * @returns The cloned value found or undefined if not found
    */
-  public get(path: string, getClone = true): Value {
+  public get(
+    path: string,
+    {
+      UNSAFELY_DO_NOT_GET_CLONED_DATA_TO_IMPROVE_PERFORMANCE: notClone = false,
+    } = {},
+  ): Value {
     const keys = keysFromPath(path);
     let data = this._getAndCheck(keys);
-    if (getClone) {
+    if (!notClone) {
       data = deepClone(data);
     }
     return data;
@@ -99,8 +104,11 @@ export class Store {
     return (this._get(keys));
   }
 
-  private _set(keys: Keys, value: Value): void {
-    deepSet(this.__newData, keys, deepClone(value));
+  private _set(
+    keys: Keys,
+    value: Value,
+  ): void {
+    deepSet(this.__newData, keys, value);
 
     try {
       this._checkPermission("_write", keys);
@@ -114,20 +122,21 @@ export class Store {
   private _commit(keys: Keys, value: Value): void {
     this._notify();
     deepSet(this.__data, keys, deepClone(value));
+
     // TODO REMOVE DEBUG:
-    if (DEBUG) {
-      assertEquals(this.__data, this.__newData);
-      assertDeepClone(this.__data, this.__newData);
-    }
+    // if (DEBUG) {
+    //   assertEquals(this.__data, this.__newData);
+    //   assertDeepClone(this.__data, this.__newData);
+    // }
   }
   private _rollBack(keys: Keys): void {
     const oldData = deepClone(deepGet(this.__data, keys));
     deepSet(this.__newData, keys, oldData);
     // TODO REMOVE DEBUG:
-    if (DEBUG) {
-      assertEquals(this.__data, this.__newData);
-      assertDeepClone(this.__data, this.__newData);
-    }
+    // if (DEBUG) {
+    //   assertEquals(this.__data, this.__newData);
+    //   assertDeepClone(this.__data, this.__newData);
+    // }
   }
   /**
    * Sets a value in the database by the specified path.

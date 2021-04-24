@@ -12,8 +12,12 @@ const run = async () => {
   running = true;
   const { success, code } = await p.status();
   p.close();
-  success || console.error(
-    colors.brightRed(`Exit code ${code}`),
+  const colorize = success ? colors.brightGreen : colors.brightRed;
+  console.info(
+    colorize(
+      `Exit code ${code}
+--------------`,
+    ),
   );
   running = false;
 };

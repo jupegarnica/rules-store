@@ -62,7 +62,6 @@ const d = (time: number): string => {
 const toOpsEverySecond = (timeInMs: number, ops: number) =>
   ops * 1000 / timeInMs;
 
-const db = new StoreJson({ filename: `./data/${RUNS}.json` });
 // SET
 //////
 
@@ -70,6 +69,8 @@ bench({
   name: `[Set] ${RUNS} children`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
     for (let i = 0; i < RUNS; i++) {
       db.set(`item` + i, { i: { i: { i } } });
@@ -165,6 +166,8 @@ bench({
   name: `[GetAll] assert ${RUNS} children`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
     const all = db.get(``);
     b.stop();
@@ -179,8 +182,10 @@ bench({
   name: `[GetAll] not getClone = false ${RUNS} children`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
-    db.get(``, false);
+    db.get(``, { UNSAFELY_DO_NOT_GET_CLONED_DATA_TO_IMPROVE_PERFORMANCE: true });
     b.stop();
   },
 });
@@ -189,6 +194,8 @@ bench({
   name: `[Get] ${RUNS} children`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
     for (let i = 0; i < RUNS; i++) {
       db.get(`item` + i);
@@ -214,6 +221,8 @@ bench({
   name: `[Find] ${RUNS} children reading value`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
     const results = db.find("", ([, value]) => value);
     b.stop();
@@ -227,6 +236,8 @@ bench({
   name: `[Find] ${RUNS} children without reading value`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
     const results = db.find("", () => true);
     b.stop();
@@ -243,6 +254,8 @@ bench({
   name: `[Load Json]  once ${RUNS} children`,
   runs: 1,
   func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
     b.start();
     new StoreJson({ filename: `./data/${RUNS}.json` });
     b.stop();

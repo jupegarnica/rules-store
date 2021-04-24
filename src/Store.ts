@@ -339,17 +339,19 @@ export class Store {
    * @param callback A function to be called when the value has changed and during subscription
    * @returns  The value
    */
-  public subscribe(path: string, callback: Subscriber): Value {
+  public subscribe(path: string, callback: Subscriber): number {
     const keys = keysFromPath(path);
     this._checkPermission("_read", keys);
-    const value = deepClone(this._get(keys));
+    // TODO deepClone needed?
+    const id = ++this._subscriptionsLastId;
     this._subscriptions.push({
       callback,
-      value,
       path,
+      id,
     });
-    return value;
+    return id;
   }
+  private _subscriptionsLastId = 0;
 
   /**
    * Subscribe to changes in the path
@@ -360,26 +362,30 @@ export class Store {
    * @param callback A function to be called when the value has changed and during subscription
    * @returns  The value
    */
-  public on(path: string, callback: Subscriber): Value {
-    const value = this.subscribe(path, callback);
-    callback(value);
-    return value;
+  public on(path: string, callback: Subscriber): number {
+    const id = this.subscribe(path, callback);
+    const data = this._getAndCheck(keysFromPath(path));
+    const payload = { data: undefined, oldData: undefined };
+    applyCloneOnGet(payload, "data", data);
+    applyCloneOnGet(payload, "oldData", data);
+    callback(payload);
+    return id;
   }
 
   /**
    * Unsubscribe to changes in the path
    *
    * @param path The path
-   * @param callback A reference to the callback used in the subscription
+   * @param id the subscription identifier
    */
-  public off(path: string, callback: Subscriber): void {
+  public off(path: string, id: number): void {
     const oldLength = this._subscriptions.length;
 
     this._subscriptions = this._subscriptions.filter(
       (subscription) =>
         !(
           subscription.path === path &&
-          subscription.callback === callback
+          subscription.id === id
         ),
     );
 
@@ -390,18 +396,34 @@ export class Store {
 
   protected _notify() {
     for (const subscription of this._subscriptions) {
-      const { path, callback } = subscription;
+      const { path, callback, id } = subscription;
       const keys = keysFromPath(path);
-      // TODO NEEDED?
-      // this._checkPermission("_read", keys);
+      // TODO What to do when a _read rule fails notifying subscriptions
+      try {
+        this._checkPermission("_read", keys);
+      } catch (error) {
+        console.warn(
+          `Subscription ${id} has not read permission.\n`,
+          error.message,
+        );
+        return;
+      }
       const data = deepGet(this.__data, keys);
       const newData = deepGet(this.__newData, keys);
+      const payload = { data: undefined, oldData: undefined };
+
       if (!equal(data, newData)) {
+        applyCloneOnGet(payload, "data", newData);
+        applyCloneOnGet(payload, "oldData", data);
         try {
-          callback(deepClone(newData));
+          callback(payload);
         } catch (error) {
+          // throw error;
           // Do not throw
-          console.error(error);
+          console.error(
+            `Subscription callback ${id} has thrown.\n`,
+            error.message,
+          );
         }
       }
     }

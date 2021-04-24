@@ -63,31 +63,6 @@ Deno.test("[Store] Deep remove array child", () => {
   assertEquals(db.get("a.b"), [0, 2]);
 });
 
-Deno.test("[Store] Deep remove with subscription", () => {
-  const db = new Store();
-  db.set("a.b.c", 1);
-
-  let called = 0;
-  const onChange = (data: unknown) => {
-    called++;
-    if (called === 1) {
-      assertEquals(data, called);
-    } else if (called === 2) {
-      assertEquals(data, undefined);
-    }
-  };
-  const returned = db.on("a.b.c", onChange);
-
-  assertEquals(returned, 1);
-  assertEquals(called, 1);
-
-  const B = db.remove("a.b");
-  assertEquals(called, 2);
-
-  assertEquals(B, { c: 1 });
-  assertEquals(db.get("a.b.c"), undefined);
-});
-
 Deno.test("[Store] Deep set and get", () => {
   const db = new Store();
   db.set("a.b.c", true);
@@ -326,7 +301,7 @@ Deno.test("[Store] Set negative array index", () => {
   db.set("obj", {});
   db.set("obj.-4", -4);
   assertEquals(db.get("obj"), { "-4": -4 });
-  db.set("arr.4", 4)
+  db.set("arr.4", 4);
   assertThrows(() => db.set("arr.-4", -4), TypeError, "not Object");
   assertThrows(() => db.set("arr.a", -4), TypeError, "not Object");
 });

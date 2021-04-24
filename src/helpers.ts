@@ -1,8 +1,9 @@
 import type {
   Callable,
   Keys,
-  Rule,ObjectOrArray,
+  ObjectOrArray,
   Params,
+  Rule,
   RuleFound,
   Rules,
   Value,
@@ -89,7 +90,7 @@ export const deepGet = (object: ObjectOrArray, keys: Keys): Value => {
 
 export function isNumberKey(key: string): boolean {
   const maybeNumber = Number(key);
-  return maybeNumber <= Number.MAX_SAFE_INTEGER;
+  return maybeNumber >= 0 && maybeNumber <= Number.MAX_SAFE_INTEGER;
 }
 
 // export function isNumberKey(key: string): boolean {
@@ -156,14 +157,12 @@ export const deepSet = (
     const _isNumberKey = isNumberKey(key);
     const isArray = Array.isArray(worker);
     // const isObject = !isArray && worker && typeof worker === "object";
-
     if (isArray && !_isNumberKey) {
-      throw new TypeError("target is not Array");
-    }
-    if (!isArray && _isNumberKey) {
       throw new TypeError("target is not Object");
     }
-
+    if (!isArray && _isNumberKey && typeof worker === 'object' ) {
+      throw new TypeError("target is not Array");
+    }
     // const set = (isArray ? setToArray : setToObject);
     const lastRound = index === lastIndex;
 

@@ -75,7 +75,7 @@ Deno.test("[Store subscription] .subscribe checks read dynamic rule ", () => {
   const db = new Store({
     rules: {
       a: {
-        _read: ({ data, newData }) => {
+        _read: ({ data }) => {
           return data === 0;
         },
         _write: () => true,
@@ -152,7 +152,7 @@ Deno.test("[Store subscription] .on .off", () => {
 
   let hasThrown = false;
   try {
-    db.off("A", onChange);
+    db.off("A", id);
   } catch (error) {
     hasThrown = true;
     assertEquals(error instanceof Error, true);

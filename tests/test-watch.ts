@@ -1,25 +1,24 @@
 import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 
-
-
 const watcher = Deno.watchFs(".");
-let cmd = "deno test --no-check --allow-read --allow-write --unstable".split(" ");
+let cmd = "deno test --no-check --allow-read --allow-write --unstable".split(
+  " ",
+);
 cmd = cmd.concat(Deno.args);
 
-let running = false
+let running = false;
 const run = async () => {
   const p = Deno.run({ cmd });
   running = true;
   const { success, code } = await p.status();
   p.close();
   success || console.error(
-    colors.brightRed(`Exit code ${code}`)
-  )
+    colors.brightRed(`Exit code ${code}`),
+  );
   running = false;
+};
 
-}
-
-run()
+run();
 for await (const event of watcher) {
   // console.log(">>>> event", event);
   // { kind: "create", paths: [ "/foo.txt" ] }

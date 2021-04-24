@@ -70,9 +70,13 @@ Deno.test("[Rules _write] .remove _write true but _read false ", () => {
     filename: "./tests/test.yaml",
   });
 
-  assertThrows(() => {
-    db.remove("arr.0");
-  }, Error, 'read disallow');
+  assertThrows(
+    () => {
+      db.remove("arr.0");
+    },
+    Error,
+    "read disallow",
+  );
 
   assertEquals(
     db.remove("arr.0", false),

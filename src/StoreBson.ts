@@ -29,7 +29,10 @@ export class StoreBson extends StoreFile {
    *
    */
   public write(): void {
-    const data = Bson.serialize(this._data);
+    const data = Bson.serialize(
+      this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    );
+
     return Deno.writeFileSync(
       this.storePath,
       data,

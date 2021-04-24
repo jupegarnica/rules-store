@@ -1,35 +1,20 @@
-// import { findAllRules } from "../src/helpers.ts";
-import { Store } from "../src/Store.ts";
-// import { assertEquals, assertThrows } from "./test_deps.ts";
+import { deepSet } from "../src/helpers.ts";
+// import { Store } from "../src/Store.ts";
+import { assertEquals, assertThrows } from "./test_deps.ts";
 // import type { RuleContext } from "../src/types.ts";
 // import { ValidationError } from "../src/Errors.ts";
 
-// let calls = 0;
-// const rules = {
-//   a: {
-//     _write({ data, newData }: RuleContext) {
-//       calls++;
-//      console.log(data, newData);
+const data = {};
 
-//       return true;
-//     },
-//   },
-// };
-// const db = new Store({ rules, initialDataIfNoFile: { a: 0 } });
-// assertThrows(() => db.set("a.1", -3), Error, "not Array");
-// assertEquals(calls, 1);
+deepSet(data, ["a", "b"], 1);
+assertEquals(data, { a: { b: 1 } });
 
-{
-  const db = new Store({ initialDataIfNoFile: { arr: [1, 2, 3] } });
+deepSet(data, ["x", "0", "y"], 1);
+assertEquals(data, { a: { b: 1 }, x: [{ y: 1 }] });
 
-  db.set("arr.-1", -3);
+console.log(data);
 
-  // assertEquals(db.get("arr"), [1, 2, -3]);
-  // db.set("arr.-2", -2);
-  // assertEquals(db.get("arr"), [1, -2, -3]);
-  // db.set("arr.-3", -1);
+assertThrows(() => deepSet(data, ["a", "0", "c"], 2), TypeError, "not Array");
 
-  // assertEquals(db.get("arr"), [-1, -2, -3]);
 
-  // assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
-}
+assertThrows(() => deepSet(data, ["x", "a"], 2), TypeError, "not object");

@@ -9,18 +9,18 @@ import {
   keysFromPath,
 } from "../src/helpers.ts";
 
-import { assertEquals } from "./test_deps.ts";
+import { assertEquals, assertThrows } from "./test_deps.ts";
 
 Deno.test("[Helpers] deepSet", () => {
   const data = {};
 
-  deepSet(data, "a".split("."), true);
+  deepSet(data, ["a"], true);
   assertEquals(data, { a: true });
 
-  deepSet(data, "a.b".split("."), true);
+  deepSet(data, ["a", "b"], true);
   assertEquals(data, { a: { b: true } });
 
-  deepSet(data, "x.y.z".split("."), true);
+  deepSet(data, ["x", "y", "z"], true);
   assertEquals(data, { a: { b: true }, x: { y: { z: true } } });
 });
 
@@ -44,6 +44,20 @@ Deno.test("[Helpers] deepSet array", () => {
   deepSet(data, "b.0.a".split("."), 1);
   assertEquals(Array.isArray(data.b), true);
   assertEquals(data.b, [{ a: 1 }]);
+});
+
+Deno.test("[Helpers] deepSet destroy", () => {
+  const data = {};
+
+  deepSet(data, ["a", "b"], 1);
+  assertEquals(data, { a: { b: 1 } });
+
+  deepSet(data, ["x", "0", "y"], 1);
+  assertEquals(data, { a: { b: 1 }, x: [{ y: 1 }] });
+
+  assertThrows(() => deepSet(data, ["a", "0", "c"], 2), TypeError, "not Array");
+
+  assertThrows(() => deepSet(data, ["x", "a"], 2), TypeError, "not Object");
 });
 
 Deno.test("[Helpers] deepGet", () => {
@@ -92,8 +106,8 @@ Deno.test("[Helpers] isNumberKey", () => {
   assertEquals(isNumberKey("0"), true);
   assertEquals(isNumberKey("3"), true);
   assertEquals(isNumberKey("3e3"), true);
-  assertEquals(isNumberKey("-3"), true);
 
+  assertEquals(isNumberKey("-3"), false);
   assertEquals(isNumberKey("a3"), false);
   assertEquals(isNumberKey("3a3"), false);
   assertEquals(isNumberKey("z"), false);

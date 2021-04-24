@@ -318,8 +318,19 @@ Deno.test("[Store] invalid set", () => {
   const db = new Store();
   db.set("arr", [1, 2]);
   db.set("obj", { a: 1 });
-  assertThrows(() => db.set("obj.1", 3), TypeError, "not Object");
-  assertThrows(() => db.set("arr.a", 3), TypeError, "not Array");
+  assertThrows(() => db.set("obj.1", 3), TypeError, "not Array");
+  assertThrows(() => db.set("arr.a", 3), TypeError, "not Object");
+});
+
+Deno.test("[Store] Set negative array index", () => {
+  const db = new Store();
+  db.set("arr", [1, 2, 3]);
+  db.set("obj", {});
+  db.set("obj.-4", -4);
+  assertEquals(db.get("obj"), { "-4": -4 });
+  db.set("arr.4", 4)
+  assertThrows(() => db.set("arr.-4", -4), TypeError, "not Object");
+  assertThrows(() => db.set("arr.a", -4), TypeError, "not Object");
 });
 
 // Deno.test("[Store] Set negative array index", () => {

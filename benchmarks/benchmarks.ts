@@ -14,12 +14,14 @@ import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-  1e6;
-1e5;
+10;
 1e3;
+3e6;
+60709; // fails
+1e6;
+1e5;
 1e4;
 1e7;
-3e6;
 
 const resultsOptions = {
   filename: `./results.json`,

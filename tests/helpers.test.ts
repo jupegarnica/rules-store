@@ -2,6 +2,7 @@
 import {
   // deepProxy,
   assertDeepClone,
+  debounce,
   deepClone,
   deepGet,
   deepSet,
@@ -10,7 +11,7 @@ import {
   keysFromPath,
 } from "../src/helpers.ts";
 
-import { assertEquals, assertThrows } from "./test_deps.ts";
+import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 
 Deno.test("[Helpers] deepSet", () => {
   const data = {};
@@ -220,3 +221,60 @@ Deno.test("[Helpers] assertDeepClone", () => {
 //   },Error,'Inmutable data');
 //   assertEquals(A, { b: { c: { d: 1 } } });
 // });
+
+Deno.test("[Helpers] debounce resolve", async () => {
+  const RUNS = 3;
+  const w = {
+    log: () =>{},
+    error: () =>{},
+    run: () =>{},
+  }
+  const runner = async () => {
+    await delay(0);
+    run();
+  };
+
+  const run: Spy<typeof w> = spy(w, "run");
+  const log: Spy<typeof w> = spy(w, "log");
+  const error: Spy<typeof w> = spy(w, "error");
+
+  const debounced = debounce(runner, 1);
+
+  for (let i = 0; i < RUNS - 1; i++) {
+    debounced().then(w.log).catch(w.error);
+  }
+  await debounced().then(w.log).catch(w.error);
+
+
+  assertEquals(run.calls.length, 1);
+  assertEquals(log.calls.length, RUNS);
+  assertEquals(error.calls.length, 0);
+});
+
+Deno.test("[Helpers] debounce reject", async () => {
+  const RUNS = 3;
+  const w = {
+    log: () =>{},
+    error: () =>{},
+    run: () =>{},
+  }
+  const runner = async () => {
+    await delay(0);
+    run();
+    throw new Error("ups");
+  };
+
+  const run: Spy<typeof w> = spy(w, "run");
+  const log: Spy<typeof w> = spy(w, "log");
+  const error: Spy<typeof w> = spy(w, "error");
+
+  const debounced = debounce(runner, 1);
+
+  for (let i = 0; i < RUNS - 1; i++) {
+    debounced().then(w.log).catch(w.error);
+  }
+  await debounced().then(w.log).catch(w.error);
+  assertEquals(run.calls.length, 1);
+  assertEquals(log.calls.length, 0);
+  assertEquals(error.calls.length, RUNS);
+});

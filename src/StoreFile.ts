@@ -14,6 +14,11 @@ export abstract class StoreFile extends Store {
   #storePath: string;
   #autoSave = false;
   #writeLazyDelay: number;
+  /**
+   * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
+   */
+   public writeLazy: () => Promise<void>;
+
 
   /**
    * Create a new Store instance.
@@ -33,12 +38,12 @@ export abstract class StoreFile extends Store {
     const folder = config?.folder || fromFileUrl(dirname(Deno.mainModule));
     this.#storePath = resolve(folder, filename);
     this.load();
+    this.writeLazy = async () => {}
     this.writeLazy = debounce(
       () => {
         this.write();
       },
       this.#writeLazyDelay,
-      this,
     );
   }
   /**
@@ -106,10 +111,6 @@ export abstract class StoreFile extends Store {
    */
   abstract write(): void;
 
-  /**
-   * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
-   */
-  public writeLazy: () => Promise<void>;
 
   /**
    * Deletes a store file .

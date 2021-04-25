@@ -1,21 +1,26 @@
 import { StoreJson } from "../src/StoreJson.ts";
-// import { deepSet } from "../src/helpers.ts";
-// import { assertEquals, assertThrows } from "./test_deps.ts";
+import { debounce } from "../src/helpers.ts";
+import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 // import type { RuleContext } from "../src/types.ts";
 // import { ValidationError } from "../src/Errors.ts";
-const RUNS = 7e4;
-console.log(RUNS);
-// TODO: AUTOSAVE -> Uncaught RangeError: Maximum call stack size exceeded
-const db = new StoreJson({
-  filename: `../benchmarks/data/${RUNS}.json`,
-  autoSave: true,
-});
-console.time("");
+const RUNS = 4;
+60709; // fails
+60708; // no fails
+7e4;
 
-for (let i = 0; i < RUNS; i++) {
-  db.set(`item` + i, { i: { i: { i } } });
+const runner = async (i) => {
+  await delay(100);
+  console.count("run");
+  return i;
+};
+const logs: Spy = spy(console, 'log');
+const run: Spy = spy(console, 'count');
+
+const debounced = debounce(runner, 1000);
+
+for (let i = 0; i < RUNS-1; i++) {
+  debounced().then(console.log).catch((e) => console.log(e.message));
 }
-
-console.timeEnd("");
-
-db.write();
+await debounced().finally(console.log);
+assertEquals(run.calls.length,1)
+assertEquals(logs.calls.length,RUNS)

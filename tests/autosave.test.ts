@@ -40,6 +40,7 @@ Deno.test("[writeLazy] autoSave must write lazy", async () => {
 
   assertEquals(dbDisk.find("", () => true).length, RUNS);
   await Deno.remove(db.storePath);
+  mock.restore();
 });
 
 Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
@@ -48,7 +49,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
-    writeLazyDelay: 2,
+    writeLazyDelay: 1,
   });
 
   const mock: Spy<StoreJson> = spy(db, "write");
@@ -65,6 +66,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
 
   assertEquals(dbDisk.find("", () => true).length, RUNS);
   await Deno.remove(db.storePath);
+  mock.restore();
 });
 
 Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
@@ -84,4 +86,5 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
   assertEquals(mock.calls.length, RUNS);
   assertEquals(existsSync(db.storePath), true);
   await Deno.remove(db.storePath);
+  mock.restore();
 });

@@ -8,6 +8,8 @@ import type {
   Rules,
   Value,
 } from "./types.ts";
+// import debounce from "https://dev.jspm.io/lodash.debounce";
+// export { debounce };
 
 export function isObjectOrArray(obj: unknown): boolean {
   return typeof obj === "object" && obj !== null;
@@ -295,32 +297,31 @@ export function findAllRules(
 // };
 
 // deno-lint-ignore no-explicit-any
-export const debounce = (fn: Callable, ms = 0, self: any) => {
-  let timeoutId: number;
-  const pending: {
-    resolve: Callable;
-    reject: Callable;
-  }[] = [];
-  // deno-lint-ignore no-explicit-any
-  return (...args: any[]): Promise<void> =>
-    new Promise((res, rej) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const currentPending = [...pending];
-        pending.length = 0;
-        Promise.resolve(fn.apply(self, args)).then(
-          (data) => {
-            currentPending.forEach(({ resolve }) => resolve(data));
-          },
-          (error) => {
-            currentPending.forEach(({ reject }) => reject(error));
-          },
-        );
-      }, ms);
-      pending.push({ resolve: res, reject: rej });
-    });
-};
-
+// export const debounce = (fn: Callable, ms = 0, self: any) => {
+//   let timeoutId: number;
+//   const pending: {
+//     resolve: Callable;
+//     reject: Callable;
+//   }[] = [];
+//   // deno-lint-ignore no-explicit-any
+//   return (...args: any[]): Promise<void> =>
+//     new Promise((res, rej) => {
+//       clearTimeout(timeoutId);
+//       timeoutId = setTimeout(() => {
+//         const currentPending = [...pending];
+//         pending.length = 0;
+//         Promise.resolve(fn.apply(self, args)).then(
+//           (data) => {
+//             currentPending.forEach(({ resolve }) => resolve(data));
+//           },
+//           (error) => {
+//             currentPending.forEach(({ reject }) => reject(error));
+//           },
+//         );
+//       }, ms);
+//       pending.push({ resolve: res, reject: rej });
+//     });
+// };
 // export const debounce = (fn, ms = 0, self) => {
 //   let timeoutId;
 //   return function(...args) {
@@ -328,28 +329,39 @@ export const debounce = (fn: Callable, ms = 0, self: any) => {
 //     timeoutId = setTimeout(() => fn.apply(self, args), ms);
 //   };
 // };
+// TODO: handle rejected promises
+export const debounce = function (fn: Callable, delay = 0) {
+  let id: number;
+  let lastTime: number;
+  let pending: [Callable, Callable][] = [];
 
-// export const debounce = (fn: Callable, ms = 0, self: any) => {
-//   let timeoutId: number;
-//   const pending:any[] = [];
-//   // deno-lint-ignore no-explicit-any
-//   return (...args: any[]): Promise<void> =>
-//   {
-//       // Run the function after a certain amount of time
-//       clearTimeout(timeoutId);
-//       timeoutId = setTimeout(() => {
-//         // Get the result of the inner function, then apply it to the resolve function of
-//         // each promise that has been created since the last time the inner function was run
-//         for (const _ of pending) {
-//           fn.apply(self, args)
-//         }
+  async function watcher() {
+    if (Date.now() - lastTime > delay) {
+      clearInterval(id);
+      id = 0;
+      try {
+        await fn();
+        for (const [resolve] of pending) {
+          resolve();
+        }
+      } catch (error) {
+        for (const [, reject] of pending) {
+          reject(error);
+        }
+      }
 
-//         pending.length = 0;
-//       }, ms);
-
-//       return new Promise(r => pending.push(r));
-//   };
-// };
+      pending = [];
+    }
+  }
+  function debounced(): Promise<void> {
+    lastTime = Date.now();
+    if (!id) {
+      id = setInterval(watcher, delay);
+    }
+    return new Promise((r, f) => pending.push([r, f]));
+  }
+  return debounced;
+};
 
 // export function memo(fun: (...args: Value[]) => Value) {
 //   const cache: { [key: string]: Value } = {};
@@ -418,3 +430,122 @@ export const debounce = (fn: Callable, ms = 0, self: any) => {
 //   const proxy = (new Proxy(obj, makeHandler(path))) as Value;
 //   return proxy;
 // };
+
+// export function debounce(func, wait) {
+//   var lastArgs,
+//       lastThis,
+//       maxWait,
+//       result,
+//       timerId,
+//       lastCallTime,
+//       lastInvokeTime = 0,
+//       leading = false,
+//       maxing = false,
+//       trailing = true;
+
+//   if (typeof func != 'function') {
+//     throw new TypeError(FUNC_ERROR_TEXT);
+//   }
+//   wait =(wait) || 0;
+
+//   function invokeFunc(time) {
+//     var args = lastArgs,
+//         thisArg = lastThis;
+
+//     lastArgs = lastThis = undefined;
+//     lastInvokeTime = time;
+//     result = func.apply(thisArg, args);
+//     return result;
+//   }
+
+//   function leadingEdge(time) {
+//     // Reset any `maxWait` timer.
+//     lastInvokeTime = time;
+//     // Start the timer for the trailing edge.
+//     timerId = setTimeout(timerExpired, wait);
+//     // Invoke the leading edge.
+//     return leading ? invokeFunc(time) : result;
+//   }
+
+//   function remainingWait(time) {
+//     var timeSinceLastCall = time - lastCallTime,
+//         timeSinceLastInvoke = time - lastInvokeTime,
+//         timeWaiting = wait - timeSinceLastCall;
+
+//     return maxing
+//       ? nativeMin(timeWaiting, maxWait - timeSinceLastInvoke)
+//       : timeWaiting;
+//   }
+
+//   function shouldInvoke(time) {
+//     var timeSinceLastCall = time - lastCallTime,
+//         timeSinceLastInvoke = time - lastInvokeTime;
+
+//     // Either this is the first call, activity has stopped and we're at the
+//     // trailing edge, the system time has gone backwards and we're treating
+//     // it as the trailing edge, or we've hit the `maxWait` limit.
+//     return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+//       (timeSinceLastCall < 0) || (maxing && timeSinceLastInvoke >= maxWait));
+//   }
+
+//   function timerExpired() {
+//     var time = Date.now();
+//     if (shouldInvoke(time)) {
+//       return trailingEdge(time);
+//     }
+//     // Restart the timer.
+//     timerId = setTimeout(timerExpired, remainingWait(time));
+//   }
+
+//   function trailingEdge(time) {
+//     timerId = undefined;
+
+//     // Only invoke if we have `lastArgs` which means `func` has been
+//     // debounced at least once.
+//     if (trailing && lastArgs) {
+//       return invokeFunc(time);
+//     }
+//     lastArgs = lastThis = undefined;
+//     return result;
+//   }
+
+//   function cancel() {
+//     if (timerId !== undefined) {
+//       clearTimeout(timerId);
+//     }
+//     lastInvokeTime = 0;
+//     lastArgs = lastCallTime = lastThis = timerId = undefined;
+//   }
+
+//   function flush() {
+//     return timerId === undefined ? result : trailingEdge(Date.now());
+//   }
+
+//   function debounced() {
+//     var time = Date.now(),
+//         isInvoking = shouldInvoke(time);
+
+//     lastArgs = arguments;
+//     lastThis = this;
+//     lastCallTime = time;
+
+//     if (isInvoking) {
+//       if (timerId === undefined) {
+//         return leadingEdge(lastCallTime);
+//       }
+//       if (maxing) {
+//         // Handle invocations in a tight loop.
+//         clearTimeout(timerId);
+//         timerId = setTimeout(timerExpired, wait);
+//         return invokeFunc(lastCallTime);
+//       }
+//     }
+//     if (timerId === undefined) {
+//       timerId = setTimeout(timerExpired, wait);
+//     }
+//     return result;
+//   }
+//   debounced.cancel = cancel;
+//   debounced.flush = flush;
+//   return debounced;
+// }

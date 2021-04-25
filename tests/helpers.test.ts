@@ -5,6 +5,7 @@ import {
   debounce,
   deepClone,
   deepGet,
+  deepMerge,
   deepSet,
   findParam,
   isNumberKey,
@@ -40,15 +41,16 @@ Deno.test("[Helpers] deepSet array", () => {
 
   deepSet(data, "a.0".split("."), true);
   assertEquals(data, { a: [true, true] });
-
-  assertEquals(deepSet([], "1".split("."), true), arr);
+  const arr2 = [, "0"];
+  deepSet(arr2, ["1"], true);
+  assertEquals(arr2, arr);
 
   deepSet(data, "b.0.a".split("."), 1);
   assertEquals(Array.isArray(data.b), true);
   assertEquals(data.b, [{ a: 1 }]);
 });
 
-Deno.test("[Helpers] deepSet destroy", () => {
+Deno.test("[Helpers] deepSet destroy shape", () => {
   const data = {};
 
   deepSet(data, ["a", "b"], 1);
@@ -60,6 +62,18 @@ Deno.test("[Helpers] deepSet destroy", () => {
   assertThrows(() => deepSet(data, ["a", "0", "c"], 2), TypeError, "not Array");
 
   assertThrows(() => deepSet(data, ["x", "a"], 2), TypeError, "not Object");
+});
+
+Deno.test("[Helpers] deepSet return removed", () => {
+  const data0 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
+  const data1 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
+  const data2 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
+  assertEquals(deepSet(data0, ["a"], 2), { keys: ["a"], value: 1 });
+  assertEquals(deepSet(data1, ["b"], 3), { keys: ["b"], value: [2, 3] });
+  assertEquals(deepSet(data2, ["c", "d"], 5), {
+    keys: ["c", "d"],
+    value: { e: 4 },
+  });
 });
 
 Deno.test("[Helpers] deepGet", () => {
@@ -276,4 +290,21 @@ Deno.test("[Helpers] debounce reject", async () => {
   assertEquals(run.calls.length, 1);
   assertEquals(log.calls.length, 0);
   assertEquals(error.calls.length, RUNS);
+});
+
+Deno.test("[Helpers] deepMerge obj", () => {
+  const target = { a: { b: { c: 1, d: 2 } } };
+  const source = { a: { x: 1, b: { e: 3 } } };
+
+  deepMerge(target, source);
+  assertEquals(target, { a: { x: 1, b: { c: 1, d: 2, e: 3 } } });
+});
+
+Deno.test("[Helpers] deepMerge array", () => {
+  const target = { a: [{ b: 1, c: 2 }] };
+  const source = { a: [{ d: 3 }], x: 1 };
+  const res = deepMerge(target, source);
+
+  assertEquals(target, { a: [{ b: 1, c: 2, d: 3 }], x: 1 });
+  assertEquals(target === res, true);
 });

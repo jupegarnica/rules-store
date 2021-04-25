@@ -1,6 +1,7 @@
 import {
   addChildToKeys,
   applyCloneOnGet,
+  assertDeepClone,
   deepClone,
   deepGet,
   deepSet,
@@ -23,6 +24,7 @@ import type {
   Rules,
   Subscriber,
   Subscription,
+  Transformation,
   Value,
   ValueOrFunction,
 } from "./types.ts";
@@ -34,6 +36,7 @@ import {
 
 import { allowAll } from "./rules.ts";
 
+import { assertEquals } from "../tests/test_deps.ts";
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -44,7 +47,6 @@ export class Store {
    */
   __data: ObjectOrArray = {};
   __newData: ObjectOrArray = {};
-
   public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
     return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__data : {};
   }
@@ -100,43 +102,74 @@ export class Store {
     this._checkPermission("_read", keys);
     return (this._get(keys));
   }
-
+  private _applyTransformations(
+    target: ObjectOrArray,
+    transformations: Transformation[],
+  ): Transformation[] {
+    const removed: Transformation[] = [];
+    for (const { keys, value } of transformations) {
+      removed.push(...deepSet(target, keys, value));
+    }
+    return removed;
+  }
   protected _set(
     keys: Keys,
     value: Value,
   ): void {
-    deepSet(this.__newData, keys, value);
+    const removed: Transformation[] = [];
 
     try {
-      this._checkPermission("_write", keys);
-      this._checkValidation(keys, value);
+      // create write diff
+      const diff = Array.isArray(this.__newData) ? [] : {};
+      deepSet(diff, keys, (value));
+
+      { // apply write
+        const changed = this._applyTransformations(
+          this.__newData,
+          [{ keys, value }],
+        );
+        removed.push(...changed);
+        this._checkPermission("_write", keys);
+      }
+
+      // apply _transform rule
+      const transformationsToApply = this._findTransformations(diff);
+
+      {
+        const changed = this._applyTransformations(
+          this.__newData,
+          transformationsToApply,
+        );
+        removed.push(...changed);
+      }
+
+      this._checkValidation(diff);
+      this._commit([
+        { keys, value: deepClone(value) },
+        ...transformationsToApply,
+      ]);
     } catch (error) {
-      this._rollBack(keys);
+      this._rollBack(removed);
       throw error;
     }
-    this._commit(keys, value);
   }
-  private _commit(keys: Keys, value: Value): void {
+  private _commit(transformations: Transformation[]): void {
     this._notify();
-    deepSet(this.__data, keys, deepClone(value));
+    this._applyTransformations(this.__data, transformations);
 
     // TODO REMOVE DEBUG:
-    // if (DEBUG) {
-    //   assertEquals(this.__data, this.__newData);
-    //   assertDeepClone(this.__data, this.__newData);
-    // }
+    // assertEquals(this.__data, this.__newData);
+    // assertDeepClone(this.__data, this.__newData);
   }
-  private _rollBack(keys: Keys): void {
-    const oldData = deepClone(deepGet(this.__data, keys));
-    deepSet(this.__newData, keys, oldData);
+  private _rollBack(transformations: Transformation[]): void {
+    this._applyTransformations(this.__newData, transformations);
     // TODO REMOVE DEBUG:
-    // if (DEBUG) {
-    //   assertEquals(this.__data, this.__newData);
-    //   assertDeepClone(this.__data, this.__newData);
-    // }
+    // assertEquals(this.__data, this.__newData);
+    // assertDeepClone(this.__data, this.__newData);
   }
   /**
    * Sets a value in the database by the specified path.
+   * It throw exception if not permission to write or validation fails,
    *
    * @param path  The path can be an string delimited by . / or \
    * As:
@@ -145,7 +178,7 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    *
    * @param valueOrFunction The new value or a function to run with the oldValue
-   * @returns  The value added
+   * @returns  The value added, maybe transformed by _transform
    *
    */
   public set(
@@ -165,9 +198,9 @@ export class Store {
       newValue = (valueOrFunction);
     }
 
-    this._set(keys, (newValue));
-
-    return newValue;
+    this._set(keys, newValue);
+    // TODO maybe check for readPermissions?
+    return this._get(keys);
   }
 
   /**
@@ -217,6 +250,7 @@ export class Store {
     }
 
     const cloned = (values);
+
     const initialLength = oldValue.length;
     for (const index in cloned) {
       const targetIndex = initialLength + Number(index);
@@ -493,9 +527,7 @@ export class Store {
       throw error;
     }
   }
-  private _checkValidation(keys: Keys, value: Value): void {
-    const rootShape = Array.isArray(this.__newData) ? [] : {};
-    const diff = deepSet(rootShape, keys, value);
+  private _checkValidation(diff: ObjectOrArray): void {
     const validations = findAllRules("_validate", diff, this._rules);
     let currentPath: Keys = [];
     const isValid = validations.every(({ params, rulePath, _validate }) => {
@@ -518,5 +550,27 @@ export class Store {
         "Validation fails at path " + pathFromKeys(currentPath),
       );
     }
+  }
+  private _findTransformations(diff: ObjectOrArray): Transformation[] {
+    const transforms = findAllRules("_transform", diff, this._rules);
+    // TODO transforms.reverse() ??
+    // transforms.reverse();
+
+    const transformationsToApply = [] as Transformation[];
+    for (const { _transform, rulePath, params } of transforms) {
+      const ruleContext = {
+        ...params,
+      };
+      applyCloneOnGet(ruleContext, "data", deepGet(this.__data, rulePath));
+      applyCloneOnGet(ruleContext, "rootData", this.__data);
+      applyCloneOnGet(
+        ruleContext,
+        "newData",
+        deepGet(this.__newData, rulePath),
+      );
+      const transformed = _transform(ruleContext);
+      transformationsToApply.push({ keys: rulePath, value: transformed });
+    }
+    return transformationsToApply;
   }
 }

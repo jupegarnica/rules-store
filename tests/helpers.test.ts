@@ -64,16 +64,75 @@ Deno.test("[Helpers] deepSet destroy shape", () => {
   assertThrows(() => deepSet(data, ["x", "a"], 2), TypeError, "not Object");
 });
 
-Deno.test("[Helpers] deepSet return removed", () => {
+Deno.test("[Helpers] deepSet removed empty", () => {
+  const data = {};
+  const removed = deepSet(data, ["a", "b"], 2);
+
+  assertEquals(removed, [
+    {
+      keys: [
+        "a",
+      ],
+      value: undefined,
+    },
+    {
+      keys: [
+        "a",
+        "b",
+      ],
+      value: undefined,
+    },
+  ]);
+});
+Deno.test("[Helpers] deepSet array", () => {
+  const data = [1, 2, 3, 4];
+  const removed = deepSet(data, ["1"], 5);
+  assertEquals(removed, [
+    {
+      keys: [
+        "1",
+      ],
+      value: 2,
+    },
+  ]);
+  assertEquals(data, [1, 5, 3, 4]);
+});
+Deno.test("[Helpers] deepSet array complex", () => {
+  const data = [{ a: 1 }, { b: { c: [1, 2, 3] } }];
+  const removed = deepSet(data, ["0", "a"], 3);
+  assertEquals(removed, [
+    {
+      keys: [
+        "0",
+        "a",
+      ],
+      value: 1,
+    },
+  ]);
+  const removed2 = deepSet(data, ["1", "b", "c", "1"], 4);
+  assertEquals(removed2, [
+    {
+      keys: [
+        "1",
+        "b",
+        "c",
+        "1",
+      ],
+      value: 2,
+    },
+  ]);
+});
+
+Deno.test("[Helpers] deepSet removed complex", () => {
   const data0 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
   const data1 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
-  const data2 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
-  assertEquals(deepSet(data0, ["a"], 2), { keys: ["a"], value: 1 });
-  assertEquals(deepSet(data1, ["b"], 3), { keys: ["b"], value: [2, 3] });
-  assertEquals(deepSet(data2, ["c", "d"], 5), {
+  const data2 = { a: 1, b: [2, 3], c: { d: { e: 4 }, f: 1 } };
+  assertEquals(deepSet(data0, ["a"], 2), [{ keys: ["a"], value: 1 }]);
+  assertEquals(deepSet(data1, ["b"], 3), [{ keys: ["b"], value: [2, 3] }]);
+  assertEquals(deepSet(data2, ["c", "d"], 5), [{
     keys: ["c", "d"],
     value: { e: 4 },
-  });
+  }]);
 });
 
 Deno.test("[Helpers] deepGet", () => {

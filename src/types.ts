@@ -29,6 +29,11 @@ export type Subscription = {
   path: string;
 };
 
+export type Transformation = {
+  keys: Keys;
+  value: Value;
+};
+
 export type Params = { [key: string]: string };
 
 // export type RuleFound = {

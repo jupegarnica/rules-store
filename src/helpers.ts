@@ -6,6 +6,7 @@ import type {
   Rule,
   RuleFound,
   Rules,
+  Transformation,
   Value,
 } from "./types.ts";
 // import debounce from "https://dev.jspm.io/lodash.debounce";
@@ -81,6 +82,32 @@ export const assertDeepClone = (a: Value, b: Value): void => {
     assertDeepClone(a[key], b[key]);
   }
 };
+
+export const deepMerge = (
+  target: ObjectOrArray,
+  source: ObjectOrArray,
+): ObjectOrArray => {
+  for (const key in source) {
+    if (isObjectOrArray(source[key]) && isObjectOrArray(target[key])) {
+      Object.assign(source[key], deepMerge(target[key], source[key]));
+    }
+  }
+  const shape = Array.isArray(source) ? [] : {};
+  Object.assign(target ?? shape, source);
+  return target;
+};
+// export const deepMerge = (target, source) => {
+//   // Iterate through `source` properties and if an `Object` set property to merge of `target` and `source` properties
+//   for (const key of Object.keys(source)) {
+//     if (source[key] instanceof Object) {
+//       Object.assign(source[key], deepMerge(target[key], source[key]));
+//     }
+//   }
+
+//   // Join `target` and modified `source`
+//   Object.assign(target || {}, source);
+//   return target;
+// };
 
 export const deepClone = (obj: Value) => {
   if (!isObjectOrArray(obj)) return obj;
@@ -173,13 +200,14 @@ export const deepSet = (
   let worker = obj;
   const lastIndex = keys.length - 1;
   let index = -1;
+  const removed: Transformation[] = [];
+  let currentPath: Keys = [];
   for (const key of keys) {
     if (!key) break;
     if (!worker) break;
     index++;
     const _isNumberKey = isNumberKey(key);
     const isArray = Array.isArray(worker);
-    // const isObject = !isArray && worker && typeof worker === "object";
     if (isArray && !_isNumberKey) {
       throw new TypeError("target is not Object");
     }
@@ -189,19 +217,22 @@ export const deepSet = (
     // const set = (isArray ? setToArray : setToObject);
     const lastRound = index === lastIndex;
 
+    currentPath = [...currentPath, key];
+
     if (lastRound) {
+      removed.push({ keys: currentPath, value: worker[key] });
       if (value === undefined) del(worker, key);
       else set(worker, key, value);
     } else {
       if (!isObjectOrArray(worker[key])) {
+        removed.push({ keys: currentPath, value: worker[key] });
         set(worker, key, isNumberKey(keys[index + 1]) ? [] : {});
       }
     }
-
     worker = worker[key];
   }
 
-  return obj;
+  return removed;
 };
 
 export function findDeepestRule(
@@ -286,7 +317,6 @@ export function findAllRules(
   return rulesFound;
 }
 
-// // deno-lint-ignore no-explicit-any
 // export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
 //   let timeoutId: number;
 //   // deno-lint-ignore no-explicit-any
@@ -330,7 +360,6 @@ export function findAllRules(
 //     timeoutId = setTimeout(() => fn.apply(self, args), ms);
 //   };
 // };
-// TODO: handle rejected promises
 export const debounce = function (fn: Callable, delay = 0) {
   let id: number;
   let lastTime: number;

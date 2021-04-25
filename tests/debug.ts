@@ -1,23 +1,44 @@
-import { deepSet } from "../src/helpers.ts";
-import { Store } from "../src/Store.ts";
-import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
+// // import { deepSet } from "../src/helpers.ts";
+// // import { PermissionError, ValidationError } from "../src/Errors.ts";
+// import { Store } from "../src/Store.ts";
+// import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 // import type { RuleContext } from "../src/types.ts";
-// import { ValidationError } from "../src/Errors.ts";
-const data = {};
-const removed = deepSet(data, ["a", "b"], 2);
+// const rules = {
+//   _write: () => true,
+//   _read: () => true,
+//   a: {
+//     _transform: (
+//       { newData }: RuleContext,
+//     ) => {
+//       // assertEquals(newData, { b: { c: 100 } });
+//       return ({ b: { c: 1000 } });
+//     },
+//     b: {
+//       _transform: (
+//         { newData }: RuleContext,
+//       ) => {
+//         // assertEquals(newData, { c: 10 });
+//         return ({ c: 100 });
+//       },
+//       c: {
+//         _transform: ({ rootData, newData }: RuleContext) => {
+//           // assertEquals(newData, 1);
+//           return 10;
+//         },
+//       },
+//     },
+//   },
+// };
+// const db = new Store({
+//   rules,
+//   initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+// });
+// db.set("a.b.c", 1);
 
-assertEquals(removed, [
-  {
-    keys: [
-      "a",
-    ],
-    value: undefined,
-  },
-  {
-    keys: [
-      "a",
-      "b",
-    ],
-    value: undefined,
-  },
-]);
+// assertEquals(db.get(""), {
+//   "a": {
+//     "b": {
+//       "c": 10,
+//     },
+//   },
+// });

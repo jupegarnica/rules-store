@@ -12,10 +12,11 @@ import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
+import { KeyValue } from "../src/types.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-  1e5;
-1e3;
+  1e3;
+1e5;
 3e6;
 60709; // fails
 1e6;
@@ -243,7 +244,7 @@ bench({
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
 
     b.start();
-    const results = db.find("", ([, value]) => value);
+    const results = db.find("", ([, value]: KeyValue) => value);
     b.stop();
     if (results.length !== RUNS) {
       throw new Error(`not ${RUNS} children, ${results.length}`);

@@ -39,9 +39,7 @@ export abstract class StoreFile extends Store {
     this.load();
     this.writeLazy = async () => {};
     this.writeLazy = debounce(
-      () => {
-        this.write();
-      },
+      () => this.write(),
       this.#writeLazyDelay,
     );
   }
@@ -58,7 +56,9 @@ export abstract class StoreFile extends Store {
   ): Value {
     const returned = super._set(keys, valueOrFunction);
     if (this.#autoSave) {
-      this.writeLazy();
+      this.writeLazy().catch((error) => {
+        throw error;
+      });
     }
     return returned;
   }

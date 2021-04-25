@@ -52,49 +52,11 @@ export abstract class StoreFile extends Store {
     return this.#storePath;
   }
 
-  public set(
-    path: string,
+  protected _set(
+    keys: Keys,
     valueOrFunction: ValueOrFunction,
   ): Value {
-    const returned = super.set(path, valueOrFunction);
-    if (this.#autoSave) {
-      this.writeLazy();
-    }
-    return returned;
-  }
-  public push(path: string, ...values: Value[]): Value {
-    const returned = super.push(path, ...values);
-    if (this.#autoSave) {
-      this.writeLazy();
-    }
-    return returned;
-  }
-  public remove(path: string, returnRemoved = true): Value {
-    const returned = super.remove(path, returnRemoved);
-    if (this.#autoSave) {
-      this.writeLazy();
-    }
-    return returned;
-  }
-
-  public findAndRemove(
-    path: string,
-    finder: Finder,
-    returnRemoved = true,
-  ): Value {
-    const returned = super.findAndRemove(path, finder, returnRemoved);
-    if (this.#autoSave) {
-      this.writeLazy();
-    }
-    return returned;
-  }
-
-  public findOneAndRemove(
-    path: string,
-    finder: Finder,
-    returnRemoved = true,
-  ): Value {
-    const returned = super.findOneAndRemove(path, finder, returnRemoved);
+    const returned = super._set(keys, valueOrFunction);
     if (this.#autoSave) {
       this.writeLazy();
     }

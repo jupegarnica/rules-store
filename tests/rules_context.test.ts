@@ -16,7 +16,7 @@ Deno.test("[Rules context] _write assert context values", () => {
       },
     },
   };
-  const db = new Store({ rules, initialDataIfNoFile: { a: 0 } });
+  const db = new Store({ rules, initialDataIfNoPersisted: { a: 0 } });
   db.set("a", 2);
   assertEquals(calls, 1);
 });

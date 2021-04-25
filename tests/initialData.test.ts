@@ -1,8 +1,8 @@
 // import { StoreJson } from "../src/StoreJson.ts";
 // import { assertEquals, assertThrows } from "./test_deps.ts";
 
-// Deno.test("[StoreJson] initialDataIfNoFile", () => {
-//   const db = new StoreJson({ initialDataIfNoFile: [1, 2] });
+// Deno.test("[StoreJson] initialDataIfNoPersisted", () => {
+//   const db = new StoreJson({ initialDataIfNoPersisted: [1, 2] });
 //   db.set("a", 1);
 
 //   console.log(db.get(''));
@@ -17,8 +17,8 @@
 //   // assertEquals(db.get("arr"), [1, 3]);
 // });
 
-// Deno.test("[StoreJson] initialDataIfNoFile", () => {
-//   const db = new StoreJson({ initialDataIfNoFile: [1, 2, 3] });
+// Deno.test("[StoreJson] initialDataIfNoPersisted", () => {
+//   const db = new StoreJson({ initialDataIfNoPersisted: [1, 2, 3] });
 //   db.set("a", 2);
 // //   console.log(db.get("").a.b);
 

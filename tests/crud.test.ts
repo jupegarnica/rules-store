@@ -295,6 +295,14 @@ Deno.test("[Store] invalid set", () => {
   assertThrows(() => db.set("arr.a", 3), TypeError, "not Object");
 });
 
+Deno.test("[Store] invalid set on push", () => {
+  const initialDataIfNoPersisted = {
+    obj: {},
+  };
+  const db = new Store({ initialDataIfNoPersisted });
+  assertThrows(() => db.push("obj.1", 1), TypeError, "not Array");
+});
+
 Deno.test("[Store] Set negative array index", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);

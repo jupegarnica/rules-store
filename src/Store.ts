@@ -66,7 +66,7 @@ export class Store {
 
   constructor(config?: BaseConfig) {
     this._rules = deepClone(config?.rules ?? allowAll);
-    this.setData(deepClone(config?.initialDataIfNoFile ?? {}));
+    this.setData(deepClone(config?.initialDataIfNoPersisted ?? {}));
   }
 
   private _get(keys: Keys): Value {
@@ -101,7 +101,7 @@ export class Store {
     return (this._get(keys));
   }
 
-  private _set(
+  protected _set(
     keys: Keys,
     value: Value,
   ): void {
@@ -213,7 +213,7 @@ export class Store {
     const keys = keysFromPath(path);
     const oldValue = this._get(keys);
     if (!Array.isArray(oldValue)) {
-      throw new TypeError("Target is not an Array");
+      throw new TypeError("Target is not Array");
     }
 
     const cloned = (values);

@@ -66,7 +66,7 @@ Deno.test("[Store subscription] .subscribe assert payload inmutable", () => {
 Deno.test("[Store subscription] .subscribe checks read rule", () => {
   const db = new Store({
     rules: { _read: () => false },
-    // initialDataIfNoFile: { A: 0 },
+    // initialDataIfNoPersisted: { A: 0 },
   });
   assertThrows(() => db.subscribe("A", console.log), PermissionError, "read");
 });
@@ -81,7 +81,7 @@ Deno.test("[Store subscription] .subscribe checks read dynamic rule ", () => {
         _write: () => true,
       },
     },
-    initialDataIfNoFile: { a: 0 },
+    initialDataIfNoPersisted: { a: 0 },
   });
   let calls = 0;
   const onChange: Subscriber = () => {

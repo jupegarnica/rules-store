@@ -173,7 +173,7 @@ Deno.test("[Rules _validate] on object", () => {
     },
   };
 
-  const db = new Store({ rules, initialDataIfNoFile: { a: { b: 1, c: 2 } } });
+  const db = new Store({ rules, initialDataIfNoPersisted: { a: { b: 1, c: 2 } } });
 
   db.set("a.b", 0);
   assertThrows(
@@ -214,7 +214,7 @@ Deno.test("[Rules _validate] assert context values", () => {
       },
     },
   };
-  const db = new Store({ rules, initialDataIfNoFile: { a: 0 } });
+  const db = new Store({ rules, initialDataIfNoPersisted: { a: 0 } });
   db.set("a", 2);
   assertEquals(calls, 1);
 });

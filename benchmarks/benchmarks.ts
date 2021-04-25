@@ -208,6 +208,22 @@ bench({
   },
 });
 
+bench({
+  name: `[Get] not getClone ${RUNS} children`,
+  runs: 1,
+  func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
+    b.start();
+    for (let i = 0; i < RUNS; i++) {
+      db.get(`item` + i, {
+        UNSAFELY_DO_NOT_GET_CLONED_DATA_TO_IMPROVE_PERFORMANCE: true,
+      });
+    }
+    b.stop();
+  },
+});
+
 // bench({
 //   name: `[Get] ${RUNS} runs`,
 //   runs: RUNS,

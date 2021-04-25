@@ -14,7 +14,7 @@ import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreBson } from "../src/StoreBson.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-10;
+  10;
 1e3;
 3e6;
 60709; // fails

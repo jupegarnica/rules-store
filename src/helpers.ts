@@ -296,7 +296,7 @@ export function findAllRules(
 //   };
 // };
 
-// deno-lint-ignore no-explicit-any
+// // deno-lint-ignore no-explicit-any
 // export const debounce = (fn: Callable, ms = 0, self: any) => {
 //   let timeoutId: number;
 //   const pending: {
@@ -322,6 +322,7 @@ export function findAllRules(
 //       pending.push({ resolve: res, reject: rej });
 //     });
 // };
+
 // export const debounce = (fn, ms = 0, self) => {
 //   let timeoutId;
 //   return function(...args) {

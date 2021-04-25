@@ -225,10 +225,10 @@ Deno.test("[Helpers] assertDeepClone", () => {
 Deno.test("[Helpers] debounce resolve", async () => {
   const RUNS = 3;
   const w = {
-    log: () =>{},
-    error: () =>{},
-    run: () =>{},
-  }
+    log: () => {},
+    error: () => {},
+    run: () => {},
+  };
   const runner = async () => {
     await delay(0);
     run();
@@ -245,7 +245,6 @@ Deno.test("[Helpers] debounce resolve", async () => {
   }
   await debounced().then(w.log).catch(w.error);
 
-
   assertEquals(run.calls.length, 1);
   assertEquals(log.calls.length, RUNS);
   assertEquals(error.calls.length, 0);
@@ -254,10 +253,10 @@ Deno.test("[Helpers] debounce resolve", async () => {
 Deno.test("[Helpers] debounce reject", async () => {
   const RUNS = 3;
   const w = {
-    log: () =>{},
-    error: () =>{},
-    run: () =>{},
-  }
+    log: () => {},
+    error: () => {},
+    run: () => {},
+  };
   const runner = async () => {
     await delay(0);
     run();

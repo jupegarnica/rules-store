@@ -35,7 +35,7 @@ Deno.test("[Rules Examples] onlyUpdate", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { users: { garn: { work: "dev" } } },
+    initialData: { users: { garn: { work: "dev" } } },
   });
   db.set("users/garn", { work: "teacher" }); // ok
   db.set("users/garn/work", { work: "dev" }); // ok
@@ -56,7 +56,7 @@ Deno.test("[Rules Examples] onlyRemove", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { users: { garn: { work: "dev" } } },
+    initialData: { users: { garn: { work: "dev" } } },
   });
   // no edition
   assertThrows(() => db.set("users/garn", { work: "teacher" }));
@@ -84,7 +84,7 @@ Deno.test("[Rules Examples] notUpdate", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { users: { garn: { work: "dev" } } },
+    initialData: { users: { garn: { work: "dev" } } },
   });
   // edition
   assertThrows(() => db.set("users/garn", { work: "teacher" }));
@@ -111,7 +111,7 @@ Deno.test("[Rules Examples] disallow read root except for one node", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: {
+    initialData: {
       users: { garn: { work: "dev" }, else: { work: "teacher" } },
     },
   });
@@ -131,7 +131,7 @@ Deno.test("[Rules Examples] only one user can be read", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: {
+    initialData: {
       users: { garn: { work: "dev" }, else: { work: "teacher" } },
     },
   });
@@ -150,7 +150,7 @@ Deno.test("[Rules Examples] only one user can be read 2", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: {
+    initialData: {
       users: { garn: { work: "dev" }, else: { work: "teacher" } },
     },
   });

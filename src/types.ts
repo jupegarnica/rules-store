@@ -71,7 +71,7 @@ export type Rules = {
 
 export type BaseConfig = {
   rules?: Rules;
-  initialDataIfNoPersisted?: ObjectOrArray;
+  initialData?: ObjectOrArray;
 };
 export type Config = BaseConfig & {
   autoSave?: boolean;

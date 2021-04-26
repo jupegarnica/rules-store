@@ -296,10 +296,10 @@ Deno.test("[Store] invalid set", () => {
 });
 
 Deno.test("[Store] invalid set on push", () => {
-  const initialDataIfNoPersisted = {
+  const initialData = {
     obj: {},
   };
-  const db = new Store({ initialDataIfNoPersisted });
+  const db = new Store({ initialData });
   assertThrows(() => db.push("obj.1", 1), TypeError, "not Array");
 });
 

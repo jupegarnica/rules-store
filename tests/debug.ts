@@ -28,7 +28,7 @@
 // };
 // const db = new Store({
 //   rules,
-//   initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+//   initialData: { a: { b: { c: 0 } } },
 // });
 // db.set("a.b.c", 1);
 

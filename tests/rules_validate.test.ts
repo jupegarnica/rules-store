@@ -175,7 +175,7 @@ Deno.test("[Rules _validate] on object", () => {
 
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { a: { b: 1, c: 2 } },
+    initialData: { a: { b: 1, c: 2 } },
   });
 
   db.set("a.b", 0);
@@ -217,7 +217,7 @@ Deno.test("[Rules _validate] assert context values", () => {
       },
     },
   };
-  const db = new Store({ rules, initialDataIfNoPersisted: { a: 0 } });
+  const db = new Store({ rules, initialData: { a: 0 } });
   db.set("a", 2);
   assertEquals(calls, 1);
 });

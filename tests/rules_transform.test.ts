@@ -29,7 +29,7 @@ Deno.test("[Rules _transform] rollback", () => {
       _validate: () => false,
     },
   };
-  const db = new Store({ rules, initialDataIfNoPersisted: { a: 5 } });
+  const db = new Store({ rules, initialData: { a: 5 } });
 
   assertThrows(() => db.set("a", 13));
 
@@ -54,11 +54,11 @@ Deno.test("[Rules _transform] in array and obj", () => {
       },
     },
   };
-  const initialDataIfNoPersisted = {
+  const initialData = {
     numbers: [],
     object: {},
   };
-  const db = new Store({ rules, initialDataIfNoPersisted });
+  const db = new Store({ rules, initialData });
 
   db.push("numbers", "1");
   assertEquals(db.get("numbers"), [1]);
@@ -79,10 +79,10 @@ Deno.test("[Rules _transform] in the parent", () => {
       _transform: ({ newData }: RuleContext) => ({ ...newData, hola: "mundo" }),
     },
   };
-  const initialDataIfNoPersisted = {
+  const initialData = {
     a: { b: { c: 1 } },
   };
-  const db = new Store({ rules, initialDataIfNoPersisted });
+  const db = new Store({ rules, initialData });
 
   db.set("a.b.c", "2");
   assertEquals(db.get("a.hola"), "mundo");
@@ -100,7 +100,7 @@ Deno.test("[Rules _transform] node not touched", () => {
   };
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { a: { b: 1, c: { d: 3 } } },
+    initialData: { a: { b: 1, c: { d: 3 } } },
   });
 
   db.set("a.c.d", 0);
@@ -133,7 +133,7 @@ Deno.test("[Rules _transform] newData receive the  precedente transformations", 
   };
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+    initialData: { a: { b: { c: 0 } } },
   });
   db.set("a.b.c", 1);
 
@@ -162,7 +162,7 @@ Deno.test("[Rules _transform] apply all bottom up", () => {
   };
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+    initialData: { a: { b: { c: 0 } } },
   });
   db.set("a.b.c", 1);
 
@@ -194,7 +194,7 @@ Deno.test("[Rules _transform] apply rollback if validation fails", () => {
   };
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+    initialData: { a: { b: { c: 0 } } },
   });
   assertThrows(() => db.set("a.b.c", 1));
 
@@ -219,7 +219,7 @@ Deno.test("[Rules _transform] apply rollback if transform fails", () => {
   };
   const db = new Store({
     rules,
-    initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+    initialData: { a: { b: { c: 0 } } },
   });
   assertThrows(() => db.set("a.b.c", 1));
   assertEquals(db.get(""), { a: { b: { c: 0 } } });

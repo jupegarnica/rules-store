@@ -75,7 +75,7 @@ export class Store {
 
   constructor(config?: BaseConfig) {
     this._rules = deepClone(config?.rules ?? allowAll);
-    this._setData(deepClone(config?.initialDataIfNoPersisted ?? {}));
+    this._setData(deepClone(config?.initialData ?? {}));
   }
 
   /**

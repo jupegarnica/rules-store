@@ -1,7 +1,7 @@
 import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
 import { StoreNotFoundError } from "./Errors.ts";
-import type { Config, Value } from "./types.ts";
+import type { Config, Transformation, Value } from "./types.ts";
 import { debounce } from "./helpers.ts";
 /**
  * A database in RAM  with persistance plain text as JSON.

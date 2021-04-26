@@ -74,3 +74,28 @@ Deno.test("[Transactions] fails during transaction", () => {
   db.rollback();
   assertEquals(db.get("a"), 100);
 });
+
+// TODO Fix transaction on remove
+// Deno.test("[Transactions] on remove", () => {
+//   const db = new Store();
+//   db.set("a", [1, 2, 3]);
+//   db.beginTransaction();
+//   db.remove("a.1");
+
+//   // assertEquals(
+//   //   db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
+//   //   [1, 2, 3],
+//   // );
+//   // assertEquals(
+//   //   db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
+//   //   [1, 3],
+//   // );
+//   // assertEquals(db.get("a"), [1, 3]);
+
+//   db.commit();
+//   console.log(
+//     db.get(""),
+//   );
+
+//   assertEquals(db.get("a"), [1, 3]);
+// });

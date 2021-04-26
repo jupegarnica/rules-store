@@ -8,12 +8,11 @@
 - [x] find, findOne, findAndRemove, findOneAndRemove
 - [x] rules write and read
 - [x] performance benchmarks
-- [x] rule _validate
-- [ ] rule _with
-- [ ] rule _transform
+- [x] rule \_validate
+- [x] rule \_transform
+- [ ] rule \_attach
 - [ ] .findAndUpdate
 - [ ] .subscribe('/path/$params')
-- [ ] config to not get cloned data
 - [ ] Support for JSON5?
 - [ ] do not allow set to undefined
 - [ ] parse json with wasm

@@ -160,29 +160,28 @@ Deno.test("[Store subscription] .on .off", () => {
   assertEquals(hasThrown, true);
 });
 
-// TODO FIX IT
-// Deno.test("[Store subscription] .subscribe .off", () => {
-//   const db = new Store();
+Deno.test("[Store subscription] .subscribe .off", () => {
+  const db = new Store();
 
-//   db.set("A", 1);
+  db.set("A", 1);
 
-//   let called = false;
-//   const onChange: Subscriber = ({ data }) => {
-//     called = true;
-//     assertEquals(data, 1);
-//   };
+  let called = false;
+  const onChange: Subscriber = ({ data }) => {
+    called = true;
+    assertEquals(data, 1);
+  };
 
-//   const id = db.subscribe("A", onChange);
-//   assertEquals(called, false);
-//   db.off("A", id);
-//   assertEquals(called, false);
-//   db.set("A", 3); // should not call onChange
-//   assertEquals(called, false);
+  const id = db.subscribe("A", onChange);
+  assertEquals(called, false);
+  db.off("A", id);
+  assertEquals(called, false);
+  db.set("A", 3); // should not call onChange
+  assertEquals(called, false);
 
-//   assertThrows(() => {
-//     db.off("A", id);
-//   }, Error);
-// });
+  assertThrows(() => {
+    db.off("A", id);
+  }, Error);
+});
 
 Deno.test("[Store subscription] Deep basic ", () => {
   const db = new Store();

@@ -395,7 +395,6 @@ export class Store {
   public subscribe(path: string, callback: Subscriber): number {
     const keys = keysFromPath(path);
     this._checkPermission("_read", keys);
-    // TODO deepClone needed?
     const id = ++this._subscriptionsLastId;
     this._subscriptions.push({
       callback,

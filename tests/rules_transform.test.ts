@@ -61,8 +61,10 @@ Deno.test("[Rules _transform] in array and obj", () => {
   const db = new Store({ rules, initialDataIfNoPersisted });
 
   db.push("numbers", "1");
+  assertEquals(db.get("numbers"), [1]);
   assertEquals(db.get("numbers.0"), 1);
   assertThrows(() => db.set("numbers.0", "ups"));
+  assertEquals(db.get("numbers"), [1]);
 
   db.set("object.a", "2");
   assertEquals(db.get("object.a"), 2);
@@ -105,7 +107,7 @@ Deno.test("[Rules _transform] node not touched", () => {
   assertEquals(db.get("a.b"), 1);
 });
 
-Deno.test("[Rules _transform] newData never is the transformed one", () => {
+Deno.test("[Rules _transform] newData receive the  precedente transformations", () => {
   const rules = {
     _write: () => true,
     _read: () => true,
@@ -113,14 +115,14 @@ Deno.test("[Rules _transform] newData never is the transformed one", () => {
       _transform: (
         { newData }: RuleContext,
       ) => {
-        assertEquals(newData, { b: { c: 1 } });
+        assertEquals(newData, { b: { c: 100 } });
         return ({ b: { c: 1000 } });
       },
       b: {
         _transform: (
           { newData }: RuleContext,
         ) => {
-          assertEquals(newData, { c: 1 });
+          assertEquals(newData, { c: 10 });
           return ({ c: 100 });
         },
         c: {
@@ -138,18 +140,18 @@ Deno.test("[Rules _transform] newData never is the transformed one", () => {
   assertEquals(db.get(""), {
     "a": {
       "b": {
-        "c": 10,
+        "c": 1000,
       },
     },
   });
 });
 
-Deno.test("[Rules _transform] apply all from top to bottom", () => {
+Deno.test("[Rules _transform] apply all bottom up", () => {
   const rules = {
     _write: () => true,
     _read: () => true,
     a: {
-      _transform: () => ({ b: null, x: 1 }),
+      _transform: ({ newData }: RuleContext) => ({ ...newData, x: 1 }),
       b: {
         _transform: () => ({ c: null, y: 2 }),
         c: {
@@ -168,7 +170,7 @@ Deno.test("[Rules _transform] apply all from top to bottom", () => {
     a: {
       x: 1,
       b: {
-        c: 3,
+        c: null,
         y: 2,
       },
     },

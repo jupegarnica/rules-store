@@ -67,7 +67,7 @@ export const applyCloneOnGet = (
 export const assertDeepClone = (a: Value, b: Value): void => {
   if (!isObjectOrArray(a)) {
     if (a !== b) {
-      throw new Error("not clone");
+      throw new Error(`not clone ${a} ${b}`);
     }
     return;
   }

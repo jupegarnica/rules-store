@@ -1,7 +1,7 @@
 import {
   addChildToKeys,
   applyCloneOnGet,
-  assertDeepClone,
+  // assertDeepClone,
   deepClone,
   deepGet,
   deepSet,
@@ -36,7 +36,7 @@ import {
 
 import { allowAll } from "./rules.ts";
 
-import { assertEquals } from "../tests/test_deps.ts";
+// import { assertEquals } from "../tests/test_deps.ts";
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -105,10 +105,19 @@ export class Store {
   private _applyTransformations(
     target: ObjectOrArray,
     transformations: Transformation[],
+    cloneValue = false,
   ): Transformation[] {
     const removed: Transformation[] = [];
-    for (const { keys, value } of transformations) {
-      removed.push(...deepSet(target, keys, value));
+
+    for (const { keys, value, transformContext } of transformations) {
+      let newValue = value;
+      if (transformContext && typeof value === "function") {
+        newValue = value(transformContext);
+      }
+      if (cloneValue) {
+        newValue = deepClone(newValue);
+      }
+      removed.push(...deepSet(target, keys, newValue));
     }
     return removed;
   }
@@ -155,15 +164,20 @@ export class Store {
   }
   private _commit(transformations: Transformation[]): void {
     this._notify();
-    this._applyTransformations(this.__data, transformations);
+    // transformations.forEach((e) => console.warn("---", e));
+    debugger;
+
+    this._applyTransformations(this.__data, transformations, true);
 
     // TODO REMOVE DEBUG:
+    // // deno-lint-ignore no-explicit-any
     // assertEquals(this.__data, this.__newData);
     // assertDeepClone(this.__data, this.__newData);
   }
   private _rollBack(transformations: Transformation[]): void {
-    this._applyTransformations(this.__newData, transformations);
+    this._applyTransformations(this.__newData, transformations.reverse());
     // TODO REMOVE DEBUG:
+    // // deno-lint-ignore no-explicit-any
     // assertEquals(this.__data, this.__newData);
     // assertDeepClone(this.__data, this.__newData);
   }
@@ -554,7 +568,7 @@ export class Store {
   private _findTransformations(diff: ObjectOrArray): Transformation[] {
     const transforms = findAllRules("_transform", diff, this._rules);
     // TODO transforms.reverse() ??
-    // transforms.reverse();
+    transforms.reverse();
 
     const transformationsToApply = [] as Transformation[];
     for (const { _transform, rulePath, params } of transforms) {
@@ -568,9 +582,14 @@ export class Store {
         "newData",
         deepGet(this.__newData, rulePath),
       );
-      const transformed = _transform(ruleContext);
-      transformationsToApply.push({ keys: rulePath, value: transformed });
+      // const transformed = _transform(ruleContext);
+      transformationsToApply.push({
+        keys: rulePath,
+        value: _transform,
+        transformContext: ruleContext,
+      });
     }
+
     return transformationsToApply;
   }
 }

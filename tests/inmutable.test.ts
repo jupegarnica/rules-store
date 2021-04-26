@@ -291,7 +291,7 @@ Deno.test("[Store] find clone data only on get value", () => {
   assertEquals(mock.calls.length, 0);
 
   db.find("a", (pair) => {
-    console.log("cloned?");
+    // console.log("cloned?");
     pair[1];
 
     return true;

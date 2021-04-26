@@ -173,7 +173,10 @@ Deno.test("[Rules _validate] on object", () => {
     },
   };
 
-  const db = new Store({ rules, initialDataIfNoPersisted: { a: { b: 1, c: 2 } } });
+  const db = new Store({
+    rules,
+    initialDataIfNoPersisted: { a: { b: 1, c: 2 } },
+  });
 
   db.set("a.b", 0);
   assertThrows(

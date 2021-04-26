@@ -247,7 +247,7 @@ Deno.test("[Store subscription] inmutable callback", () => {
 
   let called = 0;
   const onChange = ({ data }: Value) => {
-    console.log(data);
+    // console.log(data);
 
     called++;
     assertEquals(data, { c: 1 });

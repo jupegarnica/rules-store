@@ -31,7 +31,8 @@ export type Subscription = {
 
 export type Transformation = {
   keys: Keys;
-  value: Value;
+  value: ValueOrFunction;
+  transformContext?: RuleContext;
 };
 
 export type Params = { [key: string]: string };

@@ -1,4 +1,7 @@
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - '**.ts'
 name: Test
 jobs:
   test:

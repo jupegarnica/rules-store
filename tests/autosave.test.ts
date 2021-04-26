@@ -81,7 +81,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
   const mock: Spy<StoreJson> = spy(db, "write");
   for (let i = 0; i < RUNS; i++) {
     db.set(`item` + i, i);
-    await delay(2);
+    await delay(4);
   }
   assertEquals(mock.calls.length, RUNS);
   assertEquals(existsSync(db.storePath), true);

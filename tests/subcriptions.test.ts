@@ -8,9 +8,9 @@ Deno.test("[Store subscription] .subscribe", () => {
 
   db.set("A", 0);
   let called = 0;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called++;
-    assertEquals(data, called);
+    assertEquals(newData, called);
   };
   const id = db.subscribe("A", onChange);
 
@@ -29,9 +29,9 @@ Deno.test("[Store subscription] .subscribe assert payload", () => {
 
   db.set("A", 0);
   let called = 0;
-  const onChange: Subscriber = ({ data, oldData }) => {
+  const onChange: Subscriber = ({ newData, oldData }) => {
     called++;
-    assertEquals(data, 1);
+    assertEquals(newData, 1);
     assertEquals(oldData, 0);
   };
 
@@ -48,9 +48,9 @@ Deno.test("[Store subscription] .subscribe assert payload inmutable", () => {
 
   db.set("a", { b: 0 });
   let called = 0;
-  const onChange: Subscriber = ({ data, oldData }) => {
+  const onChange: Subscriber = ({ newData, oldData }) => {
     called++;
-    data.b = 2;
+    newData.b = 2;
     oldData.b = 3;
   };
 
@@ -99,9 +99,9 @@ Deno.test("[Store subscription] .subscribe with deeper set", () => {
   db.set("a.b", { c: 0, d: 0 });
 
   let called = 0;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called++;
-    assertEquals(data.c, 1);
+    assertEquals(newData.c, 1);
   };
   db.subscribe("a.b", onChange);
 
@@ -116,9 +116,9 @@ Deno.test("[Store subscription] .on", () => {
 
   db.set("A", 1);
   let called = 0;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called++;
-    assertEquals(data, called);
+    assertEquals(newData, called);
   };
   const returned = db.on("A", onChange);
 
@@ -138,9 +138,9 @@ Deno.test("[Store subscription] .on .off", () => {
   db.set("A", 1);
 
   let called = false;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called = true;
-    assertEquals(data, 1);
+    assertEquals(newData, 1);
   };
 
   const id = db.on("A", onChange);
@@ -166,9 +166,9 @@ Deno.test("[Store subscription] .subscribe .off", () => {
   db.set("A", 1);
 
   let called = false;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called = true;
-    assertEquals(data, 1);
+    assertEquals(newData, 1);
   };
 
   const id = db.subscribe("A", onChange);
@@ -188,9 +188,9 @@ Deno.test("[Store subscription] Deep basic ", () => {
   db.set("a.b.c", true);
 
   let called = false;
-  const onChangeC: Subscriber = ({ data }) => {
+  const onChangeC: Subscriber = ({ newData }) => {
     called = true;
-    assertEquals(data, true);
+    assertEquals(newData, true);
   };
   const id = db.on("a.b.c", onChangeC);
   assertEquals(id, 1);
@@ -201,19 +201,19 @@ Deno.test("[Store subscription] Deep complex", () => {
   const db = new Store();
   db.set("a.b.c", true);
   let called = 0;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called++;
     if (called === 1) {
-      assertEquals(data, { c: true });
+      assertEquals(newData, { c: true });
     }
     if (called === 2) {
-      assertEquals(data, { c: 33 });
+      assertEquals(newData, { c: 33 });
     }
     if (called === 3) {
-      assertEquals(data, { c: 33, d: 34 });
+      assertEquals(newData, { c: 33, d: 34 });
     }
     if (called === 4) {
-      assertEquals(data, undefined);
+      assertEquals(newData, undefined);
     }
   };
 
@@ -245,13 +245,13 @@ Deno.test("[Store subscription] inmutable callback", () => {
   db.set("a.b.c", 0);
 
   let called = 0;
-  const onChange = ({ data }: Value) => {
-    // console.log(data);
+  const onChange = ({ newData }: Value) => {
+    // console.log(newData);
 
     called++;
-    assertEquals(data, { c: 1 });
-    data.c = 2;
-    assertEquals(data, { c: 2 });
+    assertEquals(newData, { c: 1 });
+    newData.c = 2;
+    assertEquals(newData, { c: 2 });
   };
   db.subscribe("a.b", onChange);
 
@@ -266,12 +266,12 @@ Deno.test("[Store subscription] Deep remove with subscription", () => {
   db.set("a.b.c", 1);
 
   let called = 0;
-  const onChange: Subscriber = ({ data }) => {
+  const onChange: Subscriber = ({ newData }) => {
     called++;
     if (called === 1) {
-      assertEquals(data, called);
+      assertEquals(newData, called);
     } else if (called === 2) {
-      assertEquals(data, undefined);
+      assertEquals(newData, undefined);
     }
   };
   db.on("a.b.c", onChange);

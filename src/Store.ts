@@ -417,8 +417,8 @@ export class Store {
   public on(path: string, callback: Subscriber): number {
     const id = this.subscribe(path, callback);
     const data = this._getAndCheck(keysFromPath(path));
-    const payload = { data: undefined, oldData: undefined };
-    applyCloneOnGet(payload, "data", data);
+    const payload = { newData: undefined, oldData: undefined };
+    applyCloneOnGet(payload, "newData", data);
     applyCloneOnGet(payload, "oldData", data);
     callback(payload);
     return id;
@@ -462,10 +462,10 @@ export class Store {
       }
       const data = deepGet(this.__data, keys);
       const newData = deepGet(this.__newData, keys);
-      const payload = { data: undefined, oldData: undefined };
+      const payload = { newData: undefined, oldData: undefined };
 
       if (!equal(data, newData)) {
-        applyCloneOnGet(payload, "data", newData);
+        applyCloneOnGet(payload, "newData", newData);
         applyCloneOnGet(payload, "oldData", data);
         try {
           callback(payload);

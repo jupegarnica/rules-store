@@ -209,10 +209,10 @@ export const deepSet = (
     const _isNumberKey = isNumberKey(key);
     const isArray = Array.isArray(worker);
     if (isArray && !_isNumberKey) {
-      throw new TypeError("target is not Object");
+      throw new TypeError("Target is not Object");
     }
     if (!isArray && _isNumberKey && typeof worker === "object") {
-      throw new TypeError("target is not Array");
+      throw new TypeError("Target is not Array");
     }
     // const set = (isArray ? setToArray : setToObject);
     const lastRound = index === lastIndex;

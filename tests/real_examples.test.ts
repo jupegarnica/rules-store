@@ -6,7 +6,8 @@ Deno.test("[Rules Examples] counter", () => {
   const rules = {
     count: {
       _read: () => true,
-      _write: ({ newData, data }: RuleContext) => {
+      _write: () => true,
+      _validate: ({ newData, data }: RuleContext) => {
         return typeof newData === "number" && (newData - data === 1 || !data);
       },
     },
@@ -29,7 +30,7 @@ Deno.test("[Rules Examples] list of numbers", () => {
         return Array.isArray(newData);
       },
       $index: {
-        _write: ({ newData }: RuleContext) => {
+        _validate: ({ newData }: RuleContext) => {
           return typeof newData === "number" || typeof newData === "undefined";
         },
       },
@@ -40,12 +41,13 @@ Deno.test("[Rules Examples] list of numbers", () => {
   const A = db.set("myNumbers", [1, 2]);
   assertEquals(A, [1, 2]);
   db.set("myNumbers.2", 3);
-  db.push("myNumbers", 1e2);
+  db.push("myNumbers", 4);
   db.remove("myNumbers.0");
 
   assertThrows(() => db.set("myNumbers.2", null));
-  assertThrows(() => db.push("myNumbers", 0, null));
   assertThrows(() => db.set("myNumbers", null));
+  assertThrows(() => db.push("myNumbers", 5, null));
+  assertEquals(db.get("myNumbers"), [2, 3, 4]);
 });
 
 // TODO Deno.test("[Rules Examples] Mongo structure")

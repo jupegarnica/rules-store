@@ -1,13 +1,13 @@
 import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
 import { StoreNotFoundError } from "./Errors.ts";
-import type { Config, Keys, Value, ValueOrFunction } from "./types.ts";
+import type { Config, Value } from "./types.ts";
 import { debounce } from "./helpers.ts";
 /**
  * A database in RAM  with persistance plain text as JSON.
  *
  */
-export abstract class StoreFile extends Store {
+export abstract class StorePersistance extends Store {
   /**
    * Config state
    */
@@ -50,11 +50,10 @@ export abstract class StoreFile extends Store {
     return this.#storePath;
   }
 
-  protected _set(
-    keys: Keys,
-    valueOrFunction: ValueOrFunction,
+  protected _commit(
+    toCommit: Transformation[],
   ): Value {
-    const returned = super._set(keys, valueOrFunction);
+    const returned = super._commit(toCommit);
     if (this.#autoSave) {
       this.writeLazy().catch((error) => {
         throw error;

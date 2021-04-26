@@ -183,16 +183,20 @@ export class Store {
     if (!Array.isArray(oldValue)) {
       throw new TypeError("Target is not Array");
     }
-
-    const cloned = (values);
-
-    const initialLength = oldValue.length;
-    for (const index in cloned) {
-      const targetIndex = initialLength + Number(index);
-      this._set(addChildToKeys(keys, String(targetIndex)), cloned[index]);
+    this.beginTransaction();
+    try {
+      const cloned = (values);
+      const initialLength = oldValue.length;
+      for (const index in cloned) {
+        const targetIndex = initialLength + Number(index);
+        this._set(addChildToKeys(keys, String(targetIndex)), cloned[index]);
+      }
+      this.commit();
+      return cloned.length > 1 ? cloned : cloned[0];
+    } catch (error) {
+      this.rollback();
+      throw error;
     }
-
-    return cloned.length > 1 ? cloned : cloned[0];
   }
 
   /**
@@ -492,7 +496,8 @@ export class Store {
     return transformationsToApply;
   }
   private _get(keys: Keys): Value {
-    return deepGet(this.#data, keys);
+    const data = this._duringTransaction ? this.#newData : this.#data;
+    return deepGet(data, keys);
   }
   private _getAndCheck(keys: Keys): Value {
     this._checkPermission("_read", keys);
@@ -515,6 +520,10 @@ export class Store {
       removed.push(...deepSet(target, keys, newValue));
     }
   }
+  private _transformationsToCommit: Transformation[] = [];
+  private _transformationsToRollback: Transformation[] = [];
+  private _duringTransaction = false;
+
   protected _set(
     keys: Keys,
     value: Value,
@@ -544,6 +553,16 @@ export class Store {
       );
 
       this._checkValidation(diff);
+
+      if (this._duringTransaction) {
+        this._transformationsToCommit.push(
+          { keys, value: deepClone(value) },
+          ...transformationsToApply,
+        );
+        this._transformationsToRollback = removed;
+        return;
+      }
+
       this._commit([
         { keys, value: deepClone(value) },
         ...transformationsToApply,
@@ -553,11 +572,34 @@ export class Store {
       throw error;
     }
   }
-  private _commit(transformations: Transformation[]): void {
+  public commit() {
+    this._duringTransaction = false;
+    this._commit(
+      this._transformationsToCommit,
+    );
+    this._transformationsToRollback = [];
+    this._transformationsToCommit = [];
+  }
+
+  public rollback() {
+    this._duringTransaction = false;
+    this._rollBack(
+      this._transformationsToRollback,
+    );
+    this._transformationsToRollback = [];
+    this._transformationsToCommit = [];
+  }
+  public beginTransaction(): Store {
+    this._duringTransaction = true;
+    return this;
+  }
+  protected _commit(
+    toCommit: Transformation[],
+  ): void {
     this._notify();
     const removed = [] as Transformation[];
     try {
-      this._applyTransformations(this.#data, transformations, removed, true);
+      this._applyTransformations(this.#data, toCommit, removed, true);
     } catch (error) {
       this._rollBack(removed);
       throw error;

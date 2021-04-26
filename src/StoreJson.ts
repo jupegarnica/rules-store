@@ -1,11 +1,11 @@
 import { existsSync } from "./deps.ts";
 
-import { StoreFile } from "./StoreFile.ts";
+import { StorePersistance } from "./StorePersistance.ts";
 /**
  * A database in RAM with persistance plain text as JSON.
  *
  */
-export class StoreJson extends StoreFile {
+export class StoreJson extends StorePersistance {
   /**
    * Load stored data from disk into cache.
    *

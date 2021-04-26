@@ -1,13 +1,13 @@
 import { existsSync } from "./deps.ts";
 
-import { StoreFile } from "./StoreFile.ts";
+import { StorePersistance } from "./StorePersistance.ts";
 import { Bson } from "https://deno.land/x/bson@v0.1.3/mod.ts";
 
 /**
  * A database in RAM with persistance binary Bson.
  *
  */
-export class StoreBson extends StoreFile {
+export class StoreBson extends StorePersistance {
   /**
    * Load stored data from disk into cache.
    *

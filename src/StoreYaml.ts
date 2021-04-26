@@ -5,11 +5,11 @@ import {
 } from "https://deno.land/std@0.92.0/encoding/yaml.ts";
 
 import type { Value } from "./types.ts";
-import { StoreFile } from "./StoreFile.ts";
+import { StorePersistance } from "./StorePersistance.ts";
 /**
  * A database in RAM with persistance plain text as Yaml.
  */
-export class StoreYaml extends StoreFile {
+export class StoreYaml extends StorePersistance {
   /**
    * Load stored data from disk into cache.
    *
@@ -32,10 +32,11 @@ export class StoreYaml extends StoreFile {
    *
    */
   public write(): void {
-    const data = stringify(
-      this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
-    );
+    const data = this.getPrivateData({
+      I_PROMISE_I_WONT_MUTATE_THIS_DATA: true,
+    });
+    const txt = stringify(data);
     const encoder = new TextEncoder();
-    return Deno.writeFileSync(this.storePath, encoder.encode(data));
+    return Deno.writeFileSync(this.storePath, encoder.encode(txt));
   }
 }

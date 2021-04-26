@@ -77,6 +77,7 @@ Deno.test("[StoreYaml] autoSave config on set", async () => {
 
 Deno.test("[StoreYaml] autoSave config on push", async () => {
   const db = new StoreYaml({ filename: testStorePath, autoSave: true });
+
   db.set("arr", []);
   db.push("arr", 1, 2);
   await delay(2);
@@ -89,6 +90,7 @@ Deno.test("[StoreYaml] autoSave config on remove", async () => {
   const db = new StoreYaml({ filename: testStorePath, autoSave: true });
   db.set("arr", [1, 2]);
   db.remove("arr.0");
+
   await delay(2);
   assertEquals(existsSync(db.storePath), true);
   db.deleteStore();
@@ -104,3 +106,14 @@ Deno.test("[StoreYaml] set and get null", () => {
   assertEquals(db.get("a.b.c"), null);
   db.deleteStore();
 });
+
+//  TODO fix empty items in array,
+
+// Deno.test("[StoreYaml] to fix", async () => {
+//   const db = new StoreYaml({ filename: testStorePath, autoSave: false });
+
+//   db.set("arr", [, 1]);
+//   console.log(db.get(""));
+//   await db.writeLazy();
+
+// });

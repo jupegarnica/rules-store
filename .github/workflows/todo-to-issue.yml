@@ -22,8 +22,6 @@ jobs:
           # INCLUDED_PATHS: /FilePath/ToExclude/1/Exception|/FilePath/ToExclude/2/Exception
           # FILE_PATTERN: ".*cs"
         id: 'todo'
-# TODO test
-
 # name: TODO bot
 # on:
 #   push:

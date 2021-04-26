@@ -604,7 +604,6 @@ export class Store {
       this._rollBack(removed);
       throw error;
     }
-    // TODO test
     // assertEquals(this.#data, this.#newData);
     // assertDeepClone(this.#data, this.#newData);
   }

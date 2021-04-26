@@ -1,7 +1,7 @@
 name: 'TODOS bot'
 on: ['push']
 jobs:
-  build:
+  add-todos:
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@master'
@@ -30,7 +30,7 @@ jobs:
 #     tags-ignore:
 #       - v*
 # jobs:
-#   build:
+#   add-todos:
 #     runs-on: ubuntu-latest
 #     steps:
 #     - uses: actions/checkout@master

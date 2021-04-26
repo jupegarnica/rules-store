@@ -19,7 +19,7 @@ export class StoreBson extends StoreFile {
     // Load data from file.
     const data = Deno.readFileSync(storePath);
     // Store new data.
-    this.setData(Bson.deserialize(data));
+    this._setData(Bson.deserialize(data));
 
     return;
   }

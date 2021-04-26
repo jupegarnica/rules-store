@@ -18,7 +18,7 @@ export class StoreJson extends StoreFile {
     const decoder = new TextDecoder("utf-8");
     const decoded = JSON.parse(decoder.decode(data));
 
-    this.setData(decoded);
+    this._setData(decoded);
 
     return;
   }

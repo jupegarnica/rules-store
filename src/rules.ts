@@ -13,7 +13,8 @@ export const denyAll: Rules = {
 export const onlyCreate: Rules = {
   _read: () => true,
   $node: {
-    _write: ({ data }: RuleContext) => data === undefined,
+    _write: ({ data, newData }: RuleContext) =>
+      data === undefined && newData !== undefined,
   },
 };
 
@@ -22,5 +23,20 @@ export const onlyUpdate: Rules = {
   $node: {
     _write: ({ data, newData }: RuleContext) =>
       data !== undefined && newData !== undefined,
+  },
+};
+
+export const onlyRemove: Rules = {
+  _read: () => true,
+  $node: {
+    _write: ({ newData }: RuleContext) => newData === undefined,
+  },
+};
+
+export const notUpdate: Rules = {
+  _read: () => true,
+  $node: {
+    _write: ({ data, newData }: RuleContext) =>
+      data === undefined || newData === undefined,
   },
 };

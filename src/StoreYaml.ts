@@ -22,7 +22,7 @@ export class StoreYaml extends StoreFile {
     const decoder = new TextDecoder("utf-8");
     const decoded: Value = parse(decoder.decode(data));
 
-    this.setData(decoded);
+    this._setData(decoded);
 
     return;
   }

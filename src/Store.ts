@@ -1,7 +1,6 @@
 import {
   addChildToKeys,
   applyCloneOnGet,
-  // assertDeepClone,
   deepClone,
   deepGet,
   deepSet,
@@ -37,7 +36,9 @@ import {
 
 import { allowAll } from "./rules.ts";
 
-// import { assertEquals } from "../tests/test_deps.ts";
+// assertDeepClone,
+// const { assertDeepClone } = await import("./helpers.ts");
+// const { assertEquals } = await import("../tests/test_deps.ts");
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -46,17 +47,22 @@ export class Store {
   /**
    * The actual store cache.
    */
-  __data: ObjectOrArray = {};
-  __newData: ObjectOrArray = {};
+  #data: ObjectOrArray = {};
+  #newData: ObjectOrArray = {};
+  private _rules: Rules;
+  private _subscriptions: Subscription[] = [];
+  private _subscriptionsLastId = 0;
+
+  protected _setData(data: ObjectOrArray) {
+    this.#data = (data);
+    this.#newData = deepClone(data);
+  }
   public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
-    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__data : {};
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#data : {};
   }
-  protected setData(data: ObjectOrArray) {
-    this.__data = (data);
-    this.__newData = deepClone(data);
-  }
+
   public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
-    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.__newData : {};
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#newData : {};
   }
 
   /**
@@ -69,12 +75,9 @@ export class Store {
 
   constructor(config?: BaseConfig) {
     this._rules = deepClone(config?.rules ?? allowAll);
-    this.setData(deepClone(config?.initialDataIfNoPersisted ?? {}));
+    this._setData(deepClone(config?.initialDataIfNoPersisted ?? {}));
   }
 
-  private _get(keys: Keys): Value {
-    return deepGet(this.__data, keys);
-  }
   /**
    * Retrieves a value from database by specified path.
    *
@@ -99,87 +102,6 @@ export class Store {
     return data;
   }
 
-  private _getAndCheck(keys: Keys): Value {
-    this._checkPermission("_read", keys);
-    return (this._get(keys));
-  }
-  private _applyTransformations(
-    target: ObjectOrArray,
-    transformations: Transformation[],
-    cloneValue = false,
-  ): Transformation[] {
-    const removed: Transformation[] = [];
-
-    for (const { keys, value, transformContext } of transformations) {
-      let newValue = value;
-      if (transformContext && typeof value === "function") {
-        newValue = value(transformContext);
-      }
-      if (cloneValue) {
-        newValue = deepClone(newValue);
-      }
-      removed.push(...deepSet(target, keys, newValue));
-    }
-    return removed;
-  }
-  protected _set(
-    keys: Keys,
-    value: Value,
-  ): void {
-    const removed: Transformation[] = [];
-
-    try {
-      // create write diff
-      const diff = Array.isArray(this.__newData) ? [] : {};
-      deepSet(diff, keys, (value));
-
-      { // apply write
-        const changed = this._applyTransformations(
-          this.__newData,
-          [{ keys, value }],
-        );
-        removed.push(...changed);
-        this._checkPermission("_write", keys);
-      }
-
-      // apply _transform rule
-      const transformationsToApply = this._findTransformations(diff);
-
-      {
-        const changed = this._applyTransformations(
-          this.__newData,
-          transformationsToApply,
-        );
-        removed.push(...changed);
-      }
-
-      this._checkValidation(diff);
-      this._commit([
-        { keys, value: deepClone(value) },
-        ...transformationsToApply,
-      ]);
-    } catch (error) {
-      this._rollBack(removed);
-      throw error;
-    }
-  }
-  private _commit(transformations: Transformation[]): void {
-    this._notify();
-
-    this._applyTransformations(this.__data, transformations, true);
-
-    // TODO REMOVE DEBUG:
-    // // deno-lint-ignore no-explicit-any
-    // assertEquals(this.__data, this.__newData);
-    // assertDeepClone(this.__data, this.__newData);
-  }
-  private _rollBack(transformations: Transformation[]): void {
-    this._applyTransformations(this.__newData, transformations.reverse());
-    // TODO REMOVE DEBUG:
-    // // deno-lint-ignore no-explicit-any
-    // assertEquals(this.__data, this.__newData);
-    // assertDeepClone(this.__data, this.__newData);
-  }
   /**
    * Sets a value in the database by the specified path.
    * It throw exception if not permission to write or validation fails,
@@ -382,7 +304,6 @@ export class Store {
   }
   // SUBSCRIPTIONS
   /////////////////
-  protected _subscriptions: Subscription[] = [];
 
   /**
    * Subscribe to changes in the path
@@ -403,7 +324,6 @@ export class Store {
     });
     return id;
   }
-  private _subscriptionsLastId = 0;
 
   /**
    * Subscribe to changes in the path
@@ -446,7 +366,7 @@ export class Store {
     }
   }
 
-  protected _notify() {
+  private _notify() {
     for (const subscription of this._subscriptions) {
       const { path, callback, id } = subscription;
       const keys = keysFromPath(path);
@@ -460,8 +380,8 @@ export class Store {
         );
         return;
       }
-      const data = deepGet(this.__data, keys);
-      const newData = deepGet(this.__newData, keys);
+      const data = deepGet(this.#data, keys);
+      const newData = deepGet(this.#newData, keys);
       const payload = { newData: undefined, oldData: undefined };
 
       if (!equal(data, newData)) {
@@ -480,21 +400,17 @@ export class Store {
       }
     }
   }
-
-  // RULES
-  ////////
-  protected _rules: Rules;
   private _createRuleContext(params: Params, rulePath: Keys): RuleContext {
-    const _data = deepGet(this.__data, rulePath);
-    const _newData = deepGet(this.__newData, rulePath);
+    const _data = deepGet(this.#data, rulePath);
+    const _newData = deepGet(this.#newData, rulePath);
     const context = {
       ...params,
       _data,
       _newData,
-      _rootData: this.__data,
+      _rootData: this.#data,
     };
     applyCloneOnGet(context, "data", _data);
-    applyCloneOnGet(context, "rootData", this.__data);
+    applyCloneOnGet(context, "rootData", this.#data);
     applyCloneOnGet(
       context,
       "newData",
@@ -574,5 +490,91 @@ export class Store {
     }
 
     return transformationsToApply;
+  }
+  private _get(keys: Keys): Value {
+    return deepGet(this.#data, keys);
+  }
+  private _getAndCheck(keys: Keys): Value {
+    this._checkPermission("_read", keys);
+    return (this._get(keys));
+  }
+  private _applyTransformations(
+    target: ObjectOrArray,
+    transformations: Transformation[],
+    removed: Transformation[],
+    cloneValue = false,
+  ): void {
+    for (const { keys, value, transformContext } of transformations) {
+      let newValue = value;
+      if (transformContext && typeof value === "function") {
+        newValue = value(transformContext);
+      }
+      if (cloneValue) {
+        newValue = deepClone(newValue);
+      }
+      removed.push(...deepSet(target, keys, newValue));
+    }
+  }
+  protected _set(
+    keys: Keys,
+    value: Value,
+  ): void {
+    const removed: Transformation[] = [];
+
+    try {
+      // create write diff
+      const diff = Array.isArray(this.#newData) ? [] : {};
+      deepSet(diff, keys, (value));
+
+      // apply write
+      this._applyTransformations(
+        this.#newData,
+        [{ keys, value }],
+        removed,
+      );
+      this._checkPermission("_write", keys);
+
+      // apply _transform rule
+      const transformationsToApply = this._findTransformations(diff);
+
+      this._applyTransformations(
+        this.#newData,
+        transformationsToApply,
+        removed,
+      );
+
+      this._checkValidation(diff);
+      this._commit([
+        { keys, value: deepClone(value) },
+        ...transformationsToApply,
+      ]);
+    } catch (error) {
+      this._rollBack(removed);
+      throw error;
+    }
+  }
+  private _commit(transformations: Transformation[]): void {
+    this._notify();
+    const removed = [] as Transformation[];
+    try {
+      this._applyTransformations(this.#data, transformations, removed, true);
+    } catch (error) {
+      this._rollBack(removed);
+      throw error;
+    }
+    // TODO REMOVE DEBUG:
+    // assertEquals(this.#data, this.#newData);
+    // assertDeepClone(this.#data, this.#newData);
+  }
+  private _rollBack(transformations: Transformation[]): void {
+    const removed = [] as Transformation[];
+    this._applyTransformations(
+      this.#newData,
+      transformations.reverse(),
+      removed,
+    );
+    // TODO REMOVE DEBUG:
+    // assertEquals(this.#data, this.#newData);
+    // assertDeepClone(this.#data, this.#newData);
   }
 }

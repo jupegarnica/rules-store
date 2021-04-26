@@ -177,7 +177,7 @@ Deno.test("[Rules _transform] apply all bottom up", () => {
   });
 });
 
-Deno.test("[Rules _transform] apply all rollback", () => {
+Deno.test("[Rules _transform] apply rollback if validation fails", () => {
   const rules = {
     _write: () => true,
     _read: () => true,
@@ -199,4 +199,32 @@ Deno.test("[Rules _transform] apply all rollback", () => {
   assertThrows(() => db.set("a.b.c", 1));
 
   assertEquals(db.get(""), { a: { b: { c: 0 } } });
+});
+
+Deno.test("[Rules _transform] apply rollback if transform fails", () => {
+  const rules = {
+    _write: () => true,
+    _read: () => true,
+    a: {
+      _transform: () => {
+        throw new Error("ups");
+      },
+      b: {
+        _transform: ({ newData }: RuleContext) => ({ ...newData, x: 1 }),
+        c: {
+          _transform: () => 1,
+        },
+      },
+    },
+  };
+  const db = new Store({
+    rules,
+    initialDataIfNoPersisted: { a: { b: { c: 0 } } },
+  });
+  assertThrows(() => db.set("a.b.c", 1));
+  assertEquals(db.get(""), { a: { b: { c: 0 } } });
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });

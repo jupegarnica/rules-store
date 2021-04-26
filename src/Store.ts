@@ -20,6 +20,7 @@ import type {
   Keys,
   KeyValue,
   ObjectOrArray,
+  Params,
   RuleContext,
   Rules,
   Subscriber,
@@ -164,8 +165,6 @@ export class Store {
   }
   private _commit(transformations: Transformation[]): void {
     this._notify();
-    // transformations.forEach((e) => console.warn("---", e));
-    debugger;
 
     this._applyTransformations(this.__data, transformations, true);
 
@@ -486,7 +485,24 @@ export class Store {
   // RULES
   ////////
   protected _rules: Rules;
-
+  private _createRuleContext(params: Params, rulePath: Keys): RuleContext {
+    const _data = deepGet(this.__data, rulePath);
+    const _newData = deepGet(this.__newData, rulePath);
+    const context = {
+      ...params,
+      _data,
+      _newData,
+      _rootData: this.__data,
+    };
+    applyCloneOnGet(context, "data", _data);
+    applyCloneOnGet(context, "rootData", this.__data);
+    applyCloneOnGet(
+      context,
+      "newData",
+      _newData,
+    );
+    return context as RuleContext;
+  }
   private _checkPermission(
     ruleType: "_read" | "_write",
     keys: Keys,
@@ -511,19 +527,7 @@ export class Store {
           }`,
         );
       }
-      const ruleContext = {
-        ...params,
-      };
-      applyCloneOnGet(ruleContext, "data", deepGet(this.__data, rulePath));
-      applyCloneOnGet(ruleContext, "rootData", this.__data);
-
-      if (ruleType === "_write") {
-        applyCloneOnGet(
-          ruleContext,
-          "newData",
-          deepGet(this.__newData, rulePath),
-        );
-      }
+      const ruleContext = this._createRuleContext(params, rulePath);
       const allowed = rule?.(ruleContext as RuleContext);
 
       if (!allowed) {
@@ -545,16 +549,7 @@ export class Store {
     const validations = findAllRules("_validate", diff, this._rules);
     let currentPath: Keys = [];
     const isValid = validations.every(({ params, rulePath, _validate }) => {
-      const ruleContext = {
-        ...params,
-      };
-      applyCloneOnGet(ruleContext, "data", deepGet(this.__data, rulePath));
-      applyCloneOnGet(ruleContext, "rootData", this.__data);
-      applyCloneOnGet(
-        ruleContext,
-        "newData",
-        deepGet(this.__newData, rulePath),
-      );
+      const ruleContext = this._createRuleContext(params, rulePath);
       currentPath = rulePath;
 
       return _validate(ruleContext);
@@ -571,20 +566,11 @@ export class Store {
 
     const transformationsToApply = [] as Transformation[];
     for (const { _transform, rulePath, params } of transforms) {
-      const ruleContext = {
-        ...params,
-      };
-      applyCloneOnGet(ruleContext, "data", deepGet(this.__data, rulePath));
-      applyCloneOnGet(ruleContext, "rootData", this.__data);
-      applyCloneOnGet(
-        ruleContext,
-        "newData",
-        deepGet(this.__newData, rulePath),
-      );
+      const transformContext = this._createRuleContext(params, rulePath);
       transformationsToApply.push({
         keys: rulePath,
         value: _transform,
-        transformContext: ruleContext as RuleContext,
+        transformContext: transformContext as RuleContext,
       });
     }
 

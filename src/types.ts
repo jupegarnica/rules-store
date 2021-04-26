@@ -52,6 +52,9 @@ export type RuleContext = {
   data: Value;
   newData: Value;
   rootData: ObjectOrArray;
+  _data: Value;
+  _newData: Value;
+  _rootData: ObjectOrArray;
   [param: string]: string | ObjectOrArray;
 };
 

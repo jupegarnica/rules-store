@@ -567,7 +567,6 @@ export class Store {
   }
   private _findTransformations(diff: ObjectOrArray): Transformation[] {
     const transforms = findAllRules("_transform", diff, this._rules);
-    // TODO transforms.reverse() ??
     transforms.reverse();
 
     const transformationsToApply = [] as Transformation[];
@@ -582,11 +581,10 @@ export class Store {
         "newData",
         deepGet(this.__newData, rulePath),
       );
-      // const transformed = _transform(ruleContext);
       transformationsToApply.push({
         keys: rulePath,
         value: _transform,
-        transformContext: ruleContext,
+        transformContext: ruleContext as RuleContext,
       });
     }
 

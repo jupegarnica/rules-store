@@ -604,7 +604,6 @@ export class Store {
       this._rollBack(removed);
       throw error;
     }
-    // TODO REMOVE DEBUG:
     // assertEquals(this.#data, this.#newData);
     // assertDeepClone(this.#data, this.#newData);
   }
@@ -615,7 +614,6 @@ export class Store {
       transformations.reverse(),
       removed,
     );
-    // TODO REMOVE DEBUG:
     // assertEquals(this.#data, this.#newData);
     // assertDeepClone(this.#data, this.#newData);
   }

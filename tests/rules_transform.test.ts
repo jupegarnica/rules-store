@@ -1,7 +1,9 @@
 // import { findAllRules } from "../src/helpers.ts";
 import { Store } from "../src/Store.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
 import type { RuleContext } from "../src/types.ts";
+import { assertEquals, assertThrows, spy } from "./test_deps.ts";
+import type { Spy } from "./test_deps.ts";
+
 // import { ValidationError } from "../src/Errors.ts";
 // const context = { data: "bar", params: {}, newData: undefined, rootData: {} };
 
@@ -71,6 +73,32 @@ Deno.test("[Rules _transform] in array and obj", () => {
   assertThrows(() => db.set("object.a", "ups"));
 });
 
+Deno.test("[Rules _transform] on remove", () => {
+  // deno-lint-ignore no-explicit-any
+  const mock: Spy<any> = spy();
+
+  const rules = {
+    _write: () => true,
+    _read: () => true,
+    $i: {
+      _transform: ({ newData }: RuleContext) => {
+        mock();
+        return newData === undefined ? undefined : Number(newData);
+      },
+    },
+  };
+
+  const initialData = {
+    a: 1,
+    b: 2,
+  };
+  const db = new Store({ rules, initialData });
+
+  const removed = db.remove("a");
+  assertEquals(removed, 1);
+  assertEquals(mock.calls.length, 2); // twice, once in #newData and once in #data
+  assertEquals(db.get(""), { b: 2 });
+});
 Deno.test("[Rules _transform] in the parent", () => {
   const rules = {
     _write: () => true,

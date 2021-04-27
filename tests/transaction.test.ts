@@ -214,3 +214,37 @@ Deno.test("[Transactions] on remove rollback", () => {
   db.rollback();
   assertEquals(db.get("a"), [1, 2, 3]);
 });
+
+Deno.test("[Transactions] findAndRemove should perform a transaction", () => {
+  // deno-lint-ignore no-explicit-any
+  const mock: Spy<any> = spy();
+
+  const db = new Store({ initialData: { a: [1, 2, 3] } });
+  db.subscribe(
+    "a",
+    mock,
+  );
+  const res = db.findAndRemove("a", ([, val]: KeyValue) => val > 1);
+
+  assertEquals(res, [["1", 2], ["2", 3]]);
+  assertEquals(mock.calls.length, 1);
+  assertEquals(db.get("a"), [1]);
+});
+
+Deno.test("[Transactions] findAndRemove subscription on children once each", () => {
+  // deno-lint-ignore no-explicit-any
+  const mock: Spy<any> = spy();
+
+  const db = new Store({ initialData: { a: [1, 2, 3] } });
+  db.subscribe(
+    "a.1",
+    mock,
+  );
+  db.subscribe(
+    "a.2",
+    mock,
+  );
+  db.findAndRemove("a", ([, val]: KeyValue) => val > 1);
+  assertEquals(mock.calls.length, 2);
+  assertEquals(db.get("a"), [1]);
+});

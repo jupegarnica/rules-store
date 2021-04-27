@@ -1,7 +1,8 @@
 import { PermissionError } from "../src/Errors.ts";
 import { Store } from "../src/Store.ts";
-import { Subscriber, Value } from "../src/types.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
+import { RuleContext, Subscriber, Value } from "../src/types.ts";
+import { assertEquals, assertThrows, spy } from "./test_deps.ts";
+import type { Spy } from "./test_deps.ts";
 
 Deno.test("[Store subscription] .subscribe", () => {
   const db = new Store();
@@ -72,10 +73,11 @@ Deno.test("[Store subscription] .subscribe checks read rule", () => {
 });
 
 Deno.test("[Store subscription] .subscribe checks read dynamic rule ", () => {
+  const mock: Spy<Console> = spy(console, "warn");
   const db = new Store({
     rules: {
       a: {
-        _read: ({ data }) => {
+        _read: ({ data }: RuleContext) => {
           return data === 0;
         },
         _write: () => true,
@@ -92,6 +94,7 @@ Deno.test("[Store subscription] .subscribe checks read dynamic rule ", () => {
   assertEquals(calls, 1);
   db.set("a", 2);
   assertEquals(calls, 1); // no called
+  assertEquals(mock.calls.length, 1); // called console.warn
 });
 
 Deno.test("[Store subscription] .subscribe with deeper set", () => {

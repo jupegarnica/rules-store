@@ -5,6 +5,44 @@ import type { RuleContext } from "../src/types.ts";
 import { ValidationError } from "../src/Errors.ts";
 const context = { data: "bar", params: {}, newData: undefined, rootData: {} };
 
+Deno.test("[Rules _validate] findAllRules basic", () => {
+  const rules = {
+    a: {
+      _validate: () => 1,
+    },
+  };
+  const target = {
+    a: 1,
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_validate"]?.(context), 1);
+  assertEquals(found[0].params, {});
+});
+
+Deno.test("[Rules _validate] findAllRules params basic", () => {
+  const rules = {
+    $i: {
+      _validate: () => 1,
+    },
+  };
+  const target = {
+    a: 1,
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_validate"]?.(context), 1);
+  assertEquals(found[0].params, { $i: "a" });
+});
+
 Deno.test("[Rules _validate] findAllRules no params", () => {
   const rules = {
     _validate: () => 0,
@@ -74,6 +112,27 @@ Deno.test("[Rules _validate] findAllRules params", () => {
   assertEquals(found[2].params, { $a: "a", $b: "b" });
   assertEquals(found[3]["_validate"]?.(context), 3);
   assertEquals(found[3].params, { $a: "a", $b: "b" });
+});
+
+Deno.test("[Rules _validate] findAllRules params 2", () => {
+  const rules = {
+    _write: () => true,
+    _read: () => true,
+    $i: {
+      _transform: () => 1,
+    },
+  };
+  const target = {
+    a: { b: { c: null } },
+  };
+  const found = findAllRules(
+    "_transform",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_transform"]?.(context), 1);
+  assertEquals(found[0].params, { $i: "a" });
 });
 
 Deno.test("[Rules _validate] findAllRules params with required path", () => {

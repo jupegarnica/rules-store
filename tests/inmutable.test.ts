@@ -1,7 +1,7 @@
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import { Store } from "../src/Store.ts";
 import type { Spy } from "./test_deps.ts";
-import type { RuleContext, Value } from "../src/types.ts";
+import type { KeyValue, RuleContext, Value } from "../src/types.ts";
 import { testCalled } from "../src/helpers.ts";
 
 Deno.test("[Store] Set inmutable behavior", () => {
@@ -290,13 +290,30 @@ Deno.test("[Store] find clone data only on get value", () => {
   });
   assertEquals(mock.calls.length, 0);
 
-  db.find("a", (pair) => {
-    // console.log("cloned?");
+  db.find("a", (pair: KeyValue) => {
     pair[1];
-
     return true;
   });
   assertEquals(mock.calls.length, 3);
+  mock.restore();
+});
+
+Deno.test("[Store] find clone only key on get value", () => {
+  const db = new Store();
+  // deno-lint-ignore no-explicit-any
+  const mock: Spy<{ noop: () => any }> = spy(testCalled, "noop");
+
+  const a = [{ b: 1 }];
+  db.set("a", a);
+  db.find("a", () => {
+    return true;
+  });
+  assertEquals(mock.calls.length, 0);
+
+  db.find("a", ([key]: KeyValue) => {
+    return key === "b";
+  });
+  assertEquals(mock.calls.length, 0);
   mock.restore();
 });
 

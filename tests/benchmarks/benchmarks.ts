@@ -167,7 +167,7 @@ bench({
 //////
 
 bench({
-  name: `[GetAll] assert ${RUNS} children`,
+  name: `[GetAll] once assert ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -183,7 +183,7 @@ bench({
 });
 
 bench({
-  name: `[GetAll] not getClone = false ${RUNS} children`,
+  name: `[GetAll] once not cloned ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -463,7 +463,7 @@ for (const result of results) {
       const diff = measuredRunsAvgMs - averageRun;
       const diffRatio = measuredRunsAvgMs / averageRun;
       const improvement = -(1 - diffRatio);
-
+      const operations = name.match(/once/) ? 1 : RUNS;
       const data = ({
         totalRuns,
         lastRun: measuredRunsAvgMs,
@@ -481,11 +481,13 @@ for (const result of results) {
         " ".repeat((9 - text.length)),
         colors.bold(colors.blue(d(measuredRunsAvgMs))),
         colors.inverse(
-          `${parseNumberToString(toOpsEverySecond(measuredRunsAvgMs, RUNS))}`,
+          `${
+            parseNumberToString(toOpsEverySecond(measuredRunsAvgMs, operations))
+          }`,
         ),
         colors.blue(d(averageRun)),
         colors.brightWhite(
-          `${parseNumberToString(toOpsEverySecond(averageRun, RUNS))}`,
+          `${parseNumberToString(toOpsEverySecond(averageRun, operations))}`,
         ),
         colors.brightYellow(totalRuns + ""),
         colors.yellow("x" + diffRatio.toFixed(2)),

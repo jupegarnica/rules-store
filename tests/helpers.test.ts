@@ -5,7 +5,6 @@ import {
   debounce,
   deepClone,
   deepGet,
-  deepMerge,
   deepSet,
   findParam,
   isNumberKey,
@@ -234,6 +233,15 @@ Deno.test("[Helpers] deepClone primitives", () => {
   assertEquals(deepClone(sym), sym);
 });
 
+Deno.test("[Helpers] deepClone Date. Must treat dates as primitive type not as objects", () => {
+  const date = new Date("1999-01-08T23:00:00.000Z");
+
+  const a = { b: date };
+  const A = deepClone(a);
+  assertEquals(a !== A, true);
+  assertEquals(Number(a.b) - Number(A.b), 0);
+});
+
 Deno.test("[Helpers] findParam", () => {
   const obj = {
     $: false,
@@ -311,26 +319,21 @@ Deno.test("[Helpers] assertDeepClone", () => {
 
 Deno.test("[Helpers] debounce resolve", async () => {
   const RUNS = 3;
-  const w = {
-    log: () => {},
-    error: () => {},
-    run: () => {},
-  };
   const runner = async () => {
     await delay(0);
     run();
   };
 
-  const run: Spy<typeof w> = spy(w, "run");
-  const log: Spy<typeof w> = spy(w, "log");
-  const error: Spy<typeof w> = spy(w, "error");
+  const run: Spy<void> = spy();
+  const log: Spy<void> = spy();
+  const error: Spy<void> = spy();
 
   const debounced = debounce(runner, 1);
 
   for (let i = 0; i < RUNS - 1; i++) {
-    debounced().then(w.log).catch(w.error);
+    debounced().then(log).catch(error);
   }
-  await debounced().then(w.log).catch(w.error);
+  await debounced().then(log).catch(error);
 
   assertEquals(run.calls.length, 1);
   assertEquals(log.calls.length, RUNS);
@@ -339,45 +342,40 @@ Deno.test("[Helpers] debounce resolve", async () => {
 
 Deno.test("[Helpers] debounce reject", async () => {
   const RUNS = 3;
-  const w = {
-    log: () => {},
-    error: () => {},
-    run: () => {},
-  };
   const runner = async () => {
     await delay(0);
     run();
     throw new Error("ups");
   };
 
-  const run: Spy<typeof w> = spy(w, "run");
-  const log: Spy<typeof w> = spy(w, "log");
-  const error: Spy<typeof w> = spy(w, "error");
+  const run: Spy<void> = spy();
+  const log: Spy<void> = spy();
+  const error: Spy<void> = spy();
 
   const debounced = debounce(runner, 1);
 
   for (let i = 0; i < RUNS - 1; i++) {
-    debounced().then(w.log).catch(w.error);
+    debounced().then(log).catch(error);
   }
-  await debounced().then(w.log).catch(w.error);
+  await debounced().then(log).catch(error);
   assertEquals(run.calls.length, 1);
   assertEquals(log.calls.length, 0);
   assertEquals(error.calls.length, RUNS);
 });
 
-Deno.test("[Helpers] deepMerge obj", () => {
-  const target = { a: { b: { c: 1, d: 2 } } };
-  const source = { a: { x: 1, b: { e: 3 } } };
+// Deno.test("[Helpers] deepMerge obj", () => {
+//   const target = { a: { b: { c: 1, d: 2 } } };
+//   const source = { a: { x: 1, b: { e: 3 } } };
 
-  deepMerge(target, source);
-  assertEquals(target, { a: { x: 1, b: { c: 1, d: 2, e: 3 } } });
-});
+//   deepMerge(target, source);
+//   assertEquals(target, { a: { x: 1, b: { c: 1, d: 2, e: 3 } } });
+// });
 
-Deno.test("[Helpers] deepMerge array", () => {
-  const target = { a: [{ b: 1, c: 2 }] };
-  const source = { a: [{ d: 3 }], x: 1 };
-  const res = deepMerge(target, source);
+// Deno.test("[Helpers] deepMerge array", () => {
+//   const target = { a: [{ b: 1, c: 2 }] };
+//   const source = { a: [{ d: 3 }], x: 1 };
+//   const res = deepMerge(target, source);
 
-  assertEquals(target, { a: [{ b: 1, c: 2, d: 3 }], x: 1 });
-  assertEquals(target === res, true);
-});
+//   assertEquals(target, { a: [{ b: 1, c: 2, d: 3 }], x: 1 });
+//   assertEquals(target === res, true);
+// });

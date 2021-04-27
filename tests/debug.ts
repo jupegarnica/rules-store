@@ -23,3 +23,10 @@
 // console.log(
 //   db.get(""),
 // );
+
+import { faker } from "https://deno.land/x/deno_faker@v1.0.3/mod.ts";
+
+const name = faker.name.findName(); // Rowan Nikolaus
+const email = faker.internet.email(); // Kassandra.Haley@erich.biz
+
+console.log({ name, email });

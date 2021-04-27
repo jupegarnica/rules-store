@@ -6,6 +6,7 @@ import {
   deepSet,
   findAllRules,
   findDeepestRule,
+  findRule,
   isNumberKey,
   isObjectOrArray,
   keysFromPath,
@@ -45,25 +46,16 @@ import { allowAll } from "./rules.ts";
  */
 export class Store {
   /**
-   * The actual store cache.
+   * The store state.
    */
   #data: ObjectOrArray = {};
   #newData: ObjectOrArray = {};
-  private _rules: Rules;
-  private _subscriptions: Subscription[] = [];
-  private _subscriptionsLastId = 0;
-
-  protected _setData(data: ObjectOrArray) {
-    this.#data = (data);
-    this.#newData = deepClone(data);
-  }
-  public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
-    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#data : {};
-  }
-
-  public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
-    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#newData : {};
-  }
+  #rules: Rules;
+  #subscriptions: Subscription[] = [];
+  #subscriptionsLastId = 0;
+  #transformationsToCommit: Transformation[] = [];
+  #transformationsToRollback: Transformation[] = [];
+  #duringTransaction = false;
 
   /**
    * Create a new Store instance.
@@ -74,7 +66,7 @@ export class Store {
    * */
 
   constructor(config?: BaseConfig) {
-    this._rules = deepClone(config?.rules ?? allowAll);
+    this.#rules = deepClone(config?.rules ?? allowAll);
     this._setData(deepClone(config?.initialData ?? {}));
   }
 
@@ -95,7 +87,7 @@ export class Store {
     } = {},
   ): Value {
     const keys = keysFromPath(path);
-    let data = this._getAndCheck(keys);
+    let data = this._getAs(keys);
     if (!notClone) {
       data = deepClone(data);
     }
@@ -134,7 +126,6 @@ export class Store {
     }
 
     this._set(keys, newValue);
-    // TODO maybe check for readPermissions?
     return this._get(keys);
   }
 
@@ -180,25 +171,27 @@ export class Store {
     ...values: Value[]
   ): Value | Value[] {
     const keys = keysFromPath(path);
-    const oldValue = this._get(keys);
-    if (!Array.isArray(oldValue)) {
+    const target = this._get(keys);
+    if (!Array.isArray(target)) {
       throw new TypeError("Target is not Array");
     }
-    const isTransaction = this._duringTransaction;
-    isTransaction || this.beginTransaction();
+    const isTransaction = this.#duringTransaction;
+    this.beginTransaction();
     try {
-      const cloned = (values);
-      const initialLength = oldValue.length;
-      for (const index in cloned) {
+      const returned = [] as Value[];
+      const initialLength = target.length;
+      for (const index in values) {
         const targetIndex = initialLength + Number(index);
-        this._set(addChildToKeys(keys, String(targetIndex)), cloned[index]);
+        const keysToNewItem = addChildToKeys(keys, String(targetIndex));
+        this._set(keysToNewItem, values[index]);
+        returned.push(this._get(keysToNewItem));
       }
-      isTransaction || this.commit();
-      return cloned.length > 1 ? cloned : cloned[0];
+      if (!isTransaction) this.commit();
+      return returned.length > 1 ? returned : returned[0];
     } catch (error) {
       if (isTransaction) {
         this._rollback(
-          this._transformationsToRollback,
+          this.#transformationsToRollback,
         );
       } else {
         this.rollback();
@@ -217,15 +210,13 @@ export class Store {
    */
   public find(path: string, finder: Finder): KeyValue[] {
     const keys = keysFromPath(path);
-    let target = this._get(keys);
+    const target = this._get(keys);
     if (!isObjectOrArray(target)) {
       throw new TypeError("Target not Object or Array");
     }
-    target = (target);
     const results = [] as KeyValue[];
     for (const key in target) {
-      this._checkPermission("_read", addChildToKeys(keys, key));
-      const value = (target[key]);
+      const value = this._getAs(addChildToKeys(keys, key));
       const pair = [key, value] as KeyValue;
 
       applyCloneOnGet(pair, "1", value);
@@ -255,8 +246,7 @@ export class Store {
       throw new TypeError("Target not Object or Array");
     }
     for (const key in target) {
-      this._checkPermission("_read", addChildToKeys(keys, key));
-      const value = target[key];
+      const value = this._getAs(addChildToKeys(keys, key));
       const pair = [key, value] as KeyValue;
 
       applyCloneOnGet(pair, "1", value);
@@ -283,11 +273,15 @@ export class Store {
   ): KeyValue[] {
     const results = returnsRemoved ? this.find(path, finder) : [];
     const keys = keysFromPath(path);
+    const isTransaction = this.#duringTransaction;
+    this.beginTransaction();
+
     for (let index = results.length - 1; index >= 0; index--) {
       const [key] = results[index];
       const keysToRemove = addChildToKeys(keys, key);
       this.remove(pathFromKeys(keysToRemove), returnsRemoved);
     }
+    if (!isTransaction) this.commit();
 
     return results;
   }
@@ -328,8 +322,8 @@ export class Store {
   public subscribe(path: string, callback: Subscriber): number {
     const keys = keysFromPath(path);
     this._checkPermission("_read", keys);
-    const id = ++this._subscriptionsLastId;
-    this._subscriptions.push({
+    const id = ++this.#subscriptionsLastId;
+    this.#subscriptions.push({
       callback,
       path,
       id,
@@ -363,9 +357,9 @@ export class Store {
    * @param id the subscription identifier
    */
   public off(path: string, id: number): void {
-    const oldLength = this._subscriptions.length;
+    const oldLength = this.#subscriptions.length;
 
-    this._subscriptions = this._subscriptions.filter(
+    this.#subscriptions = this.#subscriptions.filter(
       (subscription) =>
         !(
           subscription.path === path &&
@@ -373,13 +367,43 @@ export class Store {
         ),
     );
 
-    if (oldLength === this._subscriptions.length) {
+    if (oldLength === this.#subscriptions.length) {
       throw new SubscriptionNotFoundError("no subscription found");
     }
   }
+  public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#data : {};
+  }
+
+  public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
+    return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#newData : {};
+  }
+
+  public commit() {
+    this.#duringTransaction = false;
+    this._commit(
+      this.#transformationsToCommit,
+    );
+    this.#transformationsToRollback = [];
+    this.#transformationsToCommit = [];
+  }
+
+  public rollback() {
+    this.#duringTransaction = false;
+    this._rollback(
+      this.#transformationsToRollback,
+    );
+    this.#transformationsToRollback = [];
+    this.#transformationsToCommit = [];
+  }
+
+  protected _setData(data: ObjectOrArray) {
+    this.#data = (data);
+    this.#newData = deepClone(data);
+  }
 
   private _notify() {
-    for (const subscription of this._subscriptions) {
+    for (const subscription of this.#subscriptions) {
       const { path, callback, id } = subscription;
       const keys = keysFromPath(path);
       // TODO What to do when a _read rule fails notifying subscriptions
@@ -437,7 +461,7 @@ export class Store {
     const ruleAndParams = findDeepestRule(
       keys,
       ruleType,
-      this._rules,
+      this.#rules,
     );
 
     const rule = ruleAndParams[ruleType];
@@ -473,7 +497,7 @@ export class Store {
     }
   }
   private _checkValidation(diff: ObjectOrArray): void {
-    const validations = findAllRules("_validate", diff, this._rules);
+    const validations = findAllRules("_validate", diff, this.#rules);
     let currentPath: Keys = [];
     const isValid = validations.every(({ params, rulePath, _validate }) => {
       const ruleContext = this._createRuleContext(params, rulePath);
@@ -488,9 +512,8 @@ export class Store {
     }
   }
   private _findTransformations(diff: ObjectOrArray): Transformation[] {
-    const transforms = findAllRules("_transform", diff, this._rules);
+    const transforms = findAllRules("_transform", diff, this.#rules);
     transforms.reverse();
-
     const transformationsToApply = [] as Transformation[];
     for (const { _transform, rulePath, params } of transforms) {
       const transformContext = this._createRuleContext(params, rulePath);
@@ -505,12 +528,23 @@ export class Store {
     return transformationsToApply;
   }
   private _get(keys: Keys): Value {
-    const data = this._duringTransaction ? this.#newData : this.#data;
+    const data = this.#duringTransaction ? this.#newData : this.#data;
     return deepGet(data, keys);
   }
   private _getAndCheck(keys: Keys): Value {
     this._checkPermission("_read", keys);
     return (this._get(keys));
+  }
+  private _getAs(keys: Keys): Value {
+    this._checkPermission("_read", keys);
+    let data;
+    const maybeFound = findRule("_as", keys, this.#rules);
+    if (typeof maybeFound._as === "function") {
+      data = maybeFound._as(this._createRuleContext(maybeFound.params, keys));
+    } else {
+      data = this._get(keys);
+    }
+    return data;
   }
   private _applyTransformations(
     target: ObjectOrArray,
@@ -541,9 +575,6 @@ export class Store {
       }
     }
   }
-  private _transformationsToCommit: Transformation[] = [];
-  private _transformationsToRollback: Transformation[] = [];
-  private _duringTransaction = false;
 
   protected _set(
     keys: Keys,
@@ -554,7 +585,7 @@ export class Store {
     try {
       // create write diff
       const diff = Array.isArray(this.#newData) ? [] : {};
-      deepSet(diff, keys, (value));
+      deepSet(diff, keys, value || 1);
 
       // apply write
       this._applyTransformations(
@@ -575,12 +606,12 @@ export class Store {
 
       this._checkValidation(diff);
 
-      if (this._duringTransaction) {
-        this._transformationsToCommit.push(
+      if (this.#duringTransaction) {
+        this.#transformationsToCommit.push(
           { keys, value: deepClone(value), type: "set" },
           ...transformationsToApply,
         );
-        this._transformationsToRollback.push(...removed);
+        this.#transformationsToRollback.push(...removed);
         return;
       }
 
@@ -593,25 +624,8 @@ export class Store {
       throw error;
     }
   }
-  public commit() {
-    this._duringTransaction = false;
-    this._commit(
-      this._transformationsToCommit,
-    );
-    this._transformationsToRollback = [];
-    this._transformationsToCommit = [];
-  }
-
-  public rollback() {
-    this._duringTransaction = false;
-    this._rollback(
-      this._transformationsToRollback,
-    );
-    this._transformationsToRollback = [];
-    this._transformationsToCommit = [];
-  }
   public beginTransaction(): Store {
-    this._duringTransaction = true;
+    this.#duringTransaction = true;
     return this;
   }
   protected _commit(
@@ -652,11 +666,11 @@ export class Store {
         [transformation],
         removed,
       );
-      if (this._duringTransaction) {
-        this._transformationsToCommit.push(
+      if (this.#duringTransaction) {
+        this.#transformationsToCommit.push(
           transformation,
         );
-        this._transformationsToRollback.push(...removed);
+        this.#transformationsToRollback.push(...removed);
         return;
       }
       this._commit([transformation]);

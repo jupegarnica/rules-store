@@ -13,7 +13,7 @@ import type {
 // export { debounce };
 
 export function isObjectOrArray(obj: unknown): boolean {
-  return typeof obj === "object" && obj !== null;
+  return typeof obj === "object" && obj !== null && !(obj instanceof Date);
 }
 // match "\" "/" o "."
 export function keysFromPath(path: string): Keys {
@@ -83,19 +83,19 @@ export const assertDeepClone = (a: Value, b: Value): void => {
   }
 };
 
-export const deepMerge = (
-  target: ObjectOrArray,
-  source: ObjectOrArray,
-): ObjectOrArray => {
-  for (const key in source) {
-    if (isObjectOrArray(source[key]) && isObjectOrArray(target[key])) {
-      Object.assign(source[key], deepMerge(target[key], source[key]));
-    }
-  }
-  const shape = Array.isArray(source) ? [] : {};
-  Object.assign(target ?? shape, source);
-  return target;
-};
+// export const deepMerge = (
+//   target: ObjectOrArray,
+//   source: ObjectOrArray,
+// ): ObjectOrArray => {
+//   for (const key in source) {
+//     if (isObjectOrArray(source[key]) && isObjectOrArray(target[key])) {
+//       Object.assign(source[key], deepMerge(target[key], source[key]));
+//     }
+//   }
+//   const shape = Array.isArray(source) ? [] : {};
+//   Object.assign(target ?? shape, source);
+//   return target;
+// };
 // export const deepMerge = (target, source) => {
 //   // Iterate through `source` properties and if an `Object` set property to merge of `target` and `source` properties
 //   for (const key of Object.keys(source)) {
@@ -277,6 +277,37 @@ export function findDeepestRule(
 
   const result = { params, [ruleType]: rule, rulePath };
   return result;
+}
+
+export function findRule(
+  ruleType: string,
+  keys: Keys,
+  rules: Rules,
+): RuleFound {
+  const params: Params = {};
+  let index = 0;
+  // deno-lint-ignore no-explicit-any
+  let worker = rules as any;
+  do {
+    if (keys.length === index) {
+      const maybeRule = worker[ruleType] as Rule;
+      return { params, [ruleType]: maybeRule, rulePath: keys };
+    }
+    const key = keys[index];
+    if (worker[key]) {
+      worker = worker[key];
+    } else {
+      const maybeParam = findParam(worker);
+      if (maybeParam) {
+        params[maybeParam] = key;
+        worker = worker[maybeParam];
+      } else {
+        break;
+      }
+    }
+    index++;
+  } while (index <= keys.length);
+  return { params, [ruleType]: undefined, rulePath: keys };
 }
 
 export function findAllRules(

@@ -56,7 +56,9 @@ export abstract class StorePersistance extends Store {
     const returned = super._commit(toCommit);
     if (this.#autoSave) {
       this.writeLazy().catch((error) => {
-        throw error;
+        // TODO what to do if write with writeLazy fails?
+        console.error(error);
+        // throw error;
       });
     }
     return returned;

@@ -87,6 +87,7 @@ export class Store {
     } = {},
   ): Value {
     const keys = keysFromPath(path);
+    this._checkPermission("_read", keys);
     let data = this._getAs(keys);
     if (!notClone) {
       data = deepClone(data);
@@ -216,7 +217,9 @@ export class Store {
     }
     const results = [] as KeyValue[];
     for (const key in target) {
-      const value = this._getAs(addChildToKeys(keys, key));
+      const innerKeys = addChildToKeys(keys, key);
+      this._checkPermission("_read", innerKeys);
+      const value = this._getAs(innerKeys);
       const pair = [key, value] as KeyValue;
 
       applyCloneOnGet(pair, "1", value);
@@ -246,7 +249,9 @@ export class Store {
       throw new TypeError("Target not Object or Array");
     }
     for (const key in target) {
-      const value = this._getAs(addChildToKeys(keys, key));
+      const innerKeys = addChildToKeys(keys, key);
+      this._checkPermission("_read", innerKeys);
+      const value = this._getAs(innerKeys);
       const pair = [key, value] as KeyValue;
 
       applyCloneOnGet(pair, "1", value);
@@ -406,7 +411,7 @@ export class Store {
     for (const subscription of this.#subscriptions) {
       const { path, callback, id } = subscription;
       const keys = keysFromPath(path);
-      // TODO What to do when a _read rule fails notifying subscriptions
+      // TODO What to do when a _read rule fails notifying subscribers?
       try {
         this._checkPermission("_read", keys);
       } catch (error) {
@@ -419,7 +424,7 @@ export class Store {
       const data = deepGet(this.#data, keys);
       const newData = deepGet(this.#newData, keys);
       const payload = { newData: undefined, oldData: undefined };
-
+      // TODO Apply getAs
       if (!equal(data, newData)) {
         applyCloneOnGet(payload, "newData", newData);
         applyCloneOnGet(payload, "oldData", data);
@@ -536,7 +541,6 @@ export class Store {
     return (this._get(keys));
   }
   private _getAs(keys: Keys): Value {
-    this._checkPermission("_read", keys);
     let data;
     const maybeFound = findRule("_as", keys, this.#rules);
     if (typeof maybeFound._as === "function") {

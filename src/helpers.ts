@@ -220,12 +220,12 @@ export const deepSet = (
     currentPath = [...currentPath, key];
 
     if (lastRound) {
-      removed.push({ keys: currentPath, value: worker[key] });
+      removed.push({ type: "set", keys: currentPath, value: worker[key] });
       if (value === undefined) del(worker, key);
       else set(worker, key, value);
     } else {
       if (!isObjectOrArray(worker[key])) {
-        removed.push({ keys: currentPath, value: worker[key] });
+        removed.push({ type: "set", keys: currentPath, value: worker[key] });
         set(worker, key, isNumberKey(keys[index + 1]) ? [] : {});
       }
     }

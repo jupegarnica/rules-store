@@ -73,6 +73,7 @@ Deno.test("[Helpers] deepSet removed empty", () => {
       keys: [
         "a",
       ],
+      type: "set",
       value: undefined,
     },
     {
@@ -80,6 +81,7 @@ Deno.test("[Helpers] deepSet removed empty", () => {
         "a",
         "b",
       ],
+      type: "set",
       value: undefined,
     },
   ]);
@@ -92,6 +94,7 @@ Deno.test("[Helpers] deepSet array", () => {
       keys: [
         "1",
       ],
+      type: "set",
       value: 2,
     },
   ]);
@@ -106,6 +109,7 @@ Deno.test("[Helpers] deepSet array complex", () => {
         "0",
         "a",
       ],
+      type: "set",
       value: 1,
     },
   ]);
@@ -118,6 +122,7 @@ Deno.test("[Helpers] deepSet array complex", () => {
         "c",
         "1",
       ],
+      type: "set",
       value: 2,
     },
   ]);
@@ -127,10 +132,19 @@ Deno.test("[Helpers] deepSet removed complex", () => {
   const data0 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
   const data1 = { a: 1, b: [2, 3], c: { d: { e: 4 } } };
   const data2 = { a: 1, b: [2, 3], c: { d: { e: 4 }, f: 1 } };
-  assertEquals(deepSet(data0, ["a"], 2), [{ keys: ["a"], value: 1 }]);
-  assertEquals(deepSet(data1, ["b"], 3), [{ keys: ["b"], value: [2, 3] }]);
+  assertEquals(deepSet(data0, ["a"], 2), [{
+    keys: ["a"],
+    type: "set",
+    value: 1,
+  }]);
+  assertEquals(deepSet(data1, ["b"], 3), [{
+    keys: ["b"],
+    type: "set",
+    value: [2, 3],
+  }]);
   assertEquals(deepSet(data2, ["c", "d"], 5), [{
     keys: ["c", "d"],
+    type: "set",
     value: { e: 4 },
   }]);
 });

@@ -151,14 +151,15 @@ export class Store {
     const lastKey = keys[keys.length - 1];
     let oldValue;
     if (returnRemoved) {
-      oldValue = this.get(pathFromKeys(keys));
+      oldValue = this.get(path);
     }
     if (isNumberKey(lastKey)) {
       // remove array child
       this._set(keys, undefined);
-      keys.pop();
-      const parentValue = this._get(keys);
-      parentValue.splice(Number(lastKey), 1);
+      const parentKeys = keys.filter((_: Value, index: number) =>
+        (index) !== keys.length - 1
+      );
+      this._removeItem(parentKeys, lastKey);
     } else {
       // remove object key
       this._set(keys, undefined);
@@ -183,7 +184,8 @@ export class Store {
     if (!Array.isArray(oldValue)) {
       throw new TypeError("Target is not Array");
     }
-    this.beginTransaction();
+    const isTransaction = this._duringTransaction;
+    isTransaction || this.beginTransaction();
     try {
       const cloned = (values);
       const initialLength = oldValue.length;
@@ -191,10 +193,16 @@ export class Store {
         const targetIndex = initialLength + Number(index);
         this._set(addChildToKeys(keys, String(targetIndex)), cloned[index]);
       }
-      this.commit();
+      isTransaction || this.commit();
       return cloned.length > 1 ? cloned : cloned[0];
     } catch (error) {
-      this.rollback();
+      if (isTransaction) {
+        this._rollback(
+          this._transformationsToRollback,
+        );
+      } else {
+        this.rollback();
+      }
       throw error;
     }
   }
@@ -211,7 +219,7 @@ export class Store {
     const keys = keysFromPath(path);
     let target = this._get(keys);
     if (!isObjectOrArray(target)) {
-      throw new TypeError("Target not object or array");
+      throw new TypeError("Target not Object or Array");
     }
     target = (target);
     const results = [] as KeyValue[];
@@ -242,9 +250,9 @@ export class Store {
   ): KeyValue {
     const keys = keysFromPath(path);
 
-    const target = this._getAndCheck(keys);
+    const target = this._get(keys);
     if (!isObjectOrArray(target)) {
-      throw new TypeError("Target not object or array");
+      throw new TypeError("Target not Object or Array");
     }
     for (const key in target) {
       this._checkPermission("_read", addChildToKeys(keys, key));
@@ -489,6 +497,7 @@ export class Store {
       transformationsToApply.push({
         keys: rulePath,
         value: _transform,
+        type: "set",
         transformContext: transformContext as RuleContext,
       });
     }
@@ -509,15 +518,27 @@ export class Store {
     removed: Transformation[],
     cloneValue = false,
   ): void {
-    for (const { keys, value, transformContext } of transformations) {
-      let newValue = value;
-      if (transformContext && typeof value === "function") {
-        newValue = value(transformContext);
+    for (
+      const { keys, value, transformContext, type, index } of transformations
+    ) {
+      if (type === "set") {
+        let newValue = value;
+        if (transformContext && typeof value === "function") {
+          newValue = value(transformContext);
+        }
+        if (cloneValue) {
+          newValue = deepClone(newValue);
+        }
+        removed.push(...deepSet(target, keys, newValue));
+      } else if (type === "remove") {
+        const parent = deepGet(target, keys);
+        const [valueRemoved] = parent.splice(Number(index), 1);
+        removed.push({ type: "add", value: valueRemoved, keys, index });
+      } else if (type === "add") {
+        const parent = deepGet(target, keys);
+        parent.splice(Number(index), 0, value);
+        removed.push({ type: "remove", keys, index });
       }
-      if (cloneValue) {
-        newValue = deepClone(newValue);
-      }
-      removed.push(...deepSet(target, keys, newValue));
     }
   }
   private _transformationsToCommit: Transformation[] = [];
@@ -538,7 +559,7 @@ export class Store {
       // apply write
       this._applyTransformations(
         this.#newData,
-        [{ keys, value }],
+        [{ keys, value, type: "set" }],
         removed,
       );
       this._checkPermission("_write", keys);
@@ -556,19 +577,19 @@ export class Store {
 
       if (this._duringTransaction) {
         this._transformationsToCommit.push(
-          { keys, value: deepClone(value) },
+          { keys, value: deepClone(value), type: "set" },
           ...transformationsToApply,
         );
-        this._transformationsToRollback = removed;
+        this._transformationsToRollback.push(...removed);
         return;
       }
 
       this._commit([
-        { keys, value: deepClone(value) },
+        { keys, value: deepClone(value), type: "set" },
         ...transformationsToApply,
       ]);
     } catch (error) {
-      this._rollBack(removed);
+      this._rollback(removed);
       throw error;
     }
   }
@@ -583,7 +604,7 @@ export class Store {
 
   public rollback() {
     this._duringTransaction = false;
-    this._rollBack(
+    this._rollback(
       this._transformationsToRollback,
     );
     this._transformationsToRollback = [];
@@ -601,13 +622,13 @@ export class Store {
     try {
       this._applyTransformations(this.#data, toCommit, removed, true);
     } catch (error) {
-      this._rollBack(removed);
+      this._rollback(removed);
       throw error;
     }
     // assertEquals(this.#data, this.#newData);
     // assertDeepClone(this.#data, this.#newData);
   }
-  private _rollBack(transformations: Transformation[]): void {
+  private _rollback(transformations: Transformation[]): void {
     const removed = [] as Transformation[];
     this._applyTransformations(
       this.#newData,
@@ -616,5 +637,38 @@ export class Store {
     );
     // assertEquals(this.#data, this.#newData);
     // assertDeepClone(this.#data, this.#newData);
+  }
+  private _removeItem(targetKeys: Keys, keyToRemove: string) {
+    const removed = [] as Transformation[];
+    const transformation: Transformation = {
+      keys: targetKeys,
+      index: keyToRemove,
+      type: "remove",
+    };
+
+    try {
+      this._applyTransformations(
+        this.#newData,
+        [transformation],
+        removed,
+      );
+      if (this._duringTransaction) {
+        this._transformationsToCommit.push(
+          transformation,
+        );
+        this._transformationsToRollback.push(...removed);
+        return;
+      }
+      this._commit([transformation]);
+    } catch (error) {
+      this._rollback(removed);
+      throw error;
+    }
+
+    // this._commit(
+    //   this.#newData,
+    //   [{ keys: targetKeys, index: keyToRemove, type: "remove" }],
+    //   removed,
+    // );
   }
 }

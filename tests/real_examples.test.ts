@@ -47,6 +47,10 @@ Deno.test("[Rules Examples] list of numbers", () => {
   assertThrows(() => db.set("myNumbers.2", null));
   assertThrows(() => db.set("myNumbers", null));
   assertThrows(() => db.push("myNumbers", 5, null));
+  console.log(
+    db.get("myNumbers"),
+  );
+
   assertEquals(db.get("myNumbers"), [2, 3, 4]);
 });
 

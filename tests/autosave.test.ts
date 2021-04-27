@@ -49,7 +49,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
   const db = new StoreJson({
     filename: testStorePath,
     autoSave: true,
-    writeLazyDelay: 2,
+    writeLazyDelay: 3,
   });
 
   const mock: Spy<StoreJson> = spy(db, "write");

@@ -146,9 +146,13 @@ Deno.test("[Rules _read] with findAndRemove", () => {
     filename: "./tests/test.json",
   });
 
-  assertThrows(() => db.find("", () => true));
-  assertThrows(() => db.find("arr", () => true));
-  assertThrows(() => db.find("arr.0", () => true));
+  assertThrows(() => db.find("", () => true), PermissionError, "/arr");
+  assertThrows(() => db.find("arr", () => true), PermissionError, "/arr");
+  assertThrows(
+    () => db.find("arr.0", () => true),
+    TypeError,
+    "Object or Array",
+  );
 });
 
 Deno.test("[Rules _read] with findOne", () => {
@@ -163,10 +167,14 @@ Deno.test("[Rules _read] with findOne", () => {
   assertThrows(
     () => db.findOne("", () => true),
     PermissionError,
-    "Not explicit",
+    "/arr",
   );
-  assertThrows(() => db.findOne("arr", () => true));
-  assertThrows(() => db.findOne("arr.0", () => true));
+  assertThrows(() => db.findOne("arr", () => true), PermissionError, "/arr");
+  assertThrows(
+    () => db.findOne("arr.0", () => true),
+    TypeError,
+    "Object or Array",
+  );
 });
 
 Deno.test("[Rules _read] with findOneAndRemove", () => {

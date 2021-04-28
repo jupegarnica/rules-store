@@ -323,9 +323,9 @@ Deno.test("[Subscriptions] .subscribe with params args", () => {
 
 Deno.test({
   only: false,
-  name: "[Subscriptions] .subscribe with params args",
+  name: "[Subscriptions] .subscribe with params args push",
   fn: () => {
-    const onChange: Spy<void> = spy();
+    const onChange: Spy<void> = spy(() => {});
     const db = new Store({
       initialData: { users: [] },
     });
@@ -340,9 +340,81 @@ Deno.test({
     assertEquals(onChange.calls[1].args[0].oldData, undefined);
     assertEquals(onChange.calls[1].args[0].newData, "garni");
     assertEquals(onChange.calls[1].args[0].$id, "1");
-    db.remove("users/0");
-    // console.log(db.get("users"));
+  },
+});
 
-    assertEquals(onChange.calls.length, 3);
+Deno.test({
+  only: false,
+  name: "[Subscriptions] .subscribe with params args remove",
+  fn: () => {
+    const onChange: Spy<void> = spy(() => {});
+    const db = new Store({
+      initialData: { users: [{ name: "garn" }, { name: "garni" }] },
+    });
+    db.subscribe("users/$id/name", onChange);
+
+    db.remove("users/0");
+    assertEquals(onChange.calls.length, 1);
+    assertEquals(onChange.calls[0].args[0].oldData, "garn");
+    assertEquals(onChange.calls[0].args[0].newData, undefined);
+    assertEquals(onChange.calls[0].args[0].$id, "0");
+  },
+});
+
+Deno.test({
+  only: false,
+  name: "[Subscriptions] .subscribe on transaction",
+  fn: () => {
+    const onChange: Spy<void> = spy(() => {});
+    const db = new Store({
+      initialData: { users: [{ name: "garn" }, { name: "garni" }] },
+    });
+    db.subscribe("users/$id/name", onChange);
+    db.beginTransaction();
+    db.remove("users/1");
+    db.remove("users/0");
+    db.commit();
+    assertEquals(onChange.calls.length, 2);
+    assertEquals(onChange.calls[0].args[0].oldData, "garn");
+    assertEquals(onChange.calls[0].args[0].newData, undefined);
+    assertEquals(onChange.calls[0].args[0].$id, "0");
+    assertEquals(onChange.calls[1].args[0].oldData, "garni");
+    assertEquals(onChange.calls[1].args[0].newData, undefined);
+    assertEquals(onChange.calls[1].args[0].$id, "1");
+  },
+});
+Deno.test({
+  only: false,
+  name: "[Subscriptions] .subscribe on transaction",
+  fn: () => {
+    const onChange: Spy<void> = spy(() => {});
+    const db = new Store({
+      initialData: { users: [{ name: "garn" }, { name: "garni" }] },
+    });
+    db.subscribe("users/$id/name", onChange);
+    db.beginTransaction();
+    db.remove("users/1");
+    db.push("users", { name: "garni2" });
+    db.commit();
+    assertEquals(onChange.calls.length, 1);
+    assertEquals(onChange.calls[0].args[0].oldData, "garni");
+    assertEquals(onChange.calls[0].args[0].newData, "garni2");
+    assertEquals(onChange.calls[0].args[0].$id, "1");
+  },
+});
+
+Deno.test({
+  only: false,
+  name: "[Subscriptions] .subscribe on update",
+  fn: () => {
+    const onChange: Spy<void> = spy(() => {});
+    const db = new Store({
+      initialData: { users: [{ name: "garn" }, { name: "garni" }] },
+    });
+    db.subscribe("users/0/name", onChange);
+    db.set("users/0/name", "garn2");
+    assertEquals(onChange.calls.length, 1);
+    assertEquals(onChange.calls[0].args[0].oldData, "garn");
+    assertEquals(onChange.calls[0].args[0].newData, "garn2");
   },
 });

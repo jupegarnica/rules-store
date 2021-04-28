@@ -174,7 +174,7 @@ Deno.test("[Rules _validate] findAllRules params with required path", () => {
   assertEquals(found[3].params, { $a: "a" });
 });
 
-Deno.test("[Rules _validate] findAllRules bug", () => {
+Deno.test("[Rules _validate] findAllRules", () => {
   const rules = {
     a: {
       $x: {

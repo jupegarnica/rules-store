@@ -159,7 +159,7 @@ export class Store {
     if (isNumberKey(lastKey)) {
       // remove array child
       const isTransaction = this.#duringTransaction;
-      this.beginTransaction();
+      // this.beginTransaction();
       this._set(keys, undefined);
       const parentKeys = keys.filter((_: Value, index: number) =>
         (index) !== keys.length - 1
@@ -575,7 +575,7 @@ export class Store {
     try {
       // create write diff
       const diff = this._dataShape;
-      deepSet(diff, keys, value || {});
+      deepSet(diff, keys, value ?? null);
 
       // apply write
       this._applyTransformations(
@@ -643,14 +643,10 @@ export class Store {
   }
 
   private _notify() {
+    if (Object.keys(this.#mutationDiff).length === 0) return;
     for (const subscription of this.#subscriptions) {
       const { path, callback, id } = subscription;
-      // console.count();
-      console.log("this.#mutationDiff\n", this.#mutationDiff);
-
       const paths = pathsMatched(this.#mutationDiff, path);
-      console.log({ paths });
-
       for (const keys of paths) {
         const params = getParamsFromKeys(keys, path);
 
@@ -693,25 +689,14 @@ export class Store {
       type: "remove",
     };
 
-    try {
-      this._applyTransformations(
-        this.#newData,
-        [transformation],
-        removed,
-      );
-      this.#transformationsToCommit.push(
-        transformation,
-      );
-      this.#transformationsToRollback.push(...removed);
-    } catch (error) {
-      this._rollback(removed);
-      throw error;
-    }
-
-    // this._commit(
-    //   this.#newData,
-    //   [{ keys: targetKeys, index: keyToRemove, type: "remove" }],
-    //   removed,
-    // );
+    this._applyTransformations(
+      this.#newData,
+      [transformation],
+      removed,
+    );
+    this.#transformationsToCommit.push(
+      transformation,
+    );
+    this.#transformationsToRollback.push(...removed);
   }
 }

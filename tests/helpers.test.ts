@@ -496,17 +496,21 @@ Deno.test("[Helpers] pathsMatched deeper", () => {
   const A = pathsMatched(mutation, ["a"]);
   assertEquals(A, [["a"]]);
 });
-
 Deno.test("[Helpers] pathsMatched deeper", () => {
-  const mutation = {a:1};
-  const A = pathsMatched(mutation, ["a",'c']);
-  assertEquals(A, [["a",'c']]);
+  const mutation = { a: 1 };
+  const A = pathsMatched(mutation, ["a", "b", "c"]);
+  assertEquals(A, [["a", "b", "c"]]);
+});
+Deno.test("[Helpers] pathsMatched deeper", () => {
+  const mutation = { users: [1] };
+  const A = pathsMatched(mutation, ["users", "$id", "name"]);
+  assertEquals(A, [["users", "0", "name"]]);
 });
 
 Deno.test("[Helpers] pathsMatched deeper", () => {
-  const mutation = { a: 1 };
-  const A = pathsMatched(mutation, ["a", "b"]);
-  assertEquals(A, [["a", "b"]]);
+  const mutation = { b: 1 };
+  const A = pathsMatched(mutation, ["a"]);
+  assertEquals(A, []);
 });
 
 Deno.test("[Helpers] getParamsFromKeys", () => {

@@ -74,7 +74,6 @@ export function pathsMatched(
   }
   return allPathsFound;
 }
-// export
 
 export const testCalled: { noop: () => void } = {
   noop: () => {},

@@ -30,11 +30,51 @@ export function addChildToKeys(keys: Keys, ...rest: Keys): Keys {
 
 const paramRegex = /^\$.+/;
 
-export function findParam(obj: ObjectOrArray): string | void {
+export function getParamFromObject(obj: ObjectOrArray): string | void {
   for (const key in obj) {
-    if (key.match(paramRegex)) return key;
+    if (paramRegex.test(key)) return key;
   }
 }
+
+export function getParamsFromKeys(keys: Keys, keysParams: Keys): Params {
+  const params = {} as Params;
+  let i = 0;
+  for (const key of keysParams) {
+    if (paramRegex.test(key)) params[key] = keys[i];
+    i++;
+  }
+  return params;
+}
+
+export function pathsMatched(
+  object: ObjectOrArray,
+  path: Keys,
+): Keys[] {
+  let pathFound: Keys = [];
+  const allPathsFound: Keys[] = [];
+  for (const key in object) {
+    const [keyEvaluated, ...nextPath] = path;
+
+    const isParam = paramRegex.test(keyEvaluated);
+    const desiredKey = isParam ? key : keyEvaluated;
+    if (key === desiredKey) {
+      pathFound.push(key);
+      if (nextPath.length && isObjectOrArray(object[key])) {
+        const innerFound = pathsMatched(object[key], nextPath);
+        for (const innerPathFound of innerFound) {
+          allPathsFound.push([...pathFound, ...innerPathFound]);
+        }
+      } else if (!nextPath.length) {
+        allPathsFound.push(pathFound);
+      } else {
+        allPathsFound.push([...pathFound, ...nextPath]);
+      }
+      pathFound = [];
+    }
+  }
+  return allPathsFound;
+}
+// export
 
 export const testCalled: { noop: () => void } = {
   noop: () => {},
@@ -83,19 +123,20 @@ export const assertDeepClone = (a: Value, b: Value): void => {
   }
 };
 
-// export const deepMerge = (
-//   target: ObjectOrArray,
-//   source: ObjectOrArray,
-// ): ObjectOrArray => {
-//   for (const key in source) {
-//     if (isObjectOrArray(source[key]) && isObjectOrArray(target[key])) {
-//       Object.assign(source[key], deepMerge(target[key], source[key]));
-//     }
-//   }
-//   const shape = Array.isArray(source) ? [] : {};
-//   Object.assign(target ?? shape, source);
-//   return target;
-// };
+export const deepMerge = (
+  target: ObjectOrArray,
+  source: ObjectOrArray,
+): ObjectOrArray => {
+  for (const key in source) {
+    if (isObjectOrArray(source[key]) && isObjectOrArray(target[key])) {
+      Object.assign(source[key], deepMerge(target[key], source[key]));
+    }
+  }
+  const shape = Array.isArray(source) ? [] : {};
+  Object.assign(target ?? shape, source);
+  return target;
+};
+
 // export const deepMerge = (target, source) => {
 //   // Iterate through `source` properties and if an `Object` set property to merge of `target` and `source` properties
 //   for (const key of Object.keys(source)) {
@@ -252,7 +293,7 @@ export function findDeepestRule(
   do {
     const key = keys[index];
     const child = worker[key];
-    const maybeParam = findParam(worker);
+    const maybeParam = getParamFromObject(worker);
     let maybeRule = worker[ruleType];
 
     if (maybeRule) rule = maybeRule;
@@ -297,7 +338,7 @@ export function findRule(
     if (worker[key]) {
       worker = worker[key];
     } else {
-      const maybeParam = findParam(worker);
+      const maybeParam = getParamFromObject(worker);
       if (maybeParam) {
         params[maybeParam] = key;
         worker = worker[maybeParam];
@@ -320,7 +361,7 @@ export function findAllRules(
   const rulesFound = [] as RuleFound[];
   const params = { ...currentParams } as Params;
   const maybeRule = rules[ruleType];
-  const maybeParam = findParam(rules);
+  const maybeParam = getParamFromObject(rules);
   if (typeof maybeRule === "function") {
     rulesFound.push({
       params: { ...currentParams },

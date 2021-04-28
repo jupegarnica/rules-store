@@ -4,7 +4,7 @@ import { RuleContext, Subscriber, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
 
-Deno.test("[Store subscription] .subscribe", () => {
+Deno.test("[Subscriptions] .subscribe", () => {
   const db = new Store();
 
   db.set("A", 0);
@@ -25,7 +25,7 @@ Deno.test("[Store subscription] .subscribe", () => {
   assertEquals(called, 2);
 });
 
-Deno.test("[Store subscription] .subscribe assert payload", () => {
+Deno.test("[Subscriptions] .subscribe assert payload", () => {
   const db = new Store();
 
   db.set("A", 0);
@@ -44,7 +44,7 @@ Deno.test("[Store subscription] .subscribe assert payload", () => {
   assertEquals(called, 1);
 });
 
-Deno.test("[Store subscription] .subscribe assert payload inmutable", () => {
+Deno.test("[Subscriptions] .subscribe assert payload inmutable", () => {
   const db = new Store();
 
   db.set("a", { b: 0 });
@@ -64,7 +64,7 @@ Deno.test("[Store subscription] .subscribe assert payload inmutable", () => {
   assertEquals(db.get("a"), { b: 1 });
 });
 
-Deno.test("[Store subscription] .subscribe checks read rule", () => {
+Deno.test("[Subscriptions] .subscribe checks read rule", () => {
   const db = new Store({
     rules: { _read: () => false },
     // initialData: { A: 0 },
@@ -72,7 +72,7 @@ Deno.test("[Store subscription] .subscribe checks read rule", () => {
   assertThrows(() => db.subscribe("A", console.log), PermissionError, "read");
 });
 
-Deno.test("[Store subscription] .subscribe checks read dynamic rule ", () => {
+Deno.test("[Subscriptions] .subscribe checks read dynamic rule ", () => {
   const mock: Spy<Console> = spy(console, "warn");
   const db = new Store({
     rules: {
@@ -97,7 +97,7 @@ Deno.test("[Store subscription] .subscribe checks read dynamic rule ", () => {
   assertEquals(mock.calls.length, 1); // called console.warn
 });
 
-Deno.test("[Store subscription] .subscribe with deeper set", () => {
+Deno.test("[Subscriptions] .subscribe with deeper set", () => {
   const db = new Store();
   db.set("a.b", { c: 0, d: 0 });
 
@@ -114,7 +114,7 @@ Deno.test("[Store subscription] .subscribe with deeper set", () => {
   db.set("a.b.d", 2);
   assertEquals(called, 2);
 });
-Deno.test("[Store subscription] .on", () => {
+Deno.test("[Subscriptions] .on", () => {
   const db = new Store();
 
   db.set("A", 1);
@@ -135,7 +135,7 @@ Deno.test("[Store subscription] .on", () => {
   assertEquals(called, 3);
 });
 
-Deno.test("[Store subscription] .on .off", () => {
+Deno.test("[Subscriptions] .on .off", () => {
   const db = new Store();
 
   db.set("A", 1);
@@ -148,14 +148,14 @@ Deno.test("[Store subscription] .on .off", () => {
 
   const id = db.on("A", onChange);
   assertEquals(called, true);
-  db.off("A", id);
+  db.off(id);
   called = false;
   db.set("A", 3); // should not call onChange
   assertEquals(called, false);
 
   let hasThrown = false;
   try {
-    db.off("A", id);
+    db.off(id);
   } catch (error) {
     hasThrown = true;
     assertEquals(error instanceof Error, true);
@@ -163,7 +163,7 @@ Deno.test("[Store subscription] .on .off", () => {
   assertEquals(hasThrown, true);
 });
 
-Deno.test("[Store subscription] .subscribe .off", () => {
+Deno.test("[Subscriptions] .subscribe .off", () => {
   const db = new Store();
 
   db.set("A", 1);
@@ -176,17 +176,17 @@ Deno.test("[Store subscription] .subscribe .off", () => {
 
   const id = db.subscribe("A", onChange);
   assertEquals(called, false);
-  db.off("A", id);
+  db.off(id);
   assertEquals(called, false);
   db.set("A", 3); // should not call onChange
   assertEquals(called, false);
 
   assertThrows(() => {
-    db.off("A", id);
+    db.off(id);
   }, Error);
 });
 
-Deno.test("[Store subscription] Deep basic ", () => {
+Deno.test("[Subscriptions] Deep basic ", () => {
   const db = new Store();
   db.set("a.b.c", true);
 
@@ -200,7 +200,7 @@ Deno.test("[Store subscription] Deep basic ", () => {
   assertEquals(called, true);
 });
 
-Deno.test("[Store subscription] Deep complex", () => {
+Deno.test("[Subscriptions] Deep complex", () => {
   const db = new Store();
   db.set("a.b.c", true);
   let called = 0;
@@ -243,7 +243,7 @@ Deno.test("[Store subscription] Deep complex", () => {
   assertEquals(called, 4);
 });
 
-Deno.test("[Store subscription] inmutable callback", () => {
+Deno.test("[Subscriptions] inmutable callback", () => {
   const db = new Store();
   db.set("a.b.c", 0);
 
@@ -264,7 +264,7 @@ Deno.test("[Store subscription] inmutable callback", () => {
   assertEquals(db.get("a.b.c"), 1);
 });
 
-Deno.test("[Store subscription] Deep remove with subscription", () => {
+Deno.test("[Subscriptions] Deep remove with subscription", () => {
   const db = new Store();
   db.set("a.b.c", 1);
 
@@ -286,4 +286,63 @@ Deno.test("[Store subscription] Deep remove with subscription", () => {
 
   assertEquals(B, { c: 1 });
   assertEquals(db.get("a.b.c"), undefined);
+});
+
+Deno.test("[Subscriptions] .subscribe with params", () => {
+  const onChange: Spy<void> = spy();
+  const db = new Store();
+  db.subscribe("$x", onChange);
+  db.set("a", 1);
+  assertEquals(onChange.calls.length, 1);
+});
+
+Deno.test("[Subscriptions] .subscribe with params args", () => {
+  const onChange: Spy<void> = spy();
+  const db = new Store();
+  db.subscribe("$x", onChange);
+  db.set("a", 1);
+  assertEquals(onChange.calls[0].args[0].oldData, undefined);
+  assertEquals(onChange.calls[0].args[0].newData, 1);
+  assertEquals(onChange.calls[0].args[0].$x, "a");
+});
+
+Deno.test("[Subscriptions] .subscribe with params args", () => {
+  const onChange: Spy<void> = spy();
+  const db = new Store();
+  db.subscribe("a/$x", onChange);
+  db.set("a", { b: 1, c: 2 });
+  assertEquals(onChange.calls.length, 2);
+
+  assertEquals(onChange.calls[0].args[0].oldData, undefined);
+  assertEquals(onChange.calls[0].args[0].newData, 1);
+  assertEquals(onChange.calls[0].args[0].$x, "b");
+  assertEquals(onChange.calls[1].args[0].oldData, undefined);
+  assertEquals(onChange.calls[1].args[0].newData, 2);
+  assertEquals(onChange.calls[1].args[0].$x, "c");
+});
+
+Deno.test({
+  only: false,
+  name: "[Subscriptions] .subscribe with params args",
+  fn: () => {
+    const onChange: Spy<void> = spy();
+    const db = new Store({
+      initialData: { users: [] },
+    });
+    db.subscribe("users/$id/name", onChange);
+
+    db.push("users", { name: "garn" }, { name: "garni" });
+
+    assertEquals(onChange.calls.length, 2);
+    assertEquals(onChange.calls[0].args[0].oldData, undefined);
+    assertEquals(onChange.calls[0].args[0].newData, "garn");
+    assertEquals(onChange.calls[0].args[0].$id, "0");
+    assertEquals(onChange.calls[1].args[0].oldData, undefined);
+    assertEquals(onChange.calls[1].args[0].newData, "garni");
+    assertEquals(onChange.calls[1].args[0].$id, "1");
+    db.remove("users/0");
+    // console.log(db.get("users"));
+
+    assertEquals(onChange.calls.length, 3);
+  },
 });

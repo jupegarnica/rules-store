@@ -5,10 +5,13 @@ import {
   debounce,
   deepClone,
   deepGet,
+  deepMerge,
   deepSet,
-  findParam,
+  getParamFromObject,
+  getParamsFromKeys,
   isNumberKey,
   keysFromPath,
+  pathsMatched,
 } from "../src/helpers.ts";
 
 import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
@@ -242,7 +245,7 @@ Deno.test("[Helpers] deepClone Date. Must treat dates as primitive type not as o
   assertEquals(Number(a.b) - Number(A.b), 0);
 });
 
-Deno.test("[Helpers] findParam", () => {
+Deno.test("[Helpers] getParamFromObject", () => {
   const obj = {
     $: false,
     x: false,
@@ -254,7 +257,7 @@ Deno.test("[Helpers] findParam", () => {
   };
   const cloned = deepClone(obj);
   assertEquals(cloned, obj);
-  assertEquals(findParam(obj), "$a");
+  assertEquals(getParamFromObject(obj), "$a");
 });
 
 Deno.test("[Helpers] assertDeepClone", () => {
@@ -363,19 +366,164 @@ Deno.test("[Helpers] debounce reject", async () => {
   assertEquals(error.calls.length, RUNS);
 });
 
-// Deno.test("[Helpers] deepMerge obj", () => {
-//   const target = { a: { b: { c: 1, d: 2 } } };
-//   const source = { a: { x: 1, b: { e: 3 } } };
+Deno.test("[Helpers] deepMerge obj", () => {
+  const target = { a: { b: { c: 1, d: 2 } } };
+  const source = { a: { x: 1, b: { e: 3 } } };
 
-//   deepMerge(target, source);
-//   assertEquals(target, { a: { x: 1, b: { c: 1, d: 2, e: 3 } } });
-// });
+  deepMerge(target, source);
+  assertEquals(target, { a: { x: 1, b: { c: 1, d: 2, e: 3 } } });
+});
 
-// Deno.test("[Helpers] deepMerge array", () => {
-//   const target = { a: [{ b: 1, c: 2 }] };
-//   const source = { a: [{ d: 3 }], x: 1 };
-//   const res = deepMerge(target, source);
+Deno.test("[Helpers] deepMerge array", () => {
+  const target = { a: [{ b: 1, c: 2 }] };
+  const source = { a: [{ d: 3 }], x: 1 };
+  const res = deepMerge(target, source);
 
-//   assertEquals(target, { a: [{ b: 1, c: 2, d: 3 }], x: 1 });
-//   assertEquals(target === res, true);
-// });
+  assertEquals(target, { a: [{ b: 1, c: 2, d: 3 }], x: 1 });
+  assertEquals(target === res, true);
+});
+
+Deno.test("[Helpers] deepMerge empty target", () => {
+  const target = {};
+  const source = { a: [{ d: 3 }], x: 1 };
+  const res = deepMerge(target, source);
+
+  assertEquals(target, source);
+  assertEquals(target === res, true);
+});
+
+Deno.test("[Helpers] deepMerge empty source", () => {
+  const target = { a: [{ b: 1, c: 2 }] };
+  const source = {};
+  const res = deepMerge(target, source);
+
+  assertEquals(target, { a: [{ b: 1, c: 2 }] });
+  assertEquals(target === res, true);
+});
+
+Deno.test("[Helpers] deepMerge fill", () => {
+  const target = [1, 2, 3];
+  const source = [0, , , 4];
+  const res = deepMerge(target, source);
+
+  assertEquals(target, [0, 2, 3, 4]);
+  assertEquals(target === res, true);
+});
+
+Deno.test("[Helpers] pathsMatched", () => {
+  const mutation = { a: 1, b: 2, c: { d: 3 }, e: { f: { g: 4 } } };
+  const A = pathsMatched(mutation, ["a"]);
+  assertEquals(A, [["a"]]);
+
+  const B = pathsMatched(mutation, ["b"]);
+  assertEquals(B, [["b"]]);
+
+  const C = pathsMatched(mutation, ["c", "d"]);
+  assertEquals(C, [["c", "d"]]);
+
+  const E = pathsMatched(mutation, ["e", "f", "g"]);
+  assertEquals(E, [["e", "f", "g"]]);
+
+  const X = pathsMatched(mutation, ["c", "x"]);
+  assertEquals(X, []);
+});
+
+Deno.test("[Helpers] pathsMatched $query", () => {
+  const mutation = { a: 1, b: 2 };
+  const A = pathsMatched(mutation, ["$query"]);
+  assertEquals(A, [["a"], ["b"]]);
+});
+Deno.test("[Helpers] pathsMatched $query", () => {
+  const mutation = { a: 1, b: 2, c: { d: 3 } };
+  const A = pathsMatched(mutation, ["$query"]);
+  assertEquals(A, [["a"], ["b"], ["c"]]);
+});
+Deno.test("[Helpers] pathsMatched $query", () => {
+  const mutation = { a: { b: 1, c: 2 } };
+  const A = pathsMatched(mutation, ["a", "$query"]);
+  assertEquals(A, [["a", "b"], ["a", "c"]]);
+});
+
+Deno.test("[Helpers] pathsMatched $query", () => {
+  const mutation = { x: { a: { b: 1, c: 2 } } };
+  const A = pathsMatched(mutation, ["x", "a", "$query"]);
+  assertEquals(A, [["x", "a", "b"], ["x", "a", "c"]]);
+});
+
+Deno.test("[Helpers] pathsMatched $query", () => {
+  const mutation = { a: { b: 1, c: 2 } };
+  const A = pathsMatched(mutation, ["$query", "b"]);
+  assertEquals(A, [["a", "b"]]);
+});
+
+Deno.test("[Helpers] pathsMatched $query", () => {
+  const mutation = { a: { b: 1, c: 2 }, A: { b: 1, c: 2 } };
+  const A = pathsMatched(mutation, ["$query", "b"]);
+  assertEquals(A, [["a", "b"], ["A", "b"]]);
+});
+
+Deno.test("[Helpers] pathsMatched array", () => {
+  const mutation = [1, 2, 3];
+  const A = pathsMatched(mutation, ["1"]);
+  assertEquals(A, [["1"]]);
+});
+
+Deno.test("[Helpers] pathsMatched array", () => {
+  const mutation = [{ a: 1 }, { b: 2 }, { a: 3 }];
+  const A = pathsMatched(mutation, ["$index", "b"]);
+  assertEquals(A, [["1", "b"]]);
+});
+
+Deno.test("[Helpers] pathsMatched array", () => {
+  const mutation = [{ a: 1 }, { b: 2 }, { a: 3 }];
+  const A = pathsMatched(mutation, ["$index", "a"]);
+  assertEquals(A, [["0", "a"], ["2", "a"]]);
+});
+
+Deno.test("[Helpers] pathsMatched array", () => {
+  const mutation = [{ a: 1 }, { b: 2 }, { a: 3 }];
+  const A = pathsMatched(mutation, ["$index", "$any"]);
+  assertEquals(A, [["0", "a"], ["1", "b"], ["2", "a"]]);
+});
+Deno.test("[Helpers] pathsMatched array", () => {
+  const mutation = [[1, 2], [3, 4]];
+  const A = pathsMatched(mutation, ["$x", "$y"]);
+  assertEquals(A, [["0", "0"], ["0", "1"], ["1", "0"], ["1", "1"]]);
+});
+
+Deno.test("[Helpers] pathsMatched deeper", () => {
+  const mutation = { a: 1 };
+  const A = pathsMatched(mutation, ["a"]);
+  assertEquals(A, [["a"]]);
+});
+
+Deno.test("[Helpers] pathsMatched deeper", () => {
+  const mutation = {a:1};
+  const A = pathsMatched(mutation, ["a",'c']);
+  assertEquals(A, [["a",'c']]);
+});
+
+Deno.test("[Helpers] pathsMatched deeper", () => {
+  const mutation = { a: 1 };
+  const A = pathsMatched(mutation, ["a", "b"]);
+  assertEquals(A, [["a", "b"]]);
+});
+
+Deno.test("[Helpers] getParamsFromKeys", () => {
+  assertEquals(
+    getParamsFromKeys(["a"], ["$x"]),
+    { $x: "a" },
+  );
+  assertEquals(
+    getParamsFromKeys(["a", "b"], ["$x", "b"]),
+    { $x: "a" },
+  );
+  assertEquals(
+    getParamsFromKeys(["a", "b"], ["$x", "$y"]),
+    { $x: "a", $y: "b" },
+  );
+  assertEquals(
+    getParamsFromKeys(["a", "b", "c"], ["a", "b", "c"]),
+    {},
+  );
+});

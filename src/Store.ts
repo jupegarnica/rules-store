@@ -3,14 +3,17 @@ import {
   applyCloneOnGet,
   deepClone,
   deepGet,
+  deepMerge,
   deepSet,
   findAllRules,
   findDeepestRule,
   findRule,
+  getParamsFromKeys,
   isNumberKey,
   isObjectOrArray,
   keysFromPath,
   pathFromKeys,
+  pathsMatched,
 } from "./helpers.ts";
 
 import { equal } from "./deps.ts";
@@ -53,10 +56,18 @@ export class Store {
   #rules: Rules;
   #subscriptions: Subscription[] = [];
   #subscriptionsLastId = 0;
+  #duringTransaction = false;
   #transformationsToCommit: Transformation[] = [];
   #transformationsToRollback: Transformation[] = [];
-  #duringTransaction = false;
+  #mutationDiff: ObjectOrArray = {};
 
+  get _dataShape() {
+    return Array.isArray(this.#newData) ? [] : {};
+  }
+
+  get _data() {
+    return this.#duringTransaction ? this.#newData : this.#data;
+  }
   /**
    * Create a new Store instance.
    *
@@ -106,7 +117,7 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    *
    * @param valueOrFunction The new value or a function to run with the oldValue
-   * @returns  The value added, maybe transformed by _transform
+   * @returns  The value added, maybe transformed by _transform and/or _as
    *
    */
   public set(
@@ -127,7 +138,7 @@ export class Store {
     }
 
     this._set(keys, newValue);
-    return this._get(keys);
+    return this._getAs(keys);
   }
 
   /**
@@ -147,11 +158,14 @@ export class Store {
     }
     if (isNumberKey(lastKey)) {
       // remove array child
+      const isTransaction = this.#duringTransaction;
+      this.beginTransaction();
       this._set(keys, undefined);
       const parentKeys = keys.filter((_: Value, index: number) =>
         (index) !== keys.length - 1
       );
       this._removeItem(parentKeys, lastKey);
+      if (!isTransaction) this.commit();
     } else {
       // remove object key
       this._set(keys, undefined);
@@ -330,7 +344,7 @@ export class Store {
     const id = ++this.#subscriptionsLastId;
     this.#subscriptions.push({
       callback,
-      path,
+      path: keys,
       id,
     });
     return id;
@@ -347,7 +361,9 @@ export class Store {
    */
   public on(path: string, callback: Subscriber): number {
     const id = this.subscribe(path, callback);
-    const data = this._getAndCheck(keysFromPath(path));
+    const keys = keysFromPath(path);
+    this._checkPermission("_read", keys);
+    const data = this._getAs(keys);
     const payload = { newData: undefined, oldData: undefined };
     applyCloneOnGet(payload, "newData", data);
     applyCloneOnGet(payload, "oldData", data);
@@ -361,15 +377,11 @@ export class Store {
    * @param path The path
    * @param id the subscription identifier
    */
-  public off(path: string, id: number): void {
+  public off(id: number): void {
     const oldLength = this.#subscriptions.length;
 
     this.#subscriptions = this.#subscriptions.filter(
-      (subscription) =>
-        !(
-          subscription.path === path &&
-          subscription.id === id
-        ),
+      (subscription) => subscription.id !== id,
     );
 
     if (oldLength === this.#subscriptions.length) {
@@ -383,7 +395,10 @@ export class Store {
   public getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
     return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#newData : {};
   }
-
+  public beginTransaction(): Store {
+    this.#duringTransaction = true;
+    return this;
+  }
   public commit() {
     this.#duringTransaction = false;
     this._commit(
@@ -407,51 +422,21 @@ export class Store {
     this.#newData = deepClone(data);
   }
 
-  private _notify() {
-    for (const subscription of this.#subscriptions) {
-      const { path, callback, id } = subscription;
-      const keys = keysFromPath(path);
-      // TODO What to do when a _read rule fails notifying subscribers?
-      try {
-        this._checkPermission("_read", keys);
-      } catch (error) {
-        console.warn(
-          `Subscription ${id} has not read permission.\n`,
-          error.message,
-        );
-        return;
-      }
-      const data = deepGet(this.#data, keys);
-      const newData = deepGet(this.#newData, keys);
-      const payload = { newData: undefined, oldData: undefined };
-      // TODO Apply getAs
-      if (!equal(data, newData)) {
-        applyCloneOnGet(payload, "newData", newData);
-        applyCloneOnGet(payload, "oldData", data);
-        try {
-          callback(payload);
-        } catch (error) {
-          // throw error;
-          // Do not throw
-          console.error(
-            `Subscription callback ${id} has thrown.\n`,
-            error.message,
-          );
-        }
-      }
-    }
-  }
-  private _createRuleContext(params: Params, rulePath: Keys): RuleContext {
-    const _data = deepGet(this.#data, rulePath);
+  private _createRuleContext(
+    params: Params,
+    rulePath: Keys,
+    rootData = this.#data,
+  ): RuleContext {
+    const _data = deepGet(rootData, rulePath);
     const _newData = deepGet(this.#newData, rulePath);
     const context = {
       ...params,
       _data,
       _newData,
-      _rootData: this.#data,
+      _rootData: this._data,
     };
     applyCloneOnGet(context, "data", _data);
-    applyCloneOnGet(context, "rootData", this.#data);
+    applyCloneOnGet(context, "rootData", this._data);
     applyCloneOnGet(
       context,
       "newData",
@@ -533,8 +518,7 @@ export class Store {
     return transformationsToApply;
   }
   private _get(keys: Keys): Value {
-    const data = this.#duringTransaction ? this.#newData : this.#data;
-    return deepGet(data, keys);
+    return deepGet(this._data, keys);
   }
   private _getAndCheck(keys: Keys): Value {
     this._checkPermission("_read", keys);
@@ -544,7 +528,9 @@ export class Store {
     let data;
     const maybeFound = findRule("_as", keys, this.#rules);
     if (typeof maybeFound._as === "function") {
-      data = maybeFound._as(this._createRuleContext(maybeFound.params, keys));
+      data = maybeFound._as(
+        this._createRuleContext(maybeFound.params, keys, this._data),
+      );
     } else {
       data = this._get(keys);
     }
@@ -588,8 +574,8 @@ export class Store {
 
     try {
       // create write diff
-      const diff = Array.isArray(this.#newData) ? [] : {};
-      deepSet(diff, keys, value || 1);
+      const diff = this._dataShape;
+      deepSet(diff, keys, value || {});
 
       // apply write
       this._applyTransformations(
@@ -609,6 +595,7 @@ export class Store {
       );
 
       this._checkValidation(diff);
+      deepMerge(this.#mutationDiff, diff);
 
       if (this.#duringTransaction) {
         this.#transformationsToCommit.push(
@@ -628,23 +615,21 @@ export class Store {
       throw error;
     }
   }
-  public beginTransaction(): Store {
-    this.#duringTransaction = true;
-    return this;
-  }
+
   protected _commit(
     toCommit: Transformation[],
   ): void {
     this._notify();
     const removed = [] as Transformation[];
     try {
-      this._applyTransformations(this.#data, toCommit, removed, true);
+      this._applyTransformations(this._data, toCommit, removed, true);
+      this.#mutationDiff = this._dataShape;
     } catch (error) {
       this._rollback(removed);
       throw error;
     }
-    // assertEquals(this.#data, this.#newData);
-    // assertDeepClone(this.#data, this.#newData);
+    // assertEquals(this._data, this.#newData);
+    // assertDeepClone(this._data, this.#newData);
   }
   private _rollback(transformations: Transformation[]): void {
     const removed = [] as Transformation[];
@@ -653,8 +638,52 @@ export class Store {
       transformations.reverse(),
       removed,
     );
-    // assertEquals(this.#data, this.#newData);
-    // assertDeepClone(this.#data, this.#newData);
+    // assertEquals(this._data, this.#newData);
+    // assertDeepClone(this._data, this.#newData);
+  }
+
+  private _notify() {
+    for (const subscription of this.#subscriptions) {
+      const { path, callback, id } = subscription;
+      // console.count();
+      console.log("this.#mutationDiff\n", this.#mutationDiff);
+
+      const paths = pathsMatched(this.#mutationDiff, path);
+      console.log({ paths });
+
+      for (const keys of paths) {
+        const params = getParamsFromKeys(keys, path);
+
+        try {
+          this._checkPermission("_read", keys);
+        } catch (error) {
+          console.warn(
+            `Subscription ${id} has not read permission.\n`,
+            error.message,
+          );
+          return;
+        }
+        const data = deepGet(this._data, keys);
+        const newData = deepGet(this.#newData, keys);
+        const payload = { ...params, newData: undefined, oldData: undefined };
+        // TODO Apply getAs
+        if (!equal(data, newData)) {
+          applyCloneOnGet(payload, "newData", newData);
+          applyCloneOnGet(payload, "oldData", data);
+          try {
+            callback(payload);
+          } catch (error) {
+            // TODO What to do when a _read rule fails notifying subscribers?
+            // throw error;
+            // Do not throw
+            console.error(
+              `Subscription callback ${id} has thrown.\n`,
+              error.message,
+            );
+          }
+        }
+      }
+    }
   }
   private _removeItem(targetKeys: Keys, keyToRemove: string) {
     const removed = [] as Transformation[];
@@ -670,14 +699,10 @@ export class Store {
         [transformation],
         removed,
       );
-      if (this.#duringTransaction) {
-        this.#transformationsToCommit.push(
-          transformation,
-        );
-        this.#transformationsToRollback.push(...removed);
-        return;
-      }
-      this._commit([transformation]);
+      this.#transformationsToCommit.push(
+        transformation,
+      );
+      this.#transformationsToRollback.push(...removed);
     } catch (error) {
       this._rollback(removed);
       throw error;

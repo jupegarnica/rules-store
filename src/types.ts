@@ -26,7 +26,7 @@ export type Subscriber = (data: SubscriberPayload) => void;
 export type Subscription = {
   callback: Subscriber;
   id: number;
-  path: string;
+  path: Keys;
 };
 
 export type Transformation = {

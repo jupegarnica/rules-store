@@ -10,14 +10,16 @@
 - [x] performance benchmarks
 - [x] rule \_validate
 - [x] rule \_transform
-- [ ] rule \_attach
-- [ ] .findAndUpdate
-- [ ] .subscribe('/path/$params')
+- [x] rule \_as
+- [x] .subscribe('/path/$params/key')
+- [ ] SubscriptionPayload with isUpdated isDeleted isCreated
+- [ ] .findAndUpdate .findOneAndUpdate
 - [ ] Support for JSON5?
 - [ ] do not allow set to undefined
 - [ ] parse json with wasm
 - [ ] .setTransaction({path: value, path2:value})
 - [ ] bundle StoreLocalStorage
+- [ ] bundle to npm
 - [ ] maybe .sort(fn)
 
 #

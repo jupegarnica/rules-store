@@ -163,29 +163,29 @@ Deno.test("[Lab] symbols", () => {
 //   // assertThrows(() => db.set("set", "hola"));
 // });
 
-Deno.test({
-  name: "[Lab] rules as array",
-  ignore: true,
-  fn: () => {
-    const db = new StoreJson({
-      rules: {
-        _write: () => true,
-        arr: [
-          {
-            _read: () => true,
-          },
-          {
-            _read: () => false,
-          },
-        ],
-      },
-    });
-    db.set("arr", [1, 2]);
+// Deno.test({
+//   name: "[Lab] rules as array",
+//   ignore: true,
+//   fn: () => {
+//     const db = new StoreJson({
+//       rules: {
+//         _write: () => true,
+//         arr: [
+//           {
+//             _read: () => true,
+//           },
+//           {
+//             _read: () => false,
+//           },
+//         ],
+//       },
+//     });
+//     db.set("arr", [1, 2]);
 
-    assertEquals(
-      db.get("arr.0"),
-      1,
-    );
-    assertThrows(() => db.get("arr.1"), Error, "/arr/1");
-  },
-});
+//     assertEquals(
+//       db.get("arr.0"),
+//       1,
+//     );
+//     assertThrows(() => db.get("arr.1"), Error, "/arr/1");
+//   },
+// });

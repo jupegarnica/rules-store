@@ -1,1 +1,0 @@
-{"scriptId":"54","url":"deno:runtime/js/40_read_file.js","functions":[{"functionName":"readFileSync","ranges":[{"startOffset":221,"endOffset":404,"count":20}],"isBlockCoverage":true}]}

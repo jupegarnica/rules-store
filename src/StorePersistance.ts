@@ -37,7 +37,6 @@ export abstract class StorePersistance extends Store {
     const folder = config?.folder || fromFileUrl(dirname(Deno.mainModule));
     this.#storePath = resolve(folder, filename);
     this.load();
-    this.writeLazy = async () => {};
     this.writeLazy = debounce(
       () => this.write(),
       this.#writeLazyDelay,

@@ -2,7 +2,7 @@ import { Store } from "../src/Store.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import { onlyCreate } from "../src/rules.ts";
+import { onlyCreate } from "../src/rulesTemplates.ts";
 Deno.test("[Rules _write] .set", () => {
   const rules = {
     allowed: {
@@ -156,19 +156,3 @@ Deno.test("[Rules _write] .set(function) without read permission", () => {
   db.set("a", 1);
   assertThrows(() => db.set("a", (val: number) => val + 1));
 });
-
-Deno.test("[Rules _write] onlyCreate", () => {
-  const db = new Store({ rules: onlyCreate });
-  db.set("a", 1);
-  assertThrows(() => db.set("a", 1));
-  assertThrows(() => db.remove("a"));
-  assertThrows(() => db.findAndRemove("a", () => true));
-});
-
-// Deno.test("[Rules _write] onlyUpdate", () => {
-//   const db = new Store({ rules: onlyUpdate });
-//   db.set("a", 1);
-//   assertThrows(() => db.set("a", 1));
-//   assertThrows(() => db.remove("a"));
-//   assertThrows(() => db.findAndRemove("a", ()=> true));
-// });

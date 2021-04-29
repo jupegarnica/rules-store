@@ -85,11 +85,10 @@ export const applyCloneOnGet = (
   value: Value,
 ) => {
   let data: Value;
-
   Object.defineProperty(obj, key, {
     set() {
-      // Reflect.set(obj, key, val);
-      throw new Error("context must be inmutable");
+      // // Reflect.set(obj, key, val);
+      // throw new Error("context must be inmutable");
     },
     get() {
       if (data) {
@@ -131,8 +130,10 @@ export const deepMerge = (
       Object.assign(source[key], deepMerge(target[key], source[key]));
     }
   }
-  const shape = Array.isArray(source) ? [] : {};
-  Object.assign(target ?? shape, source);
+  // TODO Needed?
+  // const shape = Array.isArray(source) ? [] : {};
+  // Object.assign(target ?? shape, source);
+  Object.assign(target, source);
   return target;
 };
 
@@ -153,13 +154,10 @@ export const deepClone = (obj: Value) => {
   if (!isObjectOrArray(obj)) return obj;
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
-  Object.keys(clone).forEach(
-    (
-      key,
-    ) => (clone[key] = isObjectOrArray(obj[key])
-      ? deepClone(obj[key])
-      : obj[key]),
-  );
+  Object.keys(clone);
+  for (const key in clone) {
+    clone[key] = deepClone(obj[key]);
+  }
   // assertDeepClone(obj, clone);
   return clone;
 };
@@ -245,7 +243,7 @@ export const deepSet = (
   for (const key of keys) {
     if (!key) break;
     if (!worker) break;
-    index++;
+    index += 1;
     const _isNumberKey = isNumberKey(key);
     const isArray = Array.isArray(worker);
     if (isArray && !_isNumberKey) {

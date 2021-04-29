@@ -96,7 +96,7 @@ Deno.test("[Rules _transform] on remove", () => {
 
   const removed = db.remove("a");
   assertEquals(removed, 1);
-  assertEquals(mock.calls.length, 2); // twice, once in #newData and once in #data
+  assertEquals(mock.calls.length, 1);
   assertEquals(db.get(""), { b: 2 });
 });
 Deno.test("[Rules _transform] in the parent", () => {

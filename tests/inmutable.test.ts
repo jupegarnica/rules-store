@@ -16,6 +16,21 @@ Deno.test("[Store] Set inmutable behavior", () => {
   );
 });
 
+Deno.test("[Store] getPrivateData getPrivateNewData", () => {
+  const db = new Store();
+  const obj = { b: 1 };
+  db.set("a", obj);
+
+  assertEquals(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: false }),
+    {},
+  );
+  assertEquals(
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: false }),
+    {},
+  );
+});
+
 Deno.test("[Store] Set function inmutable behavior", () => {
   const db = new Store();
   const a = { b: 1 };
@@ -173,41 +188,20 @@ Deno.test("[Rules context] data inmutable", () => {
   };
   const db = new Store({ rules });
   db.set("a.b", 1);
-  db.get("a.b");
-  assertEquals(calls, 1);
   assertEquals(
     db.get("a.b"),
     1,
   );
-  assertEquals(calls, 2);
+  assertEquals(calls, 1);
 });
 
 Deno.test("[Rules context] data inmutable even root", () => {
   let calls = 0;
   const rule = (context: RuleContext) => {
     calls++;
-    assertThrows(
-      () => {
-        context.rootData = {};
-      },
-      Error,
-      "inmutable",
-    );
-    assertThrows(
-      () => {
-        context.newData = 3;
-      },
-      Error,
-      "inmutable",
-    );
-    assertThrows(
-      () => {
-        context.data = 2;
-      },
-      Error,
-      "inmutable",
-    );
-
+    context.rootData = {};
+    context.newData = 3;
+    context.data = 2;
     return true;
   };
   const rules = {
@@ -222,8 +216,8 @@ Deno.test("[Rules context] data inmutable even root", () => {
   const db = new Store({ rules });
   assertEquals(db.set("a.b.c", 1), 1);
   assertEquals(calls, 1);
-  // assertEquals(db.get("a.b.c"), 1);
-  // assertEquals(calls, 2);
+  assertEquals(db.get("a.b.c"), 1);
+  assertEquals(calls, 2);
 });
 
 Deno.test("[Rules context] data, newData, rootData inmutable", () => {

@@ -27,18 +27,15 @@ import type {
   RuleContext,
   Rules,
   Subscriber,
+  SubscriberPayload,
   Subscription,
   Transformation,
   Value,
   ValueOrFunction,
 } from "./types.ts";
-import {
-  PermissionError,
-  SubscriptionNotFoundError,
-  ValidationError,
-} from "./Errors.ts";
+import { PermissionError, ValidationError } from "./Errors.ts";
 
-import { allowAll } from "./rules.ts";
+import { allowAll } from "./rulesTemplates.ts";
 
 // assertDeepClone,
 // const { assertDeepClone } = await import("./helpers.ts");
@@ -199,7 +196,7 @@ export class Store {
         const targetIndex = initialLength + Number(index);
         const keysToNewItem = addChildToKeys(keys, String(targetIndex));
         this._set(keysToNewItem, values[index]);
-        returned.push(this._get(keysToNewItem));
+        returned.push(this._getAs(keysToNewItem));
       }
       if (!isTransaction) this.commit();
       return returned.length > 1 ? returned : returned[0];
@@ -351,33 +348,12 @@ export class Store {
   }
 
   /**
-   * Subscribe to changes in the path
-   * It will run the callback if the path value has changed
-   * Also runs the callback on the first time
-   *
-   * @param path The path
-   * @param callback A function to be called when the value has changed and during subscription
-   * @returns  The value
-   */
-  public on(path: string, callback: Subscriber): number {
-    const id = this.subscribe(path, callback);
-    const keys = keysFromPath(path);
-    this._checkPermission("_read", keys);
-    const data = this._getAs(keys);
-    const payload = { newData: undefined, oldData: undefined };
-    applyCloneOnGet(payload, "newData", data);
-    applyCloneOnGet(payload, "oldData", data);
-    callback(payload);
-    return id;
-  }
-
-  /**
    * Unsubscribe to changes in the path
    *
    * @param path The path
    * @param id the subscription identifier
    */
-  public off(id: number): void {
+  public off(id: number): boolean {
     const oldLength = this.#subscriptions.length;
 
     this.#subscriptions = this.#subscriptions.filter(
@@ -385,8 +361,9 @@ export class Store {
     );
 
     if (oldLength === this.#subscriptions.length) {
-      throw new SubscriptionNotFoundError("no subscription found");
+      return false;
     }
+    return true;
   }
   public getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA = false }) {
     return I_PROMISE_I_WONT_MUTATE_THIS_DATA ? this.#data : {};
@@ -444,6 +421,17 @@ export class Store {
     );
     return context as RuleContext;
   }
+  private _createSubscriptionPayload(
+    params: Params,
+    keys: Keys,
+  ): SubscriberPayload {
+    const oldData = (this._getAsFrom(this.#data, keys));
+    const newData = (this._getAsFrom(this.#newData, keys));
+    const payload = params;
+    applyCloneOnGet(payload, "newData", newData);
+    applyCloneOnGet(payload, "oldData", oldData);
+    return payload as SubscriberPayload;
+  }
   private _checkPermission(
     ruleType: "_read" | "_write",
     keys: Keys,
@@ -468,8 +456,12 @@ export class Store {
           }`,
         );
       }
-      const ruleContext = this._createRuleContext(params, rulePath);
-      const allowed = rule?.(ruleContext as RuleContext);
+      const ruleContext = this._createRuleContext(
+        params,
+        rulePath,
+      ) as RuleContext;
+
+      const allowed = rule && rule(ruleContext);
 
       if (!allowed) {
         throw new PermissionError(
@@ -525,14 +517,18 @@ export class Store {
     return (this._get(keys));
   }
   private _getAs(keys: Keys): Value {
+    return this._getAsFrom(this._data, keys);
+  }
+
+  private _getAsFrom(target: ObjectOrArray, keys: Keys): Value {
     let data;
     const maybeFound = findRule("_as", keys, this.#rules);
     if (typeof maybeFound._as === "function") {
       data = maybeFound._as(
-        this._createRuleContext(maybeFound.params, keys, this._data),
+        this._createRuleContext(maybeFound.params, keys, target),
       );
     } else {
-      data = this._get(keys);
+      data = deepGet(target, keys);
     }
     return data;
   }
@@ -543,12 +539,14 @@ export class Store {
     cloneValue = false,
   ): void {
     for (
-      const { keys, value, transformContext, type, index } of transformations
+      const transformation of transformations
     ) {
+      const { keys, value, transformContext, type, index } = transformation;
       if (type === "set") {
         let newValue = value;
         if (transformContext && typeof value === "function") {
           newValue = value(transformContext);
+          transformation.value = newValue; // do not run transformation again committing to #data
         }
         if (cloneValue) {
           newValue = deepClone(newValue);
@@ -647,35 +645,38 @@ export class Store {
     for (const subscription of this.#subscriptions) {
       const { path, callback, id } = subscription;
       const paths = pathsMatched(this.#mutationDiff, path);
+
       for (const keys of paths) {
         const params = getParamsFromKeys(keys, path);
 
         try {
           this._checkPermission("_read", keys);
         } catch (error) {
+          // TODO What to do when a subscriber has no _read Permission
           console.warn(
             `Subscription ${id} has not read permission.\n`,
             error.message,
           );
+          // throw error;
           return;
         }
-        const data = deepGet(this._data, keys);
+        const oldData = deepGet(this.#data, keys);
         const newData = deepGet(this.#newData, keys);
-        const payload = { ...params, newData: undefined, oldData: undefined };
-        // TODO Apply getAs
-        if (!equal(data, newData)) {
-          applyCloneOnGet(payload, "newData", newData);
-          applyCloneOnGet(payload, "oldData", data);
+        if (!equal(oldData, newData)) {
+          const payload = this._createSubscriptionPayload(
+            params,
+            keys,
+          );
           try {
             callback(payload);
           } catch (error) {
-            // TODO What to do when a _read rule fails notifying subscribers?
-            // throw error;
+            // TODO What to do when a subscription fails running callback?
             // Do not throw
             console.error(
               `Subscription callback ${id} has thrown.\n`,
               error.message,
             );
+            // throw error;
           }
         }
       }

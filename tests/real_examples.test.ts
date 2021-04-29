@@ -49,6 +49,7 @@ Deno.test("[Rules Examples] list of numbers", () => {
   assertThrows(() => db.push("myNumbers", 5, null));
   assertEquals(db.get("myNumbers"), [2, 3, 4]);
 });
+
 Deno.test("[Rules Examples] createAt updateAt", () => {
   const now = new Date().toISOString();
   const rules = {

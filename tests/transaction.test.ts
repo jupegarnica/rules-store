@@ -131,6 +131,32 @@ Deno.test("[Transactions] on push subscription", () => {
   db.commit();
   assertEquals(mock.calls.length, 1);
 });
+Deno.test("[Transactions] on push  transaction and rollback", () => {
+  const db = new Store({
+    initialData: { a: [1, 2, 3] },
+  });
+  db.beginTransaction();
+  db.push("a", 4, 5, 6);
+  db.rollback();
+  assertEquals(db.get("a"), [1, 2, 3]);
+});
+Deno.test("[Transactions] on push fails during transaction", () => {
+  const db = new Store({
+    initialData: { a: [1, 2, 3] },
+    rules: {
+      a: {
+        _read: () => true,
+        _write: ({ newData }: RuleContext) => newData.length <= 5,
+      },
+    },
+  });
+  db.beginTransaction();
+  assertThrows(() => {
+    db.push("a", 4, 5, 6);
+  });
+  db.commit();
+  assertEquals(db.get("a"), [1, 2, 3, 4, 5]);
+});
 
 Deno.test("[Transactions] on remove subscription", () => {
   // deno-lint-ignore no-explicit-any

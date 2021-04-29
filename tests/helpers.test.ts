@@ -13,6 +13,7 @@ import {
   keysFromPath,
   pathsMatched,
 } from "../src/helpers.ts";
+import { ObjectOrArray } from "../src/types.ts";
 
 import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 
@@ -392,6 +393,33 @@ Deno.test("[Helpers] deepMerge empty target", () => {
   assertEquals(target === res, true);
 });
 
+Deno.test("[Helpers] deepMerge mix shapes", () => {
+  const target = { a: { b: null } };
+  const source = { a: [{ d: 3 }], x: 1 };
+  const res = deepMerge(target, source);
+
+  assertEquals(target, source);
+  assertEquals(target === res, true);
+});
+
+Deno.test("[Helpers] deepMerge empty target", () => {
+  const target = {};
+  const source = [1, 2, 3];
+  const res = deepMerge(target, source);
+
+  assertEquals(target, source);
+  assertEquals(target === res, true);
+});
+
+Deno.test("[Helpers] deepMerge empty target arr", () => {
+  const target = [] as ObjectOrArray;
+  const source = { a: [{ d: 3 }], x: 1 };
+  const res = deepMerge(target, source);
+
+  assertEquals(target, source);
+  assertEquals(target === res, true);
+});
+
 Deno.test("[Helpers] deepMerge empty source", () => {
   const target = { a: [{ b: 1, c: 2 }] };
   const source = {};
@@ -510,6 +538,12 @@ Deno.test("[Helpers] pathsMatched deeper", () => {
 Deno.test("[Helpers] pathsMatched deeper", () => {
   const mutation = { b: 1 };
   const A = pathsMatched(mutation, ["a"]);
+  assertEquals(A, []);
+});
+
+Deno.test("[Helpers] pathsMatched deeper", () => {
+  const mutation = { a: { b: { d: 1 } } };
+  const A = pathsMatched(mutation, ["a", "b", "c"]);
   assertEquals(A, []);
 });
 

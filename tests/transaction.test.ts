@@ -117,7 +117,7 @@ Deno.test("[Transactions] on push subscription", () => {
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a",
     ({ newData, oldData }) => {
       assertEquals(newData, [1, 2, 3, 10]);
@@ -163,7 +163,7 @@ Deno.test("[Transactions] on remove subscription", () => {
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a.1",
     ({ newData, oldData }) => {
       assertEquals(newData, 3);
@@ -183,7 +183,7 @@ Deno.test("[Transactions] on remove subscription 2", () => {
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a",
     ({ newData, oldData }) => {
       assertEquals(newData, [1, 3]);
@@ -203,7 +203,7 @@ Deno.test("[Transactions] on remove subscription 3", () => {
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a",
     ({ newData, oldData }) => {
       assertEquals(newData, [1]);
@@ -224,7 +224,7 @@ Deno.test("[Transactions] on remove rollback", () => {
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a",
     mock,
   );
@@ -246,7 +246,7 @@ Deno.test("[Transactions] findAndRemove should perform a transaction", () => {
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a",
     mock,
   );
@@ -262,11 +262,11 @@ Deno.test("[Transactions] findAndRemove subscription on children once each", () 
   const mock: Spy<any> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.subscribe(
+  db.observe(
     "a.1",
     mock,
   );
-  db.subscribe(
+  db.observe(
     "a.2",
     mock,
   );

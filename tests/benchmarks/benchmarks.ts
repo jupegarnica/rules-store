@@ -12,7 +12,7 @@ import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 import { StoreJson } from "../../src/StoreJson.ts";
 import { StoreYaml } from "../../src/StoreYaml.ts";
 import { StoreBson } from "../../src/StoreBson.ts";
-import { KeyValue, SubscriberPayload } from "../../src/types.ts";
+import { KeyValue, ObserverPayload } from "../../src/types.ts";
 
 const RUNS = Number(Deno.args[0]) ||
   1e3;
@@ -464,7 +464,7 @@ bench({
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
-    db.subscribe("$item/i/i", () => {});
+    db.observe("$item/i/i", () => {});
     b.start();
     for (let i = 0; i < RUNS; i++) {
       db.set("item" + i, "HELLO");
@@ -477,7 +477,7 @@ bench({
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
-    db.subscribe("$item/i/$i", () => {});
+    db.observe("$item/i/$i", () => {});
     b.start();
     db.set("item" + RUNS, "HELLO");
     b.stop();
@@ -488,7 +488,7 @@ bench({
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
-    db.subscribe("$item/i/i", () => {});
+    db.observe("$item/i/i", () => {});
     b.start();
     db.set("item" + RUNS, "HELLO");
     b.stop();
@@ -499,9 +499,9 @@ bench({
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
-    db.subscribe(
+    db.observe(
       "$item/i/i",
-      ({ newData, oldData }: SubscriberPayload) => ({ newData, oldData }),
+      ({ newData, oldData }: ObserverPayload) => ({ newData, oldData }),
     );
     b.start();
     db.set("item" + RUNS, "HELLO");

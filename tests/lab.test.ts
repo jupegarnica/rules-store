@@ -75,6 +75,7 @@ Deno.test({
   // TODO FIX _transform on root
   name: "[Lab] _transform on root bug",
   ignore: true,
+  // only: true,
   fn: () => {
     const db = new StoreJson({
       initialData: {

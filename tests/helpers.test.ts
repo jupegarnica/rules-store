@@ -456,6 +456,12 @@ Deno.test("[Helpers] pathsMatched", () => {
   assertEquals(X, []);
 });
 
+Deno.test("[Helpers] pathsMatched at root", () => {
+  const mutation = { a: 1 };
+  const A = pathsMatched(mutation, []);
+  assertEquals(A, []);
+});
+
 Deno.test("[Helpers] pathsMatched $query", () => {
   const mutation = { a: 1, b: 2 };
   const A = pathsMatched(mutation, ["$query"]);

@@ -21,16 +21,16 @@ export type KeyValue = [string, Value];
 // deno-lint-ignore no-explicit-any
 export type Finder = (pair: KeyValue) => any;
 
-export type SubscriberPayload = {
+export type ObserverPayload = {
   newData: Value;
   oldData: Value;
   isUpdated: boolean;
   isCreated: boolean;
   isDeleted: boolean;
 };
-export type Subscriber = (data: SubscriberPayload) => void;
+export type Observer = (data: ObserverPayload) => void;
 export type Subscription = {
-  callback: Subscriber;
+  callback: Observer;
   id: number;
   path: Keys;
 };

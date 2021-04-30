@@ -23,11 +23,11 @@ import type {
   Keys,
   KeyValue,
   ObjectOrArray,
+  Observer,
+  ObserverPayload,
   Params,
   RuleContext,
   Rules,
-  Subscriber,
-  SubscriberPayload,
   Subscription,
   Transformation,
   Value,
@@ -335,7 +335,7 @@ export class Store {
    * @param callback A function to be called when the value has changed and during subscription
    * @returns  The value
    */
-  public subscribe(path: string, callback: Subscriber): number {
+  public observe(path: string, callback: Observer): number {
     const keys = keysFromPath(path);
     this._checkPermission("_read", keys);
     const id = ++this.#subscriptionsLastId;
@@ -348,7 +348,7 @@ export class Store {
   }
 
   /**
-   * Unsubscribe to changes in the path
+   * Unobserve to changes in the path
    *
    * @param path The path
    * @param id the subscription identifier
@@ -424,7 +424,7 @@ export class Store {
   private _createSubscriptionPayload(
     params: Params,
     keys: Keys,
-  ): SubscriberPayload {
+  ): ObserverPayload {
     const oldData = (this._getAsFrom(this.#data, keys));
     const newData = (this._getAsFrom(this.#newData, keys));
     const payload = {
@@ -435,7 +435,7 @@ export class Store {
     };
     applyCloneOnGet(payload, "newData", newData);
     applyCloneOnGet(payload, "oldData", oldData);
-    return payload as SubscriberPayload;
+    return payload as ObserverPayload;
   }
   private _checkPermission(
     ruleType: "_read" | "_write",
@@ -657,7 +657,7 @@ export class Store {
         try {
           this._checkPermission("_read", keys);
         } catch (error) {
-          // TODO What to do when a subscriber has no _read Permission
+          // TODO What to do when a observer has no _read Permission
           console.warn(
             `Subscription ${id} has not read permission.\n`,
             error.message,

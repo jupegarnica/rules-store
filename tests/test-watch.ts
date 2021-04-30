@@ -52,7 +52,7 @@ for await (const event of watcher) {
 //   // assertEquals(data.c, 2);
 
 // };
-// db.subscribe("a.b", onChange);
+// db.observe("a.b", onChange);
 
 // assertEquals(called, 0);
 // db.set("a.b.c", 1);

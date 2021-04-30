@@ -4,14 +4,14 @@
 - [x] push multiple items
 - [x] Set using a function. Ej. db.set('a', oldData => oldData + 1)
 - [x] add config to instantiation: filename, folder, autoSave
-- [x] .subscribe()
+- [x] .observe()
 - [x] find, findOne, findAndRemove, findOneAndRemove
 - [x] rules write and read
 - [x] performance benchmarks
 - [x] rule \_validate
 - [x] rule \_transform
 - [x] rule \_as
-- [x] .subscribe('/path/$params/key')
+- [x] .observe('/path/$params/key')
 - [ ] SubscriptionPayload with isUpdated isDeleted isCreated
 - [ ] \_getAs applied deeper, not only to the target path
 - [ ] .findAndUpdate .findOneAndUpdate

@@ -427,7 +427,12 @@ export class Store {
   ): SubscriberPayload {
     const oldData = (this._getAsFrom(this.#data, keys));
     const newData = (this._getAsFrom(this.#newData, keys));
-    const payload = params;
+    const payload = {
+      ...params,
+      isUpdated: oldData !== undefined && newData !== undefined,
+      isCreated: oldData === undefined,
+      isDeleted: newData === undefined,
+    };
     applyCloneOnGet(payload, "newData", newData);
     applyCloneOnGet(payload, "oldData", oldData);
     return payload as SubscriberPayload;

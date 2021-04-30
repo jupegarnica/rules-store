@@ -45,6 +45,27 @@ Deno.test("[Subscriptions] .subscribe assert payload", () => {
   assertEquals(called, 1);
 });
 
+Deno.test("[Subscriptions] .subscribe assert payload isUpdated, isCreated and isDeleted", () => {
+  const db = new Store();
+  const onChange: Spy<void> = spy();
+
+  db.subscribe("a", onChange);
+  db.set("a", 0);
+  assertEquals(onChange.calls[0].args[0].isCreated, true);
+  assertEquals(onChange.calls[0].args[0].isUpdated, false);
+  assertEquals(onChange.calls[0].args[0].isDeleted, false);
+
+  db.set("a", 1);
+  assertEquals(onChange.calls[1].args[0].isCreated, false);
+  assertEquals(onChange.calls[1].args[0].isUpdated, true);
+  assertEquals(onChange.calls[1].args[0].isDeleted, false);
+
+  db.remove("a");
+  assertEquals(onChange.calls[2].args[0].isCreated, false);
+  assertEquals(onChange.calls[2].args[0].isDeleted, true);
+  assertEquals(onChange.calls[2].args[0].isUpdated, false);
+});
+
 Deno.test("[Subscriptions] .subscribe assert payload inmutable", () => {
   const db = new Store();
 

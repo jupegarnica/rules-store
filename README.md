@@ -13,6 +13,7 @@
 - [x] rule \_as
 - [x] .subscribe('/path/$params/key')
 - [ ] SubscriptionPayload with isUpdated isDeleted isCreated
+- [ ] \_getAs applied deeper, not only to the target path
 - [ ] .findAndUpdate .findOneAndUpdate
 - [ ] Support for JSON5?
 - [ ] do not allow set to undefined

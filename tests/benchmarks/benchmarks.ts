@@ -68,6 +68,19 @@ const toOpsEverySecond = (timeInMs: number, ops: number) =>
 
 // SET
 //////
+bench({
+  name: `[Set] warmup ${RUNS} children`,
+  runs: 1,
+  func(b): void {
+    const db = new StoreJson({ filename: `./data/${RUNS}.json` });
+
+    b.start();
+    for (let i = 0; i < RUNS; i++) {
+      db.set(`item` + i, i);
+    }
+    b.stop();
+  },
+});
 
 bench({
   name: `[Set] ${RUNS} children`,
@@ -450,7 +463,7 @@ bench({
     db.subscribe("$item/i/i", () => {});
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set("item" + RUNS, "HELLO");
+      db.set("item" + i, "HELLO");
     }
     b.stop();
   },

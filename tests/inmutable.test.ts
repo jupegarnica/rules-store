@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows, spy } from "./test_deps.ts";
+import { assertEquals, spy } from "./test_deps.ts";
 import { Store } from "../src/Store.ts";
 import type { Spy } from "./test_deps.ts";
 import type { KeyValue, RuleContext, Value } from "../src/types.ts";

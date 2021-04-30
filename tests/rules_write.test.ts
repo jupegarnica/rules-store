@@ -2,7 +2,6 @@ import { Store } from "../src/Store.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import { onlyCreate } from "../src/rulesTemplates.ts";
 Deno.test("[Rules _write] .set", () => {
   const rules = {
     allowed: {

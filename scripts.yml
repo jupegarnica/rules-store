@@ -9,7 +9,7 @@ scripts:
     - deno coverage --unstable tests/coverage --lcov > tests/coverage/coverage.lcov
     - genhtml -o tests/coverage/html tests/coverage/coverage.lcov
     - deno run -A https://deno.land/std/http/file_server.ts tests/coverage/html
-  lint: deno lint --unstable
+  lint: deno lint --unstable **/*.ts
   format: deno fmt  **/*.ts
   format-check: deno fmt --check -q **/*.ts
   update:

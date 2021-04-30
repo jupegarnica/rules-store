@@ -76,7 +76,11 @@ bench({
 
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, i);
+      db.set(`item` + i, { i: { i: { i } } });
+
+      // db.set(`item` + i, {
+      //   i: { i: { i: { i: { i: { i: { i: { i: { i: { i: { i } } } } } } } } } },
+      // });
     }
     b.stop();
   },

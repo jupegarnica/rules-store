@@ -358,10 +358,10 @@ Deno.test({
 });
 
 Deno.test({
-  only: false,
+  // only: true,
   name: "[Observe] with params args remove",
   fn: () => {
-    const onChange: Spy<void> = spy(() => {});
+    const onChange: Spy<void> = spy();
     const db = new Store({
       initialData: { users: [{ name: "garn" }, { name: "garni" }] },
     });
@@ -369,8 +369,8 @@ Deno.test({
 
     db.remove("users/0");
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].oldData, "garn");
     assertEquals(onChange.calls[0].args[0].newData, undefined);
+    assertEquals(onChange.calls[0].args[0].oldData, "garn");
     assertEquals(onChange.calls[0].args[0].$id, "0");
   },
 });

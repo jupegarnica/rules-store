@@ -223,26 +223,34 @@ Deno.test("[Transactions] on remove subscription 3", () => {
   assertEquals(mock.calls.length, 1);
 });
 
-Deno.test("[Transactions] on remove rollback", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+Deno.test({
+  // only: true,
+  name: "[Transactions] on remove rollback",
+  fn: () => {
+    // deno-lint-ignore no-explicit-any
+    const mock: Spy<any> = spy();
 
-  const db = new Store({ initialData: { a: [1, 2, 3] } });
-  db.observe(
-    "a",
-    mock,
-  );
-  db.beginTransaction();
-  db.remove("a.1");
-  db.set("a.1", 10);
-  assertEquals(
-    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
-    [1, 10],
-  );
-  db.remove("a.1");
-  assertEquals(mock.calls.length, 0);
-  db.rollback();
-  assertEquals(db.get("a"), [1, 2, 3]);
+    const db = new Store({ initialData: { a: [1, 2, 3] } });
+    db.observe(
+      "a",
+      mock,
+    );
+    db.beginTransaction();
+    db.remove("a.1");
+    assertEquals(
+      db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
+      [1, 3],
+    );
+    db.set("a.1", 10);
+    assertEquals(
+      db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
+      [1, 10],
+    );
+    db.remove("a.1");
+    assertEquals(mock.calls.length, 0);
+    db.rollback();
+    assertEquals(db.get("a"), [1, 2, 3]);
+  },
 });
 
 Deno.test("[Transactions] findAndRemove should perform a transaction", () => {

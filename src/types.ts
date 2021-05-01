@@ -35,12 +35,13 @@ export type Subscription = {
   path: Keys;
 };
 
+export type MutationType = "set" | "remove" | "add";
 export type Mutation = {
   keys: Keys;
   value: ValueOrFunction;
   oldValue?: Value;
   params?: Params;
-  type: "set" | "remove" | "add";
+  type: MutationType;
   index?: string;
 };
 

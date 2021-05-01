@@ -23,12 +23,12 @@ import type {
   Keys,
   KeyValue,
   Mutation,
+  MutationType,
   ObjectOrArray,
   Observer,
   ObserverPayload,
   Params,
   RuleArgs,
-  // RuleContext,
   Rules,
   Subscription,
   Value,
@@ -156,7 +156,7 @@ export class Store {
       newValue = (valueOrFunction);
     }
 
-    this._set(keys, newValue);
+    this._mutate(keys, newValue);
     return this._getAs(keys);
   }
 
@@ -179,15 +179,12 @@ export class Store {
       // remove array child
       const isTransaction = this.#duringTransaction;
       // this.beginTransaction();
-      this._set(keys, undefined);
-      const parentKeys = keys.filter((_: Value, index: number) =>
-        (index) !== keys.length - 1
-      );
-      this._removeItem(parentKeys, lastKey);
+      this._mutate(keys, undefined, "remove");
+
       if (!isTransaction) this.commit();
     } else {
       // remove object key
-      this._set(keys, undefined);
+      this._mutate(keys, undefined);
     }
 
     return oldValue;
@@ -217,7 +214,7 @@ export class Store {
       for (const index in values) {
         const targetIndex = initialLength + Number(index);
         const keysToNewItem = addChildToKeys(keys, String(targetIndex));
-        this._set(keysToNewItem, values[index]);
+        this._mutate(keysToNewItem, values[index], "add");
         returned.push(this._getAs(keysToNewItem));
       }
       if (!isTransaction) this.commit();
@@ -582,9 +579,8 @@ export class Store {
       diff.root,
       keys,
     );
-    // console.log({ mutationsToApply: mutationsToApply });
 
-    this._applyTransformations(
+    this._applyMutations(
       diff.root,
       mutationsToApply,
       [], // do not have rollback
@@ -596,47 +592,61 @@ export class Store {
     return r;
   }
 
-  private _applyTransformations(
+  private _applyMutations(
     target: ObjectOrArray,
-    transformations: Mutation[],
+    mutations: Mutation[],
     removed: Mutation[],
     cloneValue = false,
   ): void {
     for (
-      const transformation of transformations
+      const mutation of mutations
     ) {
-      const { keys, value, type, index, params } = transformation;
+      const { keys, value, type, params } = mutation;
+      let newValue = value;
+      if (typeof value === "function") {
+        const args = this._createRuleArgs(
+          params,
+          keys,
+          target,
+        );
+        newValue = value(...args);
+        mutation.value = newValue; // do not run mutation again committing to #data
+      }
+      if (cloneValue) {
+        newValue = deepClone(newValue);
+      }
+
       if (type === "set") {
-        let newValue = value;
-        if (typeof value === "function") {
-          const args = this._createRuleArgs(
-            params,
-            keys,
-            target,
-          );
-          newValue = value(...args);
-          transformation.value = newValue; // do not run transformation again committing to #data
-        }
-        if (cloneValue) {
-          newValue = deepClone(newValue);
-        }
         removed.push(...deepSet(target, keys, newValue));
       } else if (type === "remove") {
-        const parent = deepGet(target, keys);
-        const [valueRemoved] = parent.splice(Number(index), 1);
-        removed.push({ type: "add", value: valueRemoved, keys, index });
+        const parentKeys = keys.filter((_: Value, index: number) =>
+          (index) !== keys.length - 1
+        );
+        const lastKey = keys[keys.length - 1];
+        const parent = deepGet(target, parentKeys);
+        const [valueRemoved] = parent.splice(Number(lastKey), 1);
+        removed.push({
+          type: "add",
+          value: valueRemoved,
+          keys,
+        });
       } else if (type === "add") {
-        const parent = deepGet(target, keys);
-        parent.splice(Number(index), 0, value);
-        removed.push({ type: "remove", keys, index, value: undefined });
+        const parentKeys = keys.filter((_: Value, index: number) =>
+          (index) !== keys.length - 1
+        );
+        const parent = deepGet(target, parentKeys);
+        const lastKey = keys[keys.length - 1];
+        parent.splice(Number(lastKey), 0, newValue);
+        removed.push({ type: "remove", keys, value: undefined });
       }
       // console.log({ target });
     }
   }
 
-  protected _set(
+  protected _mutate(
     keys: Keys,
     value: Value,
+    type: MutationType = "set",
   ): void {
     const removed: Mutation[] = [];
 
@@ -646,9 +656,9 @@ export class Store {
       deepSet(diff, keys, value ?? null);
 
       // apply write
-      this._applyTransformations(
+      this._applyMutations(
         this.#newData,
-        [{ keys, value, type: "set" }],
+        [{ keys, value, type: type === "remove" ? "set" : type }],
         removed,
       );
       this._checkPermission("_write", keys);
@@ -659,7 +669,7 @@ export class Store {
         diff,
       );
 
-      this._applyTransformations(
+      this._applyMutations(
         this.#newData,
         mutationsToApply,
         removed,
@@ -667,6 +677,26 @@ export class Store {
 
       this._checkValidation(diff);
       deepMerge(this.#mutationDiff, diff);
+
+      if (type === "remove") {
+        const mutationRemove: Mutation = {
+          keys,
+          type: "remove",
+          value: undefined,
+        };
+
+        if (this.#duringTransaction) {
+          this._applyMutations(
+            this.#newData,
+            [mutationRemove],
+            removed,
+          );
+        }
+        mutationsToApply.push(mutationRemove);
+      }
+
+      // if (type === "add") {
+      // }
 
       if (this.#duringTransaction) {
         this.#mutationsToCommit.push(
@@ -693,7 +723,7 @@ export class Store {
     this._notify();
     const removed = [] as Mutation[];
     try {
-      this._applyTransformations(this._data, toCommit, removed, true);
+      this._applyMutations(this._data, toCommit, removed, true);
       this.#mutationDiff = this._dataShape;
     } catch (error) {
       this._rollback(removed);
@@ -705,13 +735,13 @@ export class Store {
   }
   private _rollback(mutations: Mutation[]): void {
     const removed = [] as Mutation[];
-    this._applyTransformations(
+    this._applyMutations(
       this.#newData,
       mutations.reverse(),
       removed,
     );
-    assertEquals(this._data, this.#newData);
-    assertDeepClone(this._data, this.#newData);
+    // assertEquals(this._data, this.#newData);
+    // assertDeepClone(this._data, this.#newData);
   }
 
   private _notify() {
@@ -756,25 +786,25 @@ export class Store {
       }
     }
   }
-  private _removeItem(targetKeys: Keys, keyToRemove: string) {
-    const removed = [] as Mutation[];
-    const mutation: Mutation = {
-      keys: targetKeys,
-      index: keyToRemove,
-      type: "remove",
-      value: undefined,
-    };
+  // private _removeItem(targetKeys: Keys, keyToRemove: string) {
+  //   const removed = [] as Mutation[];
+  //   const mutation: Mutation = {
+  //     keys: targetKeys,
+  //     index: keyToRemove,
+  //     type: "remove",
+  //     value: undefined,
+  //   };
 
-    this._applyTransformations(
-      this.#newData,
-      [mutation],
-      removed,
-    );
-    this.#mutationsToCommit.push(
-      mutation,
-    );
-    this.#mutationsToRollback.push(...removed);
-  }
+  //   this._applyMutations(
+  //     this.#newData,
+  //     [mutation],
+  //     removed,
+  //   );
+  //   this.#mutationsToCommit.push(
+  //     mutation,
+  //   );
+  //   this.#mutationsToRollback.push(...removed);
+  // }
   // private _addItem(targetKeys: Keys, keyToAdd: string, value:Value) {
   //   const removed = [] as Mutation[];
   //   const mutation: Mutation = {
@@ -784,7 +814,7 @@ export class Store {
   //     value
   //   };
 
-  //   this._applyTransformations(
+  //   this._applyMutations(
   //     this.#newData,
   //     [mutation],
   //     removed,

@@ -86,6 +86,10 @@ export class Store {
     if (typeof _transform === "function") {
       throw new Error("_transform rule can not be apply at root level");
     }
+    const { _as } = findRule("_as", [], rules);
+    if (typeof _as === "function") {
+      throw new Error("_as rule can not be apply at root level");
+    }
   }
 
   /**
@@ -421,20 +425,12 @@ export class Store {
   }
 
   private _createRuleArgs(
-    params: Params,
+    params: Params = {},
     rulePath: Keys,
     targetData = this.#newData,
   ): RuleArgs {
     const newData = deepGet(targetData, rulePath);
     const oldData = deepGet(this.#data, rulePath);
-    // console.count("_createRuleArgs");
-    // console.count(ruleType);
-
-    // let data = newData;
-    // if (ruleType === "_as" || ruleType === "_read") {
-
-    // } else {
-    // }
     const data = newData;
 
     const context = {
@@ -535,22 +531,16 @@ export class Store {
     ruleType: string,
     diff: ObjectOrArray,
     from: Keys = [],
-    targetData = this.#newData,
   ): Mutation[] {
     const mutations = findAllRules(ruleType, diff, this.#rules, from);
     mutations.reverse();
     const mutationsToApply = [] as Mutation[];
     for (const { [ruleType]: rule, rulePath, params } of mutations) {
-      const ruleArgs = this._createRuleArgs(
-        params,
-        rulePath,
-        targetData,
-      );
       mutationsToApply.push({
         keys: rulePath,
         value: rule,
         type: "set",
-        ruleArgs,
+        params,
       });
     }
 
@@ -591,8 +581,8 @@ export class Store {
       "_as",
       diff.root,
       keys,
-      target,
     );
+    // console.log({ mutationsToApply: mutationsToApply });
 
     this._applyTransformations(
       diff.root,
@@ -615,11 +605,16 @@ export class Store {
     for (
       const transformation of transformations
     ) {
-      const { keys, value, ruleArgs, type, index } = transformation;
+      const { keys, value, type, index, params } = transformation;
       if (type === "set") {
         let newValue = value;
-        if (ruleArgs?.[1] && typeof value === "function") {
-          newValue = value(...ruleArgs);
+        if (typeof value === "function") {
+          const args = this._createRuleArgs(
+            params,
+            keys,
+            target,
+          );
+          newValue = value(...args);
           transformation.value = newValue; // do not run transformation again committing to #data
         }
         if (cloneValue) {
@@ -633,8 +628,9 @@ export class Store {
       } else if (type === "add") {
         const parent = deepGet(target, keys);
         parent.splice(Number(index), 0, value);
-        removed.push({ type: "remove", keys, index });
+        removed.push({ type: "remove", keys, index, value: undefined });
       }
+      // console.log({ target });
     }
   }
 
@@ -762,19 +758,20 @@ export class Store {
   }
   private _removeItem(targetKeys: Keys, keyToRemove: string) {
     const removed = [] as Mutation[];
-    const transformation: Mutation = {
+    const mutation: Mutation = {
       keys: targetKeys,
       index: keyToRemove,
       type: "remove",
+      value: undefined,
     };
 
     this._applyTransformations(
       this.#newData,
-      [transformation],
+      [mutation],
       removed,
     );
     this.#mutationsToCommit.push(
-      transformation,
+      mutation,
     );
     this.#mutationsToRollback.push(...removed);
   }

@@ -37,8 +37,9 @@ export type Subscription = {
 
 export type Mutation = {
   keys: Keys;
-  value?: ValueOrFunction;
-  ruleArgs?: RuleArgs;
+  value: ValueOrFunction;
+  oldValue?: Value;
+  params?: Params;
   type: "set" | "remove" | "add";
   index?: string;
 };

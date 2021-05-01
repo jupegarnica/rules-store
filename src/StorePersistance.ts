@@ -1,7 +1,7 @@
 import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
 import { StoreNotFoundError } from "./Errors.ts";
-import type { Config, Transformation, Value } from "./types.ts";
+import type { Config, Mutation, Value } from "./types.ts";
 import { debounce } from "./helpers.ts";
 /**
  * A database in RAM  with persistance plain text as JSON.
@@ -50,7 +50,7 @@ export abstract class StorePersistance extends Store {
   }
 
   protected _commit(
-    toCommit: Transformation[],
+    toCommit: Mutation[],
   ): Value {
     const returned = super._commit(toCommit);
     if (this.#autoSave) {

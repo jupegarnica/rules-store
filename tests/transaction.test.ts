@@ -1,5 +1,5 @@
 import { Store } from "../src/Store.ts";
-import type { KeyValue, RuleContext, Value } from "../src/types.ts";
+import type { KeyValue, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
 

@@ -1,12 +1,12 @@
 import type {
   Callable,
   Keys,
+  Mutation,
   ObjectOrArray,
   Params,
   Rule,
   RuleFound,
   Rules,
-  Transformation,
   Value,
 } from "./types.ts";
 // import debounce from "https://dev.jspm.io/lodash.debounce";
@@ -238,7 +238,7 @@ export const deepSet = (
   let worker = obj;
   const lastIndex = keys.length - 1;
   let index = -1;
-  const removed: Transformation[] = [];
+  const removed: Mutation[] = [];
   let currentPath: Keys = [];
   for (const key of keys) {
     if (!key) break;

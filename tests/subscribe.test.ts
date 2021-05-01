@@ -1,6 +1,6 @@
 import { PermissionError } from "../src/Errors.ts";
 import { Store } from "../src/Store.ts";
-import { Observer, RuleContext, Value } from "../src/types.ts";
+import { Observer, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
 import { testCalled } from "../src/helpers.ts";

@@ -95,7 +95,7 @@ Deno.test({
   // only: true,
   name: "[Rules context] newData .remove from different level",
   fn: () => {
-    const onWrite: Spy<any> = spy((newData: Value) => {
+    const onWrite: Spy<void> = spy((newData: Value) => {
       return Array.isArray(newData);
     });
     const rules = {
@@ -122,7 +122,7 @@ Deno.test("[Rules context] _read depending the oldData", () => {
   const rules = {
     _write: () => true,
     a: {
-      _read: (data: Value, context: RuleContext) => context.oldData.b === 1,
+      _read: (_: Value, context: RuleContext) => context.oldData.b === 1,
     },
   };
   const db = new Store({ rules });
@@ -139,7 +139,7 @@ Deno.test("[Rules context] params _read", () => {
     _write: () => true,
     people: {
       $name: {
-        _read: (data: Value, context: RuleContext) => {
+        _read: (_: Value, context: RuleContext) => {
           calls++;
           assertEquals(typeof context.oldData, "object");
           assertEquals(typeof context.oldData.age, "number");
@@ -163,7 +163,7 @@ Deno.test("[Rules context] params _read at root", () => {
   const rules = {
     _write: () => true,
     $rootKey: {
-      _read(data: Value, { $rootKey, oldData }: RuleContext) {
+      _read(_: Value, { $rootKey, oldData }: RuleContext) {
         return (
           $rootKey === "people" &&
           typeof oldData === "object" &&
@@ -185,7 +185,7 @@ Deno.test("[Rules context] params _read at root", () => {
 Deno.test("[Rules context] params _write at root", () => {
   const rules = {
     $rootKey: {
-      _write(data: Value, { $rootKey }: RuleContext) {
+      _write(_: Value, { $rootKey }: RuleContext) {
         return $rootKey === "people";
       },
     },
@@ -202,7 +202,7 @@ Deno.test("[Rules context] params multiple params", () => {
     $a: {
       $b: {
         $c: {
-          _write(data: Value, { $a, $b, $c }: RuleContext) {
+          _write(_: Value, { $a, $b, $c }: RuleContext) {
             calls++;
             return $a === "a" && $b === "b" && $c === "c";
           },
@@ -223,7 +223,7 @@ Deno.test("[Rules context] rootData", () => {
     _write: () => true,
     $a: {
       $b: {
-        _read(data: Value, { rootData }: RuleContext) {
+        _read(_: Value, { rootData }: RuleContext) {
           calls++;
           assertEquals(rootData, { a: { b: 1 } });
           return true;

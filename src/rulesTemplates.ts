@@ -1,4 +1,4 @@
-import type { RuleContext, Rules } from "./types.ts";
+import type { RuleContext, Rules, Value } from "./types.ts";
 
 export const allowAll: Rules = {
   _read: () => true,

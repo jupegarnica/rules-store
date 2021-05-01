@@ -465,35 +465,35 @@ Deno.test({
           $i: {
             _read: () => true,
             _write: () => true,
-            _as: ({ newData }) => {
+            _as: (newData) => {
               return (newData && ({ ...newData, hola: "mundo" }));
             },
           },
         },
       },
-      initialData: { users: [{ name: "garn" }] },
+      initialData: { users: [{ name: "1" }] },
     });
     db.observe("users/$i", onChange);
 
-    db.push("users", { name: "garni" });
+    db.push("users", { name: "2" });
     assertEquals(onChange.calls.length, 1);
     assertEquals(onChange.calls[0].args[0].oldData, undefined);
     assertEquals(onChange.calls[0].args[0].$i, "1");
     assertEquals(onChange.calls[0].args[0].newData, {
-      name: "garni",
-      // hola: "mundo",
+      name: "2",
+      hola: "mundo",
     });
-    db.set("users/1", { name: "garni2" });
+    db.set("users/1", { name: "3" });
 
     assertEquals(onChange.calls.length, 2);
     assertEquals(onChange.calls[1].args[0].oldData, {
-      name: "garni",
-      // hola: "mundo",
+      name: "2",
+      hola: "mundo",
     });
     assertEquals(onChange.calls[1].args[0].$i, "1");
     assertEquals(onChange.calls[1].args[0].newData, {
-      name: "garni2",
-      // hola: "mundo",
+      name: "3",
+      hola: "mundo",
     });
   },
 });
@@ -509,9 +509,7 @@ Deno.test({
           $i: {
             _read: () => true,
             _write: () => true,
-            _as: ({ data, newData }) => {
-              console.log({ newData });
-
+            _as: (newData) => {
               return (newData && ({ ...newData, hola: "mundo" }));
             },
           },
@@ -526,22 +524,22 @@ Deno.test({
     assertEquals(onChange.calls.length, 1);
     assertEquals(onChange.calls[0].args[0].oldData, {
       name: "1",
-      // hola: "mundo",
+      hola: "mundo",
     });
     assertEquals(onChange.calls[0].args[0].$i, "0");
     assertEquals(onChange.calls[0].args[0].newData, {
       name: "2",
-      // hola: "mundo",
+      hola: "mundo",
     });
     db.set("users/0", { name: "3" });
 
     assertEquals(onChange.calls[1].args[0].oldData, {
       name: "2",
-      // hola: "mundo",
+      hola: "mundo",
     });
     assertEquals(onChange.calls[1].args[0].newData, {
       name: "3",
-      // hola: "mundo",
+      hola: "mundo",
     });
   },
 });

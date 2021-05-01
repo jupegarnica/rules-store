@@ -198,35 +198,39 @@ Deno.test("[Rules Templates] only one user can be read 2", () => {
   assertEquals(db.get("users/garn/work"), "dev");
 });
 
-Deno.test("[Rules Templates] withTimestamps", async () => {
-  const rules = {
-    _read: () => true,
-    _write: () => true,
-    users: {
-      $index: withTimestamps,
-    },
-  };
+Deno.test({
+  // only: true,
+  name: "[Rules Templates] withTimestamps",
+  fn: async () => {
+    const rules = {
+      _read: () => true,
+      _write: () => true,
+      users: {
+        $index: withTimestamps,
+      },
+    };
 
-  const db = new Store({ rules, initialData: { users: [] } });
-  const newUser = {
-    name: "Harriet Labadie",
-    email: "Rosalyn_Walter42@hotmail.com",
-  };
+    const db = new Store({ rules, initialData: { users: [] } });
+    const newUser = {
+      name: "Harriet Labadie",
+      email: "Rosalyn_Walter42@hotmail.com",
+    };
 
-  const userSaved = db.push("users", newUser);
+    const userSaved = db.push("users", newUser);
 
-  assertEquals(typeof userSaved.createAt, "string");
-  assertEquals(String(new Date("ups")) === "Invalid Date", true);
-  assertEquals(String(new Date(userSaved.createAt)) !== "Invalid Date", true);
-  await delay(1);
-  assertEquals(new Date(userSaved.createAt) < new Date(), true);
+    assertEquals(typeof userSaved.createAt, "string");
+    assertEquals(String(new Date("ups")) === "Invalid Date", true);
+    assertEquals(String(new Date(userSaved.createAt)) !== "Invalid Date", true);
+    await delay(1);
+    assertEquals(new Date(userSaved.createAt) < new Date(), true);
 
-  const userUpdated = db.set("users/0", {
-    name: "name edited",
-    email: "Rosalyn_Walter42@hotmail.com",
-    createAt: "it will be override",
-  });
-  assertEquals(userUpdated.createAt, userSaved.createAt);
+    const userUpdated = db.set("users/0", {
+      name: "name edited",
+      email: "Rosalyn_Walter42@hotmail.com",
+      createAt: "it will be override",
+    });
+    assertEquals(userUpdated.createAt, userSaved.createAt);
+  },
 });
 
 Deno.test("[Rules Templates] asDate", () => {

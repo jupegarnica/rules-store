@@ -15,12 +15,13 @@ import { StoreBson } from "../../src/StoreBson.ts";
 import { KeyValue, ObserverPayload } from "../../src/types.ts";
 
 const RUNS = Number(Deno.args[0]) ||
-  1e3;
-1e5;
-3e6;
+  1e5;
+
+1e3;
+1e4;
 60709; // fails
 1e6;
-1e4;
+3e6;
 1e7;
 
 const resultsOptions = {
@@ -69,7 +70,7 @@ const toOpsEverySecond = (timeInMs: number, ops: number) =>
 // SET
 //////
 bench({
-  name: `[Set] warmup ${RUNS} children`,
+  name: `[Set] warmup OPS=${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -87,7 +88,7 @@ bench({
 });
 
 bench({
-  name: `[Set] ${RUNS} children`,
+  name: `[Set] OPS=${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -101,7 +102,7 @@ bench({
   },
 });
 bench({
-  name: `[Set Bson]  ${RUNS} children`,
+  name: `[Set Bson]  OPS=${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreBson({
@@ -117,7 +118,7 @@ bench({
 });
 
 bench({
-  name: `[Set Yaml] ${RUNS} children`,
+  name: `[Set Yaml] OPS=${RUNS} set ${RUNS}children`,
   runs: 1,
   func(b): void {
     const db = new StoreYaml({
@@ -132,7 +133,7 @@ bench({
   },
 });
 bench({
-  name: `[Set Json] autoSave ${RUNS} children`,
+  name: `[Set Json] OPS=${RUNS} autoSave ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({
@@ -148,7 +149,7 @@ bench({
 });
 
 bench({
-  name: `[Set Bson] autoSave  ${RUNS} children`,
+  name: `[Set Bson] OPS=${RUNS} autoSave ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreBson({
@@ -164,7 +165,7 @@ bench({
 });
 
 bench({
-  name: `[Set Yaml] autoSave ${RUNS} children`,
+  name: `[Set Yaml] OPS=${RUNS} autoSave ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreYaml({
@@ -184,7 +185,7 @@ bench({
 //////
 
 bench({
-  name: `[GetAll] once assert ${RUNS} children`,
+  name: `[GetAll] OPS=1 assert ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -200,7 +201,7 @@ bench({
 });
 
 bench({
-  name: `[GetAll] once not cloned ${RUNS} children`,
+  name: `[GetAll] OPS=1 not cloned ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -228,7 +229,7 @@ bench({
 });
 
 bench({
-  name: `[Get] not getClone ${RUNS} children`,
+  name: `[Get] OPS=${RUNS} not getClone ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -257,7 +258,7 @@ bench({
 //////
 
 bench({
-  name: `[Find] ${RUNS} children reading value`,
+  name: `[Find] OPS=${RUNS} children reading value`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -272,7 +273,7 @@ bench({
 });
 
 bench({
-  name: `[Find] ${RUNS} children without reading value`,
+  name: `[Find] OPS=${RUNS} children without reading value`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -290,7 +291,7 @@ bench({
 //////
 
 bench({
-  name: `[Load Json]  once ${RUNS} children`,
+  name: `[Load Json] OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     b.start();
@@ -322,7 +323,7 @@ bench({
 // });
 
 bench({
-  name: `[Load Bson]  once ${RUNS} children`,
+  name: `[Load Bson] OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     b.start();
@@ -354,7 +355,7 @@ bench({
 // });
 
 bench({
-  name: `[Load Yaml]  once ${RUNS} children`,
+  name: `[Load Yaml]  OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     b.start();
@@ -389,7 +390,7 @@ bench({
 ////////
 
 bench({
-  name: `[Write Json]  once ${RUNS} children`,
+  name: `[Write Json]  OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -413,7 +414,7 @@ bench({
 // });
 
 bench({
-  name: `[Write Bson]  once ${RUNS} children`,
+  name: `[Write Bson]  OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreBson({ filename: `./data/${RUNS}.bson` });
@@ -437,7 +438,7 @@ bench({
 // });
 
 bench({
-  name: `[Write Yaml]  once ${RUNS} children`,
+  name: `[Write Yaml]  OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreYaml({ filename: `./data/${RUNS}.yaml` });
@@ -460,7 +461,7 @@ bench({
 //   },
 // });
 bench({
-  name: `[Subscribe] set ${RUNS}  children`,
+  name: `[Subscribe] OPS=${RUNS} sets ${RUNS}  children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -473,7 +474,7 @@ bench({
   },
 });
 bench({
-  name: `[Subscribe] once with 2 params ${RUNS} children`,
+  name: `[Subscribe] OPS=1 with 2 params ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -484,7 +485,7 @@ bench({
   },
 });
 bench({
-  name: `[Subscribe] once ${RUNS} children`,
+  name: `[Subscribe] OPS=1 ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -495,7 +496,7 @@ bench({
   },
 });
 bench({
-  name: `[Subscribe] once cloning payload ${RUNS} children`,
+  name: `[Subscribe] OPS=1 cloning payload ${RUNS} children`,
   runs: 1,
   func(b): void {
     const db = new StoreJson({ filename: `./data/${RUNS}.json` });
@@ -529,7 +530,8 @@ for (const result of results) {
       const diff = measuredRunsAvgMs - averageRun;
       const diffRatio = measuredRunsAvgMs / averageRun;
       const improvement = -(1 - diffRatio);
-      const operations = name.match(/once/) ? 1 : RUNS;
+      let operations = Number(name.match(/OPS=\d+/)?.[0].replace("OPS=", ""));
+      operations = operations || RUNS;
       const data = ({
         totalRuns,
         lastRun: measuredRunsAvgMs,

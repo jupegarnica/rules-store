@@ -248,11 +248,11 @@ Deno.test("[Rules Templates] asDate", () => {
   const dateIso = date.toISOString();
 
   const saved = db.set("date", date);
-  const root = db.get("");
+  const rootRef = db.getRef("");
   assertEquals(saved instanceof Date, true);
   assertEquals(saved, date);
-  assertEquals(typeof root.date, "string");
-  assertEquals(root.date, dateIso);
+  assertEquals(typeof rootRef.date, "string");
+  assertEquals(rootRef.date, dateIso);
   assertThrows(() => db.set("date", "not a date"), RangeError);
   const saved2 = db.set("date", dateString);
   assertEquals(saved2, date);

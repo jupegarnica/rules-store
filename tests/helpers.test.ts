@@ -14,7 +14,7 @@ import {
   pathsMatched,
 } from "../src/helpers.ts";
 import { ObjectOrArray } from "../src/types.ts";
-
+import { findAllRules, findRule } from "../src/helpers.ts";
 import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 
 Deno.test("[Helpers] deepSet", () => {
@@ -570,4 +570,307 @@ Deno.test("[Helpers] getParamsFromKeys", () => {
     getParamsFromKeys(["a", "b", "c"], ["a", "b", "c"]),
     {},
   );
+});
+
+Deno.test("[Helpers] findRule", () => {
+  const fn = () => 0;
+  const rules = {
+    _as: fn,
+
+    a: {
+      _as: () => 1,
+    },
+    $else: {
+      _as: () => 2,
+    },
+  };
+
+  assertEquals(findRule("_as", [], rules)["_as"](), 0);
+  assertEquals(findRule("_as", [], rules), {
+    params: {},
+    rulePath: [],
+    _as: fn,
+  });
+  assertEquals(findRule("_as", ["a"], rules)["_as"](), 1);
+  assertEquals(findRule("_as", ["b"], rules).params.$else, "b");
+  assertEquals(findRule("_as", ["x", "y"], rules), {
+    params: {
+      $else: "x",
+    },
+    _as: undefined,
+    rulePath: ["x", "y"],
+  });
+});
+
+const context = { data: "bar", params: {}, newData: undefined, rootData: {} };
+
+Deno.test("[Rules _validate] findAllRules basic", () => {
+  const rules = {
+    a: {
+      _validate: () => 1,
+    },
+  };
+  const target = {
+    a: 1,
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_validate"]?.(context), 1);
+  assertEquals(found[0].params, {});
+});
+
+Deno.test("[Rules _validate] findAllRules not object target", () => {
+  const rules = {
+    _validate: () => 1,
+  };
+  const target = undefined;
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_validate"]?.(context), 1);
+  assertEquals(found[0].params, {});
+});
+
+// Deno.test("[Rules _validate] findAllRules from", () => {
+//   const rules = {
+//     _validate: () => 1,
+//   };
+//   const target = undefined;
+//   const found = findAllRules(
+//     "_validate",
+//     target,
+//     rules,
+//   );
+//   assertEquals(found.length, 1);
+//   assertEquals(found[0]["_validate"]?.(context), 1);
+//   assertEquals(found[0].params, {});
+// });
+
+Deno.test("[Rules _validate] findAllRules params basic", () => {
+  const rules = {
+    $i: {
+      _validate: () => 1,
+    },
+  };
+  const target = {
+    a: 1,
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_validate"]?.(context), 1);
+  assertEquals(found[0].params, { $i: "a" });
+});
+
+Deno.test("[Rules _validate] findAllRules no params", () => {
+  const rules = {
+    _validate: () => 0,
+    a: {
+      _validate: () => 1,
+      b: {
+        _validate: () => 2,
+        c: {
+          _validate: () => 3,
+        },
+      },
+      x: {
+        _validate: () => 4,
+      },
+    },
+  };
+  const target = {
+    a: { b: { c: null } },
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 4);
+  assertEquals(found[0]["_validate"]?.(context), 0);
+  assertEquals(found[0].params, {});
+  assertEquals(found[1]["_validate"]?.(context), 1);
+  assertEquals(found[1].params, {});
+  assertEquals(found[2]["_validate"]?.(context), 2);
+  assertEquals(found[2].params, {});
+  assertEquals(found[3]["_validate"]?.(context), 3);
+  assertEquals(found[3].params, {});
+});
+
+Deno.test("[Rules _validate] findAllRules params", () => {
+  const rules = {
+    _validate: () => 0,
+    $a: {
+      _validate: () => 1,
+
+      $b: {
+        _validate: () => 2,
+        c: {
+          _validate: () => 3,
+        },
+      },
+      x: {
+        _validate: () => 4,
+      },
+    },
+  };
+  const target = {
+    a: { b: { c: null } },
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 4);
+  assertEquals(found[0]["_validate"]?.(context), 0);
+  assertEquals(found[0].params, {});
+  assertEquals(found[1]["_validate"]?.(context), 1);
+  assertEquals(found[1].params, { $a: "a" });
+  assertEquals(found[2]["_validate"]?.(context), 2);
+  assertEquals(found[2].params, { $a: "a", $b: "b" });
+  assertEquals(found[3]["_validate"]?.(context), 3);
+  assertEquals(found[3].params, { $a: "a", $b: "b" });
+});
+
+Deno.test("[Rules _validate] findAllRules params 2", () => {
+  const rules = {
+    _write: () => true,
+    _read: () => true,
+    $i: {
+      _transform: () => 1,
+    },
+  };
+  const target = {
+    a: { b: { c: null } },
+  };
+  const found = findAllRules(
+    "_transform",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 1);
+  assertEquals(found[0]["_transform"]?.(context), 1);
+  assertEquals(found[0].params, { $i: "a" });
+});
+
+Deno.test("[Rules _validate] findAllRules params with required path", () => {
+  const rules = {
+    _validate: () => 0,
+    $a: {
+      _validate: () => 1,
+
+      $b: {
+        _validate: () => 2,
+        c: {
+          _validate: () => 3,
+        },
+      },
+      x: {
+        _validate: () => 4,
+        c: {
+          _validate: () => 5,
+        },
+      },
+    },
+  };
+  const target = {
+    a: { x: { c: null } },
+  };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found.length, 4);
+  assertEquals(found[0]["_validate"]?.(context), 0);
+  assertEquals(found[0].params, {});
+  assertEquals(found[1]["_validate"]?.(context), 1);
+  assertEquals(found[1].params, { $a: "a" });
+  assertEquals(found[2]["_validate"]?.(context), 4);
+  assertEquals(found[2].params, { $a: "a" });
+  assertEquals(found[3]["_validate"]?.(context), 5);
+  assertEquals(found[3].params, { $a: "a" });
+});
+
+Deno.test("[Rules _validate] findAllRules", () => {
+  const rules = {
+    a: {
+      $x: {
+        _validate: () => true,
+      },
+    },
+  };
+  const target = { a: { b: 1, c: 2 } };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found[0].params, { $x: "b" });
+  assertEquals(found[1].params, { $x: "c" });
+});
+
+Deno.test("[Rules _validate] findAllRules", () => {
+  const rules = {
+    a: {
+      $x: {
+        _validate: () => true,
+      },
+    },
+  };
+  const target = { a: { b: 1, c: 2 } };
+  const found = findAllRules(
+    "_validate",
+    target,
+    rules,
+  );
+  assertEquals(found[0].params, { $x: "b" });
+  assertEquals(found[1].params, { $x: "c" });
+});
+
+Deno.test({
+  name: "[Helpers] findAllRules deeper rules",
+  fn: () => {
+    const trueFn = () => true;
+    const rules = {
+      _as: trueFn,
+      $x: {
+        _as: trueFn,
+        b: {
+          _as: trueFn,
+        },
+      },
+    };
+    assertEquals(
+      findAllRules("_as", { a: { b: { c: 1 } } }, rules, ["a", "b"]),
+      [{
+        _as: trueFn,
+        rulePath: ["a", "b"],
+        params: { $x: "a" },
+      }],
+    );
+    assertEquals(
+      findAllRules("_as", { a: { b: { c: 1 } } }, rules, ["a"]),
+      [{
+        _as: trueFn,
+        rulePath: ["a"],
+        params: { $x: "a" },
+      }, {
+        _as: trueFn,
+        rulePath: ["a", "b"],
+        params: { $x: "a" },
+      }],
+    );
+  },
 });

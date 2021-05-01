@@ -85,17 +85,9 @@ Deno.test("[Observe] assert payload inmutable", () => {
   assertEquals(called, 1);
   assertEquals(db.get("a"), { b: 1 });
 });
-Deno.test("[Observe] root", () => {
-  const mock: Spy<void> = spy();
-  const db = new Store({
-    rules: {
-      _read: () => true,
-      _write: () => true,
-    },
-  });
-  db.observe("", mock);
-  db.set("a", 1);
-  assertEquals(mock.calls.length, 1);
+Deno.test("[Observe] root throws", () => {
+  const db = new Store();
+  assertThrows(() => db.observe("", () => {}), Error, "Root");
 });
 
 Deno.test("[Observe] checks read rule", () => {
@@ -106,9 +98,7 @@ Deno.test("[Observe] checks read rule", () => {
         _read: () => false,
       },
     },
-    // initialData: { a: 0 },
   });
-  db.observe("", () => {});
   assertThrows(() => db.observe("a", () => {}), PermissionError, "read");
 });
 
@@ -461,7 +451,7 @@ Deno.test({
 });
 
 Deno.test({
-  only: false,
+  // only: true,
   name: "[Observe] with _as",
   fn: () => {
     const onChange: Spy<void> = spy(() => {});
@@ -471,8 +461,8 @@ Deno.test({
           $i: {
             _read: () => true,
             _write: () => true,
-            _as: ({ data }) => {
-              return (data && ({ ...data, hola: "mundo" }));
+            _as: ({ newData }) => {
+              return (newData && ({ ...newData, hola: "mundo" }));
             },
           },
         },
@@ -487,19 +477,67 @@ Deno.test({
     assertEquals(onChange.calls[0].args[0].$i, "1");
     assertEquals(onChange.calls[0].args[0].newData, {
       name: "garni",
-      hola: "mundo",
+      // hola: "mundo",
     });
     db.set("users/1", { name: "garni2" });
 
     assertEquals(onChange.calls.length, 2);
     assertEquals(onChange.calls[1].args[0].oldData, {
       name: "garni",
-      hola: "mundo",
+      // hola: "mundo",
     });
     assertEquals(onChange.calls[1].args[0].$i, "1");
     assertEquals(onChange.calls[1].args[0].newData, {
       name: "garni2",
-      hola: "mundo",
+      // hola: "mundo",
+    });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Observe] with _as 2",
+  fn: () => {
+    const onChange: Spy<void> = spy(() => {});
+    const db = new Store({
+      rules: {
+        users: {
+          $i: {
+            _read: () => true,
+            _write: () => true,
+            _as: ({ data, newData }) => {
+              console.log({ newData });
+
+              return (newData && ({ ...newData, hola: "mundo" }));
+            },
+          },
+        },
+      },
+      initialData: { users: [{ name: "1" }] },
+    });
+    db.observe("users/$i", onChange);
+
+    db.set("users/0", { name: "2" });
+
+    assertEquals(onChange.calls.length, 1);
+    assertEquals(onChange.calls[0].args[0].oldData, {
+      name: "1",
+      // hola: "mundo",
+    });
+    assertEquals(onChange.calls[0].args[0].$i, "0");
+    assertEquals(onChange.calls[0].args[0].newData, {
+      name: "2",
+      // hola: "mundo",
+    });
+    db.set("users/0", { name: "3" });
+
+    assertEquals(onChange.calls[1].args[0].oldData, {
+      name: "2",
+      // hola: "mundo",
+    });
+    assertEquals(onChange.calls[1].args[0].newData, {
+      name: "3",
+      // hola: "mundo",
     });
   },
 });

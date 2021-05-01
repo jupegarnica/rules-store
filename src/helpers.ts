@@ -317,6 +317,47 @@ export function findDeepestRule(
   return result;
 }
 
+export function findAllRules(
+  ruleType: string,
+  target: Value,
+  rules: Rules,
+  from: Keys = [],
+  currentParams: Params = {},
+  currentPath: Keys = [],
+): RuleFound[] {
+  const rulesFound = [] as RuleFound[];
+  const params = { ...currentParams } as Params;
+  const maybeRule = rules[ruleType];
+  const maybeParam = getParamFromObject(rules);
+  if (
+    from.length <= currentPath.length &&
+    typeof maybeRule === "function"
+  ) {
+    rulesFound.push({
+      params: { ...currentParams },
+      rulePath: currentPath,
+      [ruleType]: maybeRule,
+    });
+  }
+  for (const key in target) {
+    let rulesChild = rules[key] as Value;
+    const targetChild = target[key];
+
+    if (maybeParam && !rulesChild) {
+      params[maybeParam] = key;
+      rulesChild = rules[maybeParam];
+    }
+    if (rulesChild) {
+      rulesFound.push(
+        ...findAllRules(ruleType, targetChild, rulesChild, from, params, [
+          ...currentPath,
+          key,
+        ]),
+      );
+    }
+  }
+  return rulesFound;
+}
 export function findRule(
   ruleType: string,
   keys: Keys,
@@ -348,43 +389,44 @@ export function findRule(
   return { params, [ruleType]: undefined, rulePath: keys };
 }
 
-export function findAllRules(
-  ruleType: string,
-  target: ObjectOrArray,
-  rules: Rules,
-  currentParams: Params = {},
-  currentPath: Keys = [],
-): RuleFound[] {
-  const rulesFound = [] as RuleFound[];
-  const params = { ...currentParams } as Params;
-  const maybeRule = rules[ruleType];
-  const maybeParam = getParamFromObject(rules);
-  if (typeof maybeRule === "function") {
-    rulesFound.push({
-      params: { ...currentParams },
-      rulePath: currentPath,
-      [ruleType]: maybeRule,
-    });
-  }
-  for (const key in target) {
-    let rulesChild = rules[key] as Value;
-    const targetChild = target[key];
+// export function findAllRules(
+//   ruleType: string,
+//   target: Value,
+//   rules: Rules,
+//   from = [],
+//   currentParams: Params = {},
+//   currentPath: Keys = [],
+// ): RuleFound[] {
+//   const rulesFound = [] as RuleFound[];
+//   const params = { ...currentParams } as Params;
+//   const maybeRule = rules[ruleType];
+//   const maybeParam = getParamFromObject(rules);
+//   if (typeof maybeRule === "function") {
+//     rulesFound.push({
+//       params: { ...currentParams },
+//       rulePath: currentPath,
+//       [ruleType]: maybeRule,
+//     });
+//   }
+//   for (const key in target) {
+//     let rulesChild = rules[key] as Value;
+//     const targetChild = target[key];
 
-    if (maybeParam && !rulesChild) {
-      params[maybeParam] = key;
-      rulesChild = rules[maybeParam];
-    }
-    if (rulesChild) {
-      rulesFound.push(
-        ...findAllRules(ruleType, targetChild, rulesChild, params, [
-          ...currentPath,
-          key,
-        ]),
-      );
-    }
-  }
-  return rulesFound;
-}
+//     if (maybeParam && !rulesChild) {
+//       params[maybeParam] = key;
+//       rulesChild = rules[maybeParam];
+//     }
+//     if (rulesChild) {
+//       rulesFound.push(
+//         ...findAllRules(ruleType, targetChild, rulesChild, params, [
+//           ...currentPath,
+//           key,
+//         ]),
+//       );
+//     }
+//   }
+//   return rulesFound;
+// }
 
 // export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
 //   let timeoutId: number;
@@ -437,8 +479,8 @@ export const debounce = function (fn: Callable, delay = 0) {
   async function watcher() {
     if (Date.now() - lastTime > delay) {
       clearInterval(id);
-      id = 0;
       try {
+        id = 0;
         await fn();
         for (const [resolve] of pending) {
           resolve();

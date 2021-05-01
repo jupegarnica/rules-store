@@ -73,9 +73,18 @@ export class Store {
    *
    * */
 
-  constructor(config?: BaseConfig) {
-    this.#rules = deepClone(config?.rules ?? allowAll);
-    this._setData(deepClone(config?.initialData ?? {}));
+  constructor(config: BaseConfig = {}) {
+    if (config.rules) {
+      this._assertValidRules(config.rules);
+    }
+    this.#rules = deepClone(config.rules ?? allowAll);
+    this._setData(deepClone(config.initialData ?? {}));
+  }
+  private _assertValidRules(rules: Rules): void | never {
+    const { _transform } = findRule("_transform", [], rules);
+    if (typeof _transform === "function") {
+      throw new Error("_transform rule can not be apply at root level");
+    }
   }
 
   /**
@@ -101,6 +110,14 @@ export class Store {
       data = deepClone(data);
     }
     return data;
+  }
+
+  public getRef(
+    path: string,
+  ): Value {
+    const keys = keysFromPath(path);
+    this._checkPermission("_read", keys);
+    return this._get(keys);
   }
 
   /**
@@ -337,6 +354,9 @@ export class Store {
    */
   public observe(path: string, callback: Observer): number {
     const keys = keysFromPath(path);
+    if (keys.length === 0) {
+      throw new Error("Root can not be observed");
+    }
     this._checkPermission("_read", keys);
     const id = ++this.#subscriptionsLastId;
     this.#subscriptions.push({
@@ -402,10 +422,16 @@ export class Store {
   private _createRuleContext(
     params: Params,
     rulePath: Keys,
-    rootData = this.#data,
+    ruleType: string,
   ): RuleContext {
-    const _data = deepGet(rootData, rulePath);
     const _newData = deepGet(this.#newData, rulePath);
+    let _data = deepGet(this.#data, rulePath);
+
+    // if (ruleType === "_as" || ruleType === "_read") {
+    //   _data = _newData;
+    // } else {
+    // }
+
     const context = {
       ...params,
       _data,
@@ -425,8 +451,9 @@ export class Store {
     params: Params,
     keys: Keys,
   ): ObserverPayload {
-    const oldData = (this._getAsFrom(this.#data, keys));
-    const newData = (this._getAsFrom(this.#newData, keys));
+    debugger;
+    const oldData = (deepGet(this.#data, keys));
+    const newData = (deepGet(this.#newData, keys));
     const payload = {
       ...params,
       isUpdated: oldData !== undefined && newData !== undefined,
@@ -464,6 +491,7 @@ export class Store {
       const ruleContext = this._createRuleContext(
         params,
         rulePath,
+        ruleType,
       ) as RuleContext;
 
       const allowed = rule && rule(ruleContext);
@@ -484,10 +512,11 @@ export class Store {
     }
   }
   private _checkValidation(diff: ObjectOrArray): void {
-    const validations = findAllRules("_validate", diff, this.#rules);
+    const ruleType = "_validate";
+    const validations = findAllRules(ruleType, diff, this.#rules);
     let currentPath: Keys = [];
     const isValid = validations.every(({ params, rulePath, _validate }) => {
-      const ruleContext = this._createRuleContext(params, rulePath);
+      const ruleContext = this._createRuleContext(params, rulePath, ruleType);
       currentPath = rulePath;
 
       return _validate(ruleContext);
@@ -498,15 +527,23 @@ export class Store {
       );
     }
   }
-  private _findTransformations(diff: ObjectOrArray): Transformation[] {
-    const transforms = findAllRules("_transform", diff, this.#rules);
+  private _findTransformations(
+    ruleType: string,
+    diff: ObjectOrArray,
+    from: Keys = [],
+  ): Transformation[] {
+    const transforms = findAllRules(ruleType, diff, this.#rules, from);
     transforms.reverse();
     const transformationsToApply = [] as Transformation[];
-    for (const { _transform, rulePath, params } of transforms) {
-      const transformContext = this._createRuleContext(params, rulePath);
+    for (const { [ruleType]: rule, rulePath, params } of transforms) {
+      const transformContext = this._createRuleContext(
+        params,
+        rulePath,
+        ruleType,
+      );
       transformationsToApply.push({
         keys: rulePath,
-        value: _transform,
+        value: rule,
         type: "set",
         transformContext: transformContext as RuleContext,
       });
@@ -525,18 +562,48 @@ export class Store {
     return this._getAsFrom(this._data, keys);
   }
 
+  // private _getAsFrom(target: ObjectOrArray, keys: Keys): Value {
+  //   let data;
+  //   const maybeFound = findRule("_as", keys, this.#rules);
+  //   if (typeof maybeFound._as === "function") {
+  //     data = maybeFound._as(
+  //       this._createRuleContext(maybeFound.params, keys, target),
+  //     );
+  //   } else {
+  //     data = deepGet(target, keys);
+  //   }
+  //   return data;
+  // }
+
   private _getAsFrom(target: ObjectOrArray, keys: Keys): Value {
-    let data;
-    const maybeFound = findRule("_as", keys, this.#rules);
-    if (typeof maybeFound._as === "function") {
-      data = maybeFound._as(
-        this._createRuleContext(maybeFound.params, keys, target),
-      );
-    } else {
-      data = deepGet(target, keys);
-    }
-    return data;
+    const value = deepClone(deepGet(target, keys));
+    // console.log("\n", { value });
+
+    const diff = { root: this._dataShape };
+    const path = ["root", ...keys];
+    deepSet(diff, path, value);
+
+    const transformationsToApply = this._findTransformations(
+      "_as",
+      diff.root,
+      keys,
+    );
+
+    this._applyTransformations(
+      diff.root,
+      transformationsToApply,
+      [], // do not have rollback
+      false,
+    );
+    // console.log("\n", { root: diff.root });
+
+    const r = deepGet(diff, path);
+    // console.log("\n", { r });
+    // console.log("\n--------");
+
+    return r;
   }
+
   private _applyTransformations(
     target: ObjectOrArray,
     transformations: Transformation[],
@@ -589,7 +656,10 @@ export class Store {
       this._checkPermission("_write", keys);
 
       // apply _transform rule
-      const transformationsToApply = this._findTransformations(diff);
+      const transformationsToApply = this._findTransformations(
+        "_transform",
+        diff,
+      );
 
       this._applyTransformations(
         this.#newData,

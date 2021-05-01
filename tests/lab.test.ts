@@ -15,11 +15,11 @@ Deno.test("[Lab] dates example", () => {
   const date = new Date("1999-01-08T23:00:00.000Z");
   db.set("a", date);
   const saved = db.get("a");
-  const root = db.get("");
+  const aRef = db.getRef("a");
   assertEquals(saved instanceof Date, true);
   assertEquals(saved, date);
-  assertEquals(typeof root.a, "string");
-  assertEquals(root.a, "1999-01-08T23:00:00.000Z");
+  assertEquals(typeof aRef, "string");
+  assertEquals(aRef, "1999-01-08T23:00:00.000Z");
 });
 
 Deno.test("[Lab] dates persistance as ISO String", () => {
@@ -72,36 +72,20 @@ Deno.test("[Lab] _transform", () => {
 });
 
 Deno.test({
-  // TODO FIX _transform on root
-  name: "[Lab] _transform on root bug",
-  ignore: true,
+  name: "[Lab] _transform on root throws",
+  // ignore: true,
   // only: true,
   fn: () => {
-    const db = new StoreJson({
-      initialData: {
-        a: 1,
-        b: 2,
-        c: 3,
+    assertThrows(
+      () => {
+        new StoreJson({
+          rules: {
+            _transform: () => {},
+          },
+        });
       },
-      rules: {
-        _read: () => true,
-        _write: () => true,
-        _transform: ({ newData }) => {
-          const _new = ({
-            ...newData,
-            count: Object.keys(newData).length,
-          });
-          console.log(_new);
-          return _new;
-        },
-      },
-    });
-
-    db.set("d", 4);
-
-    assertEquals(
-      db.get("count"),
-      4,
+      Error,
+      "_transform",
     );
   },
 });

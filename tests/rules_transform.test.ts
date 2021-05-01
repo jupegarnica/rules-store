@@ -1,11 +1,7 @@
-// import { findAllRules } from "../src/helpers.ts";
 import { Store } from "../src/Store.ts";
 import type { RuleContext } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
-
-// import { ValidationError } from "../src/Errors.ts";
-// const context = { data: "bar", params: {}, newData: undefined, rootData: {} };
 
 Deno.test("[Rules _transform] basic", () => {
   const rules = {

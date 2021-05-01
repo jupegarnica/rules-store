@@ -8,7 +8,7 @@ Deno.test("[Rules _transform] basic", () => {
     _write: () => true,
     _read: () => true,
     a: {
-      _transform: ({ newData }: RuleContext) => newData % 12,
+      _transform: (newData: Value) => newData % 12,
     },
   };
   const db = new Store({ rules });
@@ -23,7 +23,7 @@ Deno.test("[Rules _transform] rollback", () => {
     _write: () => true,
     _read: () => true,
     a: {
-      _transform: ({ newData }: RuleContext) => newData % 12,
+      _transform: (newData: Value) => newData % 12,
       _validate: () => false,
     },
   };
@@ -41,14 +41,14 @@ Deno.test("[Rules _transform] in array and obj", () => {
     _read: () => true,
     numbers: {
       $i: {
-        _transform: ({ newData }: RuleContext) => Number(newData),
-        _validate: ({ newData }: RuleContext) => !Number.isNaN(newData),
+        _transform: (newData: Value) => Number(newData),
+        _validate: (newData: Value) => !Number.isNaN(newData),
       },
     },
     object: {
       $i: {
-        _transform: ({ newData }: RuleContext) => Number(newData),
-        _validate: ({ newData }: RuleContext) => !Number.isNaN(newData),
+        _transform: (newData: Value) => Number(newData),
+        _validate: (newData: Value) => !Number.isNaN(newData),
       },
     },
   };
@@ -77,7 +77,7 @@ Deno.test("[Rules _transform] on remove", () => {
     _write: () => true,
     _read: () => true,
     $i: {
-      _transform: ({ newData }: RuleContext) => {
+      _transform: (newData: Value) => {
         mock();
         return newData === undefined ? undefined : Number(newData);
       },
@@ -100,7 +100,7 @@ Deno.test("[Rules _transform] in the parent", () => {
     _write: () => true,
     _read: () => true,
     a: {
-      _transform: ({ newData }: RuleContext) => ({ ...newData, hola: "mundo" }),
+      _transform: (newData: Value) => ({ ...newData, hola: "mundo" }),
     },
   };
   const initialData = {
@@ -118,7 +118,7 @@ Deno.test("[Rules _transform] node not touched", () => {
     _read: () => true,
     a: {
       b: {
-        _transform: ({ newData }: RuleContext) => String(newData),
+        _transform: (newData: Value) => String(newData),
       },
     },
   };
@@ -137,14 +137,14 @@ Deno.test("[Rules _transform] newData receive the  precedente transformations", 
     _read: () => true,
     a: {
       _transform: (
-        { newData }: RuleContext,
+        newData: Value,
       ) => {
         assertEquals(newData, { b: { c: 100 } });
         return ({ b: { c: 1000 } });
       },
       b: {
         _transform: (
-          { newData }: RuleContext,
+          newData: Value,
         ) => {
           assertEquals(newData, { c: 10 });
           return ({ c: 100 });
@@ -175,7 +175,7 @@ Deno.test("[Rules _transform] apply all bottom up", () => {
     _write: () => true,
     _read: () => true,
     a: {
-      _transform: ({ newData }: RuleContext) => ({ ...newData, x: 1 }),
+      _transform: (newData: Value) => ({ ...newData, x: 1 }),
       b: {
         _transform: () => ({ c: null, y: 2 }),
         c: {
@@ -234,7 +234,7 @@ Deno.test("[Rules _transform] apply rollback if transform fails", () => {
         throw new Error("ups");
       },
       b: {
-        _transform: ({ newData }: RuleContext) => ({ ...newData, x: 1 }),
+        _transform: (newData: Value) => ({ ...newData, x: 1 }),
         c: {
           _transform: () => 1,
         },

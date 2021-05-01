@@ -1,24 +1,30 @@
 import { Store } from "../src/Store.ts";
-import { assertEquals, assertThrows } from "./test_deps.ts";
-import type { RuleContext } from "../src/types.ts";
+import { assertEquals, assertThrows, spy } from "./test_deps.ts";
+import type { Spy } from "./test_deps.ts";
+import type { RuleContext, Value } from "../src/types.ts";
 import { PermissionError } from "../src/Errors.ts";
 
-Deno.test("[Rules context] _write assert context values", () => {
-  let calls = 0;
-  const rules = {
-    a: {
-      _write({ data, newData, rootData }: RuleContext) {
-        calls++;
-        assertEquals(data, 0);
-        assertEquals(rootData.a, 0);
-        assertEquals(newData, 2);
-        return true;
+Deno.test({
+  // only: true,
+  name: "[Rules context] _write assert context values",
+  fn: () => {
+    let calls = 0;
+    const rules = {
+      a: {
+        _write(data: Value, { oldData, newData, rootData }: RuleContext) {
+          calls++;
+          assertEquals(data, 2);
+          assertEquals(rootData.a, 0);
+          assertEquals(newData, 2);
+          assertEquals(oldData, 0);
+          return true;
+        },
       },
-    },
-  };
-  const db = new Store({ rules, initialData: { a: 0 } });
-  db.set("a", 2);
-  assertEquals(calls, 1);
+    };
+    const db = new Store({ rules, initialData: { a: 0 } });
+    db.set("a", 2);
+    assertEquals(calls, 1);
+  },
 });
 
 Deno.test("[Rules context] _write newData", () => {
@@ -28,7 +34,7 @@ Deno.test("[Rules context] _write newData", () => {
       _read: () => true,
       _write: () => true,
       $name: {
-        _write({ newData }: RuleContext) {
+        _write(newData: Value) {
           calls++;
           return (
             typeof newData === "object" && newData && newData.age > 0
@@ -51,7 +57,7 @@ Deno.test("[Rules context] _write newData", () => {
     _read: () => true,
 
     people: {
-      _write({ newData }: RuleContext) {
+      _write(newData: Value) {
         return typeof newData === "object" && newData;
       },
     },
@@ -66,7 +72,7 @@ Deno.test("[Rules context] newData .set and .push from different level", () => {
   let calls = 0;
   const rules = {
     myList: {
-      _write: ({ newData }: RuleContext) => {
+      _write: (newData: Value) => {
         calls++;
         return Array.isArray(newData) && newData.length === calls;
       },
@@ -85,34 +91,39 @@ Deno.test("[Rules context] newData .set and .push from different level", () => {
   assertEquals(calls, 5);
 });
 
-Deno.test("[Rules context] newData .remove from different level", () => {
-  let calls = 0;
-  const rules = {
-    _read: () => true,
+Deno.test({
+  // only: true,
+  name: "[Rules context] newData .remove from different level",
+  fn: () => {
+    const onWrite: Spy<any> = spy((newData: Value) => {
+      return Array.isArray(newData);
+    });
+    const rules = {
+      _read: () => true,
 
-    myList: {
-      _write: ({ newData }: RuleContext) => {
-        calls++;
-        return Array.isArray(newData) && newData.length === calls;
+      myList: {
+        _write: onWrite,
       },
-    },
-  };
+    };
 
-  const db = new Store({ rules });
-  const A = db.set("myList", [0]);
-  assertEquals(calls, 1);
-  assertEquals(A, [0]);
-  db.push("myList", 1);
-  calls--;
-  calls--;
-  db.remove("myList.1");
-  assertEquals(db.get("myList"), [0]);
+    const db = new Store({ rules });
+    const A = db.set("myList", [0]);
+    assertEquals(onWrite.calls.length, 1);
+    assertEquals(A, [0]);
+    db.push("myList", 1);
+    assertEquals(onWrite.calls.length, 2);
+    db.remove("myList.1");
+    assertEquals(onWrite.calls.length, 3);
+    assertEquals(db.get("myList"), [0]);
+  },
 });
 
-Deno.test("[Rules context] _read depending the data", () => {
+Deno.test("[Rules context] _read depending the oldData", () => {
   const rules = {
     _write: () => true,
-    a: { _read: (context: RuleContext) => context.data.b === 1 },
+    a: {
+      _read: (data: Value, context: RuleContext) => context.oldData.b === 1,
+    },
   };
   const db = new Store({ rules });
   db.set("a.b", 1);
@@ -128,10 +139,10 @@ Deno.test("[Rules context] params _read", () => {
     _write: () => true,
     people: {
       $name: {
-        _read: (context: RuleContext) => {
+        _read: (data: Value, context: RuleContext) => {
           calls++;
-          assertEquals(typeof context.data, "object");
-          assertEquals(typeof context.data.age, "number");
+          assertEquals(typeof context.oldData, "object");
+          assertEquals(typeof context.oldData.age, "number");
           return calls === 1;
         },
       },
@@ -152,11 +163,11 @@ Deno.test("[Rules context] params _read at root", () => {
   const rules = {
     _write: () => true,
     $rootKey: {
-      _read({ $rootKey, data }: RuleContext) {
+      _read(data: Value, { $rootKey, oldData }: RuleContext) {
         return (
           $rootKey === "people" &&
-          typeof data === "object" &&
-          data
+          typeof oldData === "object" &&
+          oldData
         );
       },
     },
@@ -174,7 +185,7 @@ Deno.test("[Rules context] params _read at root", () => {
 Deno.test("[Rules context] params _write at root", () => {
   const rules = {
     $rootKey: {
-      _write({ $rootKey }: RuleContext) {
+      _write(data: Value, { $rootKey }: RuleContext) {
         return $rootKey === "people";
       },
     },
@@ -191,7 +202,7 @@ Deno.test("[Rules context] params multiple params", () => {
     $a: {
       $b: {
         $c: {
-          _write({ $a, $b, $c }: RuleContext) {
+          _write(data: Value, { $a, $b, $c }: RuleContext) {
             calls++;
             return $a === "a" && $b === "b" && $c === "c";
           },
@@ -212,7 +223,7 @@ Deno.test("[Rules context] rootData", () => {
     _write: () => true,
     $a: {
       $b: {
-        _read({ rootData }: RuleContext) {
+        _read(data: Value, { rootData }: RuleContext) {
           calls++;
           assertEquals(rootData, { a: { b: 1 } });
           return true;

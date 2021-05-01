@@ -1,15 +1,15 @@
 import { Store } from "../src/Store.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import type { RuleContext } from "../src/types.ts";
+import type { RuleContext, Value } from "../src/types.ts";
 import { ValidationError } from "../src/Errors.ts";
 
 Deno.test("[Rules _validate] list of numbers", () => {
   const rules = {
     _write: () => true,
     numbers: {
-      _validate: ({ newData }: RuleContext) => Array.isArray(newData),
+      _validate: (newData: Value) => Array.isArray(newData),
       $index: {
-        _validate: ({ newData }: RuleContext) => {
+        _validate: (newData: Value) => {
           return typeof newData === "number";
         },
       },
@@ -33,10 +33,9 @@ Deno.test("[Rules _validate] on object", () => {
   const rules = {
     _write: () => true,
     a: {
-      _validate: ({ newData }: RuleContext) =>
-        newData && typeof newData === "object",
+      _validate: (data: Value) => data && typeof data === "object",
       $b: {
-        _validate: ({ $b }: RuleContext) => {
+        _validate: (_: Value, { $b }: RuleContext) => {
           return $b === "b";
         },
       },
@@ -73,21 +72,26 @@ Deno.test("[Rules _validate] on object", () => {
   );
 });
 
-Deno.test("[Rules _validate] assert context values", () => {
-  let calls = 0;
-  const rules = {
-    _write: () => true,
-    a: {
-      _validate({ data, newData, rootData }: RuleContext) {
-        calls++;
-        assertEquals(data, 0);
-        assertEquals(rootData.a, 0);
-        assertEquals(newData, 2);
-        return true;
+Deno.test({
+  // only: true,
+  name: "[Rules _validate] assert context values",
+  fn: () => {
+    let calls = 0;
+    const rules = {
+      _write: () => true,
+      a: {
+        _validate(data: Value, { oldData, newData, rootData }: RuleContext) {
+          calls++;
+          assertEquals(oldData, 0);
+          assertEquals(rootData.a, 0);
+          assertEquals(newData, 2);
+          assertEquals(data, 2);
+          return true;
+        },
       },
-    },
-  };
-  const db = new Store({ rules, initialData: { a: 0 } });
-  db.set("a", 2);
-  assertEquals(calls, 1);
+    };
+    const db = new Store({ rules, initialData: { a: 0 } });
+    db.set("a", 2);
+    assertEquals(calls, 1);
+  },
 });

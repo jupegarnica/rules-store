@@ -1,6 +1,6 @@
 import { Store } from "../src/Store.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
-import type { KeyValue, RuleContext } from "../src/types.ts";
+import type { KeyValue, RuleContext, Value } from "../src/types.ts";
 import {
   asDate,
   noCreate,
@@ -182,7 +182,7 @@ Deno.test("[Rules Templates] only one user can be read", () => {
 Deno.test("[Rules Templates] only one user can be read 2", () => {
   const rules = {
     users: {
-      $name: { _read: ({ $name }: RuleContext) => $name === "garn" },
+      $name: { _read: (_: Value, { $name }: RuleContext) => $name === "garn" },
     },
   };
 

@@ -1,14 +1,14 @@
 import { StoreJson } from "../src/StoreJson.ts";
-import type { RuleContext } from "../src/types.ts";
+import type { RuleContext, Value } from "../src/types.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 Deno.test("[Lab] dates example", () => {
   const rules = {
     _read: () => true,
     a: {
-      _write: () => ({ newData }: RuleContext) => newData instanceof Date,
-      _transform: ({ newData }: RuleContext) => (newData).toISOString(),
-      _validate: ({ newData }: RuleContext) => typeof newData === "string",
-      _as: ({ data }: RuleContext) => new Date(data),
+      _write: () => (newData: Value) => newData instanceof Date,
+      _transform: (newData: Value) => (newData).toISOString(),
+      _validate: (newData: Value) => typeof newData === "string",
+      _as: (data: Value) => new Date(data),
     },
   };
   const db = new StoreJson({ rules });
@@ -52,7 +52,7 @@ Deno.test("[Lab] _transform", () => {
       _read: () => true,
       _write: () => true,
       props: {
-        _transform: ({ newData }: RuleContext) => {
+        _transform: (_: Value, { newData }: RuleContext) => {
           const _new = ({
             ...newData,
             count: Object.keys(newData).length,
@@ -96,9 +96,9 @@ Deno.test("[Lab] symbols", () => {
       _read: () => true,
       _write: () => true,
       sym: {
-        _write: ({ newData }: RuleContext) => typeof newData === "symbol",
-        _transform: ({ newData }: RuleContext) => String(newData.description),
-        _as: ({ data }: RuleContext) => Symbol.for(data),
+        _write: (newData: Value) => typeof newData === "symbol",
+        _transform: (newData: Value) => String(newData.description),
+        _as: (data: Value) => Symbol.for(data),
       },
     },
   });

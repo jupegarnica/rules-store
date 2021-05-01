@@ -1,5 +1,5 @@
 import { Store } from "../src/Store.ts";
-import type { KeyValue, RuleContext } from "../src/types.ts";
+import type { KeyValue, RuleContext, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
 
@@ -63,7 +63,7 @@ Deno.test("[Transactions] fails during transaction", () => {
     rules: {
       a: {
         _read: () => true,
-        _write: ({ newData }: RuleContext) => newData > 0,
+        _write: (newData: Value) => newData > 0,
       },
     },
   });
@@ -140,22 +140,26 @@ Deno.test("[Transactions] on push  transaction and rollback", () => {
   db.rollback();
   assertEquals(db.get("a"), [1, 2, 3]);
 });
-Deno.test("[Transactions] on push fails during transaction", () => {
-  const db = new Store({
-    initialData: { a: [1, 2, 3] },
-    rules: {
-      a: {
-        _read: () => true,
-        _write: ({ newData }: RuleContext) => newData.length <= 5,
+Deno.test({
+  // only: true,
+  name: "[Transactions] on push fails during transaction",
+  fn: () => {
+    const db = new Store({
+      initialData: { a: [1, 2, 3] },
+      rules: {
+        a: {
+          _read: () => true,
+          _write: (newData: Value) => newData.length <= 5,
+        },
       },
-    },
-  });
-  db.beginTransaction();
-  assertThrows(() => {
-    db.push("a", 4, 5, 6);
-  });
-  db.commit();
-  assertEquals(db.get("a"), [1, 2, 3, 4, 5]);
+    });
+    db.beginTransaction();
+    assertThrows(() => {
+      db.push("a", 4, 5, 6);
+    });
+    db.commit();
+    assertEquals(db.get("a"), [1, 2, 3]);
+  },
 });
 
 Deno.test("[Transactions] on remove subscription", () => {

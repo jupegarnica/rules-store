@@ -102,29 +102,33 @@ Deno.test("[Observe] checks read rule", () => {
   assertThrows(() => db.observe("a", () => {}), PermissionError, "read");
 });
 
-Deno.test("[Observe] checks read dynamic rule ", () => {
-  const mock: Spy<Console> = spy(console, "warn");
-  const db = new Store({
-    rules: {
-      a: {
-        _read: ({ data }: RuleContext) => {
-          return data === 0;
+Deno.test({
+  // only: true,
+  name: "[Observe] checks read dynamic rule ",
+  fn: () => {
+    const mock: Spy<Console> = spy(console, "warn");
+    const db = new Store({
+      rules: {
+        a: {
+          _read: (data: Value) => {
+            return data <= 1;
+          },
+          _write: () => true,
         },
-        _write: () => true,
       },
-    },
-    initialData: { a: 0 },
-  });
-  let calls = 0;
-  const onChange: Observer = () => {
-    calls++;
-  };
-  db.observe("a", onChange);
-  db.set("a", 1);
-  assertEquals(calls, 1);
-  db.set("a", 2);
-  assertEquals(calls, 1); // no called
-  assertEquals(mock.calls.length, 1); // called console.warn
+      initialData: { a: 0 },
+    });
+    let calls = 0;
+    const onChange: Observer = () => {
+      calls++;
+    };
+    db.observe("a", onChange);
+    db.set("a", 1);
+    assertEquals(calls, 1);
+    db.set("a", 2);
+    assertEquals(calls, 1); // no called
+    assertEquals(mock.calls.length, 1); // called console.warn
+  },
 });
 
 Deno.test("[Observe] with deeper set", () => {

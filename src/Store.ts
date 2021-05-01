@@ -22,14 +22,15 @@ import type {
   Finder,
   Keys,
   KeyValue,
+  Mutation,
   ObjectOrArray,
   Observer,
   ObserverPayload,
   Params,
-  RuleContext,
+  RuleArgs,
+  // RuleContext,
   Rules,
   Subscription,
-  Transformation,
   Value,
   ValueOrFunction,
 } from "./types.ts";
@@ -38,8 +39,8 @@ import { PermissionError, ValidationError } from "./Errors.ts";
 import { allowAll } from "./rulesTemplates.ts";
 
 // assertDeepClone,
-// const { assertDeepClone } = await import("./helpers.ts");
-// const { assertEquals } = await import("../tests/test_deps.ts");
+const { assertDeepClone } = await import("./helpers.ts");
+const { assertEquals } = await import("../tests/test_deps.ts");
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -54,8 +55,8 @@ export class Store {
   #subscriptions: Subscription[] = [];
   #subscriptionsLastId = 0;
   #duringTransaction = false;
-  #transformationsToCommit: Transformation[] = [];
-  #transformationsToRollback: Transformation[] = [];
+  #mutationsToCommit: Mutation[] = [];
+  #mutationsToRollback: Mutation[] = [];
   #mutationDiff: ObjectOrArray = {};
 
   get _dataShape() {
@@ -213,18 +214,21 @@ export class Store {
         const targetIndex = initialLength + Number(index);
         const keysToNewItem = addChildToKeys(keys, String(targetIndex));
         this._set(keysToNewItem, values[index]);
+        // this._addItem(keys, String(targetIndex), values[index]);
         returned.push(this._getAs(keysToNewItem));
       }
       if (!isTransaction) this.commit();
       return returned.length > 1 ? returned : returned[0];
     } catch (error) {
-      if (isTransaction) {
-        this._rollback(
-          this.#transformationsToRollback,
-        );
-      } else {
-        this.rollback();
-      }
+      // console.log({ error });
+
+      this._rollback(
+        this.#mutationsToRollback,
+      );
+      // if (isTransaction) {
+      // } else {
+      //   this.rollback();
+      // }
       throw error;
     }
   }
@@ -399,19 +403,19 @@ export class Store {
   public commit() {
     this.#duringTransaction = false;
     this._commit(
-      this.#transformationsToCommit,
+      this.#mutationsToCommit,
     );
-    this.#transformationsToRollback = [];
-    this.#transformationsToCommit = [];
+    this.#mutationsToRollback = [];
+    this.#mutationsToCommit = [];
   }
 
   public rollback() {
     this.#duringTransaction = false;
     this._rollback(
-      this.#transformationsToRollback,
+      this.#mutationsToRollback,
     );
-    this.#transformationsToRollback = [];
-    this.#transformationsToCommit = [];
+    this.#mutationsToRollback = [];
+    this.#mutationsToCommit = [];
   }
 
   protected _setData(data: ObjectOrArray) {
@@ -419,39 +423,45 @@ export class Store {
     this.#newData = deepClone(data);
   }
 
-  private _createRuleContext(
+  private _createRuleArgs(
     params: Params,
     rulePath: Keys,
-    ruleType: string,
-  ): RuleContext {
-    const _newData = deepGet(this.#newData, rulePath);
-    let _data = deepGet(this.#data, rulePath);
+    ruleType?: string,
+  ): RuleArgs {
+    const newData = deepGet(this.#newData, rulePath);
+    const oldData = deepGet(this.#data, rulePath);
+    // console.count("_createRuleArgs");
+    // console.count(ruleType);
 
+    // console.log("newData", JSON.stringify(newData, null, 2));
+    // console.log("data", JSON.stringify(data, null, 2));
+
+    // let data = newData;
     // if (ruleType === "_as" || ruleType === "_read") {
-    //   _data = _newData;
+
     // } else {
     // }
+    const data = newData;
 
     const context = {
       ...params,
-      _data,
-      _newData,
-      _rootData: this._data,
+      oldData,
+      newData,
+      rootData: this._data,
     };
-    applyCloneOnGet(context, "data", _data);
+    applyCloneOnGet(context, "oldData", oldData);
     applyCloneOnGet(context, "rootData", this._data);
     applyCloneOnGet(
       context,
       "newData",
-      _newData,
+      newData,
     );
-    return context as RuleContext;
+    return [data, context] as RuleArgs;
   }
   private _createSubscriptionPayload(
     params: Params,
     keys: Keys,
   ): ObserverPayload {
-    debugger;
     const oldData = (deepGet(this.#data, keys));
     const newData = (deepGet(this.#newData, keys));
     const payload = {
@@ -488,13 +498,13 @@ export class Store {
           }`,
         );
       }
-      const ruleContext = this._createRuleContext(
+      const ruleArgs = this._createRuleArgs(
         params,
         rulePath,
         ruleType,
-      ) as RuleContext;
+      );
 
-      const allowed = rule && rule(ruleContext);
+      const allowed = rule && rule(...ruleArgs);
 
       if (!allowed) {
         throw new PermissionError(
@@ -516,10 +526,10 @@ export class Store {
     const validations = findAllRules(ruleType, diff, this.#rules);
     let currentPath: Keys = [];
     const isValid = validations.every(({ params, rulePath, _validate }) => {
-      const ruleContext = this._createRuleContext(params, rulePath, ruleType);
+      const ruleArgs = this._createRuleArgs(params, rulePath, ruleType);
       currentPath = rulePath;
 
-      return _validate(ruleContext);
+      return _validate(...ruleArgs);
     });
     if (!isValid) {
       throw new ValidationError(
@@ -527,29 +537,29 @@ export class Store {
       );
     }
   }
-  private _findTransformations(
+  private _findMutations(
     ruleType: string,
     diff: ObjectOrArray,
     from: Keys = [],
-  ): Transformation[] {
-    const transforms = findAllRules(ruleType, diff, this.#rules, from);
-    transforms.reverse();
-    const transformationsToApply = [] as Transformation[];
-    for (const { [ruleType]: rule, rulePath, params } of transforms) {
-      const transformContext = this._createRuleContext(
+  ): Mutation[] {
+    const mutations = findAllRules(ruleType, diff, this.#rules, from);
+    mutations.reverse();
+    const mutationsToApply = [] as Mutation[];
+    for (const { [ruleType]: rule, rulePath, params } of mutations) {
+      const ruleArgs = this._createRuleArgs(
         params,
         rulePath,
         ruleType,
       );
-      transformationsToApply.push({
+      mutationsToApply.push({
         keys: rulePath,
         value: rule,
         type: "set",
-        transformContext: transformContext as RuleContext,
+        ruleArgs,
       });
     }
 
-    return transformationsToApply;
+    return mutationsToApply;
   }
   private _get(keys: Keys): Value {
     return deepGet(this._data, keys);
@@ -567,7 +577,7 @@ export class Store {
   //   const maybeFound = findRule("_as", keys, this.#rules);
   //   if (typeof maybeFound._as === "function") {
   //     data = maybeFound._as(
-  //       this._createRuleContext(maybeFound.params, keys, target),
+  //       this._createRuleArgs(maybeFound.params, keys, target),
   //     );
   //   } else {
   //     data = deepGet(target, keys);
@@ -583,7 +593,7 @@ export class Store {
     const path = ["root", ...keys];
     deepSet(diff, path, value);
 
-    const transformationsToApply = this._findTransformations(
+    const mutationsToApply = this._findMutations(
       "_as",
       diff.root,
       keys,
@@ -591,7 +601,7 @@ export class Store {
 
     this._applyTransformations(
       diff.root,
-      transformationsToApply,
+      mutationsToApply,
       [], // do not have rollback
       false,
     );
@@ -606,18 +616,18 @@ export class Store {
 
   private _applyTransformations(
     target: ObjectOrArray,
-    transformations: Transformation[],
-    removed: Transformation[],
+    transformations: Mutation[],
+    removed: Mutation[],
     cloneValue = false,
   ): void {
     for (
       const transformation of transformations
     ) {
-      const { keys, value, transformContext, type, index } = transformation;
+      const { keys, value, ruleArgs, type, index } = transformation;
       if (type === "set") {
         let newValue = value;
-        if (transformContext && typeof value === "function") {
-          newValue = value(transformContext);
+        if (ruleArgs?.[1] && typeof value === "function") {
+          newValue = value(...ruleArgs);
           transformation.value = newValue; // do not run transformation again committing to #data
         }
         if (cloneValue) {
@@ -640,7 +650,7 @@ export class Store {
     keys: Keys,
     value: Value,
   ): void {
-    const removed: Transformation[] = [];
+    const removed: Mutation[] = [];
 
     try {
       // create write diff
@@ -656,14 +666,14 @@ export class Store {
       this._checkPermission("_write", keys);
 
       // apply _transform rule
-      const transformationsToApply = this._findTransformations(
+      const mutationsToApply = this._findMutations(
         "_transform",
         diff,
       );
 
       this._applyTransformations(
         this.#newData,
-        transformationsToApply,
+        mutationsToApply,
         removed,
       );
 
@@ -671,17 +681,17 @@ export class Store {
       deepMerge(this.#mutationDiff, diff);
 
       if (this.#duringTransaction) {
-        this.#transformationsToCommit.push(
+        this.#mutationsToCommit.push(
           { keys, value: deepClone(value), type: "set" },
-          ...transformationsToApply,
+          ...mutationsToApply,
         );
-        this.#transformationsToRollback.push(...removed);
+        this.#mutationsToRollback.push(...removed);
         return;
       }
 
       this._commit([
         { keys, value: deepClone(value), type: "set" },
-        ...transformationsToApply,
+        ...mutationsToApply,
       ]);
     } catch (error) {
       this._rollback(removed);
@@ -690,29 +700,35 @@ export class Store {
   }
 
   protected _commit(
-    toCommit: Transformation[],
+    toCommit: Mutation[],
   ): void {
     this._notify();
-    const removed = [] as Transformation[];
+    const removed = [] as Mutation[];
     try {
       this._applyTransformations(this._data, toCommit, removed, true);
       this.#mutationDiff = this._dataShape;
     } catch (error) {
+      console.log({ removed });
+
       this._rollback(removed);
       throw error;
     }
+    // console.log(this.#newData);
+
     // assertEquals(this._data, this.#newData);
     // assertDeepClone(this._data, this.#newData);
   }
-  private _rollback(transformations: Transformation[]): void {
-    const removed = [] as Transformation[];
+  private _rollback(mutations: Mutation[]): void {
+    console.log({ mutations });
+
+    const removed = [] as Mutation[];
     this._applyTransformations(
       this.#newData,
-      transformations.reverse(),
+      mutations.reverse(),
       removed,
     );
-    // assertEquals(this._data, this.#newData);
-    // assertDeepClone(this._data, this.#newData);
+    assertEquals(this._data, this.#newData);
+    assertDeepClone(this._data, this.#newData);
   }
 
   private _notify() {
@@ -758,8 +774,8 @@ export class Store {
     }
   }
   private _removeItem(targetKeys: Keys, keyToRemove: string) {
-    const removed = [] as Transformation[];
-    const transformation: Transformation = {
+    const removed = [] as Mutation[];
+    const transformation: Mutation = {
       keys: targetKeys,
       index: keyToRemove,
       type: "remove",
@@ -770,9 +786,28 @@ export class Store {
       [transformation],
       removed,
     );
-    this.#transformationsToCommit.push(
+    this.#mutationsToCommit.push(
       transformation,
     );
-    this.#transformationsToRollback.push(...removed);
+    this.#mutationsToRollback.push(...removed);
   }
+  // private _addItem(targetKeys: Keys, keyToAdd: string, value:Value) {
+  //   const removed = [] as Mutation[];
+  //   const mutation: Mutation = {
+  //     keys: targetKeys,
+  //     index: keyToAdd,
+  //     type: "add",
+  //     value
+  //   };
+
+  //   this._applyTransformations(
+  //     this.#newData,
+  //     [mutation],
+  //     removed,
+  //   );
+  //   this.#mutationsToCommit.push(
+  //     mutation,
+  //   );
+  //   this.#mutationsToRollback.push(...removed);
+  // }
 }

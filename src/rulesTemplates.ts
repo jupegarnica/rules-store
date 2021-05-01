@@ -11,53 +11,52 @@ export const denyAll: Rules = {
 };
 
 export const onlyCreate: Rules = {
-  _write: ({ data, newData }: RuleContext) =>
-    data === undefined && newData !== undefined,
+  _write: (newData: Value, { oldData }: RuleContext) =>
+    oldData === undefined && newData !== undefined,
 };
 
 export const onlyUpdate: Rules = {
-  _write: ({ data, newData }: RuleContext) =>
-    data !== undefined && newData !== undefined,
+  _write: (newData: Value, { oldData }: RuleContext) =>
+    oldData !== undefined && newData !== undefined,
 };
 
 export const onlyRemove: Rules = {
-  _write: ({ newData }: RuleContext) => newData === undefined,
+  _write: (newData: Value) => newData === undefined,
 };
 
 export const noUpdate: Rules = {
-  _write: ({ data, newData }: RuleContext) =>
-    data === undefined || newData === undefined,
+  _write: (newData: Value, { oldData }: RuleContext) =>
+    oldData === undefined || newData === undefined,
 };
 
 export const noDelete: Rules = {
-  _write: ({ newData }: RuleContext) => newData !== undefined,
+  _write: (newData: Value) => newData !== undefined,
 };
 
 export const noCreate: Rules = {
-  _write: ({ data }: RuleContext) => data !== undefined,
+  _write: (_: Value, { oldData }) => oldData !== undefined,
 };
 
 export const withTimestamps = {
-  _transform: ({ newData, data }: RuleContext) => {
+  _transform: (_: Value, { newData, oldData }: RuleContext) => {
     const now = new Date().toISOString();
-    if (data === undefined) {
+    if (oldData === undefined) {
       // add createAt and updateAt
       return newData &&
         ({ ...newData, createAt: now, updateAt: now });
     } else {
       // ensure createAt is not edited
       return newData &&
-        ({ ...newData, createAt: data.createAt, updateAt: now });
+        ({ ...newData, createAt: oldData.createAt, updateAt: now });
     }
   },
 };
 
 export const asDate = {
   _write: () =>
-    ({ newData }: RuleContext) =>
-      newData instanceof Date || typeof newData === "string",
-  _transform: ({ newData }: RuleContext) => new Date(newData).toISOString(),
-  // _validate: ({ newData }: RuleContext) =>
+    (newData: Value) => newData instanceof Date || typeof newData === "string",
+  _transform: (newData: Value) => new Date(newData).toISOString(),
+  // _validate: (newData:Value) =>
   //   new Date(newData).toString() !== "Invalid Date",
-  _as: ({ data }: RuleContext) => new Date(data),
+  _as: (data: Value) => new Date(data),
 };

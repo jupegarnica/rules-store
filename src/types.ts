@@ -35,21 +35,15 @@ export type Subscription = {
   path: Keys;
 };
 
-export type Transformation = {
+export type Mutation = {
   keys: Keys;
   value?: ValueOrFunction;
-  transformContext?: RuleContext;
+  ruleArgs?: RuleArgs;
   type: "set" | "remove" | "add";
   index?: string;
 };
 
 export type Params = { [key: string]: string };
-
-// export type RuleFound = {
-//   params: Params;
-//   rulePath: Keys;
-//   [rule: string]: Params | Keys | Rule | undefined;
-// };
 
 export type RuleFound = {
   params: Params;
@@ -57,23 +51,26 @@ export type RuleFound = {
   [rule: string]: Value;
 };
 export type RuleContext = {
-  data: Value;
+  oldData: Value;
   newData: Value;
   rootData: ObjectOrArray;
   _data: Value;
   _newData: Value;
   _rootData: ObjectOrArray;
-  [param: string]: string | ObjectOrArray;
+  [param: string]: string | ObjectOrArray | Value;
 };
 
+export type RuleArgs = [Value, RuleContext];
+
 // deno-lint-ignore no-explicit-any
-export type Rule = (context: RuleContext) => any;
+export type Rule = (...args: RuleArgs) => any;
 
 export type Rules = {
   ".read"?: Rule;
   ".write"?: Rule;
   ".validate"?: Rule;
   ".transform"?: Rule;
+  ".as"?: Rule;
   [key: string]: Rules | Rule | undefined;
 };
 

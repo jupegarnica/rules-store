@@ -153,7 +153,7 @@ Deno.test("[Rules context] rootData inmutable", () => {
     _write: () => true,
     $a: {
       $b: {
-        _read({ rootData }: RuleContext) {
+        _read(data: Value, { rootData }: RuleContext) {
           calls++;
           assertEquals(rootData, { a: { b: 1 } });
           rootData.a.b = 2;
@@ -178,7 +178,7 @@ Deno.test("[Rules context] data inmutable", () => {
   const rules = {
     _write: () => true,
     $a: {
-      _read({ data }: RuleContext) {
+      _read(data: Value) {
         calls++;
         assertEquals(data, { b: 1 });
         data.b = 2;
@@ -197,7 +197,7 @@ Deno.test("[Rules context] data inmutable", () => {
 
 Deno.test("[Rules context] data inmutable even root", () => {
   let calls = 0;
-  const rule = (context: RuleContext) => {
+  const rule = (data: Value, context: RuleContext) => {
     calls++;
     context.rootData = {};
     context.newData = 3;
@@ -222,9 +222,9 @@ Deno.test("[Rules context] data inmutable even root", () => {
 
 Deno.test("[Rules context] data, newData, rootData inmutable", () => {
   let calls = 0;
-  const rule = ({ data, newData, rootData }: RuleContext) => {
+  const rule = (data: Value, { oldData, newData, rootData }: RuleContext) => {
     calls++;
-    if (data) data.b = 3;
+    if (oldData) oldData.b = 3;
     if (newData) newData.b = 4;
     if (rootData.a) rootData.a.b = 5;
     return true;
@@ -251,15 +251,15 @@ Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
   const mock: Spy<{ noop: () => any }> = spy(testCalled, "noop");
   const rules = {
     a: {
-      _read: (context: RuleContext) => {
+      _read: (data: Value, context: RuleContext) => {
         context;
-        context.data;
+        context.oldData;
         return true;
       },
-      _write: (context: RuleContext) => {
+      _write: (data: Value, context: RuleContext) => {
         context.newData;
         context.rootData;
-        context.data;
+        context.oldData;
         return true;
       },
     },

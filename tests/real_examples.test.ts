@@ -10,7 +10,7 @@ Deno.test({
       count: {
         _read: () => true,
         _write: () => true,
-        _validate: (newData: value, { _oldData }: RuleContext) =>
+        _validate: (newData: Value, { _oldData }: RuleContext) =>
           typeof newData === "number" &&
           (newData - _oldData === 1 || !_oldData),
       },

@@ -2,6 +2,7 @@ import { Store } from "../src/Store.ts";
 import { StoreYaml } from "../src/StoreYaml.ts";
 import { StoreJson } from "../src/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
+import { PermissionError } from "../src/Errors.ts";
 Deno.test("[Rules _write] .set", () => {
   const rules = {
     allowed: {
@@ -97,9 +98,11 @@ Deno.test("[Rules _write] with .findAndRemove _write true but _read false", () =
     filename: "./tests/test.json",
   });
 
-  assertThrows(() => db.findAndRemove("arr", () => true, true));
-  assertThrows(() => db.findAndRemove("arr", () => true));
-  assertEquals(db.findAndRemove("arr", () => true, false), []);
+  assertThrows(
+    () => db.findAndRemove("arr", () => true),
+    PermissionError,
+    "/arr/0",
+  );
 });
 
 Deno.test("[Rules _write] with .findOneAndRemove", () => {
@@ -112,9 +115,12 @@ Deno.test("[Rules _write] with .findOneAndRemove", () => {
   });
 
   assertThrows(() => db.findOneAndRemove("arr.0", () => true));
-  assertThrows(() => db.findOneAndRemove("arr", () => true));
   //  throw,  key 0 is not a Object or Array
-  assertThrows(() => db.findOneAndRemove("", () => true));
+  assertThrows(
+    () => db.findOneAndRemove("arr.0", () => true),
+    TypeError,
+    "not Object or Array",
+  );
 });
 
 Deno.test("[Rules _write] with .findOneAndRemove _write true but _read false", () => {
@@ -131,9 +137,7 @@ Deno.test("[Rules _write] with .findOneAndRemove _write true but _read false", (
     filename: "./tests/test.json",
   });
 
-  assertThrows(() => db.findOneAndRemove("arr", () => true, true));
   assertThrows(() => db.findOneAndRemove("arr", () => true));
-  assertEquals(db.findOneAndRemove("arr", () => true, false), undefined);
 });
 
 Deno.test("[Rules _write] throwing custom error", () => {

@@ -308,19 +308,43 @@ export class Store {
   public findAndRemove(
     path: string,
     finder: Finder,
-    returnsRemoved = true,
   ): KeyValue[] {
-    const results = returnsRemoved ? this.find(path, finder) : [];
+    const results = this.find(path, finder);
     const keys = keysFromPath(path);
     const isTransaction = this.#duringTransaction;
     this.beginTransaction();
-
-    for (let index = results.length - 1; index >= 0; index--) {
-      const [key] = results[index];
-      const keysToRemove = addChildToKeys(keys, key);
-      this.remove(pathFromKeys(keysToRemove), returnsRemoved);
+    const mutationsToRollback = [] as Mutation[];
+    const mutationsApplied = [] as Mutation[];
+    try {
+      for (let index = results.length - 1; index >= 0; index--) {
+        const [lastKey] = results[index];
+        const keysToRemove = addChildToKeys(keys, lastKey);
+        if (isNumberKey(lastKey)) {
+          // remove array child
+          const { removed, applied } = this._mutate(
+            keysToRemove,
+            undefined,
+            "remove",
+          );
+          mutationsApplied.push(...applied);
+          mutationsToRollback.push(...removed);
+        } else {
+          // remove object key
+          const { removed, applied } = this._mutate(
+            keysToRemove,
+            undefined,
+            "set",
+          );
+          mutationsApplied.push(...applied);
+          mutationsToRollback.push(...removed);
+        }
+      }
+      if (!isTransaction) this.commit();
+    } catch (error) {
+      if (!isTransaction) this.rollback();
+      else this._rollback(mutationsToRollback, mutationsApplied);
+      throw error;
     }
-    if (!isTransaction) this.commit();
 
     return results;
   }
@@ -338,7 +362,7 @@ export class Store {
     finder: Finder,
     returnsRemoved = true,
   ): KeyValue | void {
-    const result = returnsRemoved ? this.findOne(path, finder) : undefined;
+    const result = this.findOne(path, finder);
     const keys = keysFromPath(path);
     if (result) {
       const keysToRemove = addChildToKeys(keys, result[0]);

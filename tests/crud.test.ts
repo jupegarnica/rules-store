@@ -1,4 +1,5 @@
 import { Store } from "../src/Store.ts";
+import { KeyValue } from "../src/types";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 
 Deno.test("[Store] Simple set and get", () => {
@@ -276,8 +277,7 @@ Deno.test("[Store] findOneAndRemove in a array", () => {
   db.set("arr", [1, 2, 3]);
   const removed = db.findOneAndRemove(
     "arr",
-    // deno-lint-ignore no-explicit-any
-    ([, value]: any) => value > 1,
+    ([, value]: KeyValue) => value > 1,
   );
   assertEquals(removed, ["1", 2]);
   assertEquals(db.get("arr"), [1, 3]);

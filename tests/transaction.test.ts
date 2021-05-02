@@ -1,5 +1,5 @@
 import { Store } from "../src/Store.ts";
-import type { KeyValue, Value } from "../src/types.ts";
+import type { KeyValue, RuleContext, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
 
@@ -301,4 +301,92 @@ Deno.test("[Transactions] findAndRemove subscription on children once each", () 
   db.findAndRemove("a", ([, val]: KeyValue) => val > 1);
   assertEquals(mock.calls.length, 2);
   assertEquals(db.get("a"), [1]);
+});
+
+Deno.test({
+  // only: true,
+  name: "[Transactions] findAndRemove during a transaction",
+  fn: () => {
+    const db = new Store({ initialData: { a: [1, 2, 3] } });
+    db.beginTransaction();
+    db.findAndRemove("a", ([, val]: KeyValue) => val > 1);
+    assertEquals(db.get("a"), [1]);
+    db.commit();
+    assertEquals(db.get("a"), [1]);
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Transactions] findAndRemove during a transaction rollback",
+  fn: () => {
+    const db = new Store({ initialData: { a: [1, 2, 3] } });
+    db.beginTransaction();
+    db.findAndRemove("a", ([, val]: KeyValue) => val > 1);
+    assertEquals(db.get("a"), [1]);
+    db.rollback();
+    assertEquals(db.get("a"), [1, 2, 3]);
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Transactions] findAndRemove during a transaction failing",
+  fn: () => {
+    const db = new Store({
+      initialData: { a: [1, 2, 3] },
+      rules: {
+        _read: () => true,
+        a: {
+          $i: {
+            _write: (data: Value, { _oldData }) => {
+              return data || _oldData !== 2;
+            },
+          },
+        },
+      },
+    });
+    db.beginTransaction();
+    db.push("a", 4);
+    assertThrows(
+      () => db.findAndRemove("a", ([, val]: KeyValue) => val > 1),
+    );
+    assertEquals(db.get("a"), [1, 2, 3, 4]);
+    db.push("a", 5);
+
+    db.commit();
+    assertEquals(db.get("a"), [1, 2, 3, 4, 5]);
+  },
+});
+
+Deno.test({
+  // only: true,
+  name:
+    "[Transactions] findAndRemove during a transaction failing and rollback",
+  fn: () => {
+    const db = new Store({
+      initialData: { a: [1, 2, 3] },
+      rules: {
+        _read: () => true,
+        a: {
+          $i: {
+            _write: (data: Value, { _oldData }) => {
+              return data || _oldData !== 2;
+            },
+          },
+        },
+      },
+    });
+    db.beginTransaction();
+    db.push("a", 4);
+    assertThrows(
+      () => db.findAndRemove("a", ([, val]: KeyValue) => val > 1),
+    );
+    assertEquals(db.get("a"), [1, 2, 3, 4]);
+    db.push("a", 5);
+    assertEquals(db.get("a"), [1, 2, 3, 4, 5]);
+
+    db.rollback();
+    assertEquals(db.get("a"), [1, 2, 3]);
+  },
 });

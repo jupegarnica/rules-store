@@ -3,6 +3,7 @@ import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 import type { KeyValue, RuleContext, Value } from "../src/types.ts";
 import {
   asDate,
+  denyAll,
   noCreate,
   noDelete,
   noUpdate,
@@ -12,6 +13,29 @@ import {
   withTimestamps,
 } from "../src/rulesTemplates.ts";
 
+Deno.test("[Rules Templates] denyAll", () => {
+  const rules = {
+    _read: () => true,
+    users: {
+      $name: denyAll,
+      //   $name: {
+      //     _read: () => false,
+      //     _write: () => false,
+      //   },
+    },
+  };
+
+  const db = new Store({
+    rules,
+    initialData: { users: { garn: { name: "garn" } } },
+  });
+
+  assertThrows(() => db.push("users", { name: "garn2" }));
+  assertThrows(() => db.set("users/garn", { name: "garn2" }));
+  assertThrows(() => db.set("users/garn/name", "wtf"));
+  assertThrows(() => db.set("users/garn", undefined));
+  assertThrows(() => db.remove("users/garn"));
+});
 Deno.test("[Rules Templates] onlyCreate", () => {
   const rules = {
     _read: () => true,

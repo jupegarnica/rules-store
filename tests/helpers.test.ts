@@ -237,6 +237,23 @@ Deno.test("[Helpers] deepClone primitives", () => {
   assertEquals(deepClone(sym), sym);
 });
 
+Deno.test({
+  // only: true,
+  name: "[Helpers] deepClone Sets",
+  fn: () => {
+    const c = new Set([{ a: 1 }, { a: 2 }]);
+    const d = deepClone(c);
+
+    assertEquals(c, d);
+    assertEquals(d instanceof Set, true);
+    assertEquals([...c], [...d]);
+    assertEquals([...c][0] !== [...d][0], true);
+    assertEquals([...c][1] !== [...d][1], true);
+    assertEquals([...c][0].a === [...d][0].a, true);
+    assertEquals([...c][1].a === [...d][1].a, true);
+  },
+});
+
 Deno.test("[Helpers] deepClone Date. Must treat dates as primitive type not as objects", () => {
   const date = new Date("1999-01-08T23:00:00.000Z");
 

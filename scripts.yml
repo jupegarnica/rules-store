@@ -5,6 +5,7 @@ scripts:
   bench: deno run -A --unstable tests/benchmarks/benchmarks.ts
   bench-watch: deno run --no-check -A --unstable --watch tests/benchmarks/benchmarks.ts
   coverage:
+    - rm -rf tests/coverage
     - deno test --allow-read --allow-write --unstable --coverage=tests/coverage
     - deno coverage --unstable tests/coverage --lcov > tests/coverage/coverage.lcov
     - genhtml -o tests/coverage/html tests/coverage/coverage.lcov

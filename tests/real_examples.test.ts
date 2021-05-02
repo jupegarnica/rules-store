@@ -10,10 +10,9 @@ Deno.test({
       count: {
         _read: () => true,
         _write: () => true,
-        _validate: (_: Value, { newData, oldData }: RuleContext) => {
-          return typeof newData === "number" &&
-            (newData - oldData === 1 || !oldData);
-        },
+        _validate: (newData: value, { _oldData }: RuleContext) =>
+          typeof newData === "number" &&
+          (newData - _oldData === 1 || !_oldData),
       },
     };
 
@@ -31,13 +30,10 @@ Deno.test("[Rules Examples] list of numbers", () => {
   const rules = {
     _read: () => true,
     myNumbers: {
-      _write: (_: Value, { newData }: RuleContext) => {
-        return Array.isArray(newData);
-      },
+      _write: Array.isArray,
       $index: {
-        _validate: (_: Value, { newData }: RuleContext) => {
-          return typeof newData === "number" || typeof newData === "undefined";
-        },
+        _validate: (newData: Value) =>
+          typeof newData === "number" || typeof newData === "undefined",
       },
     },
   };
@@ -66,18 +62,22 @@ Deno.test({
           _read: () => true,
           _write: () => true,
 
-          _transform: (_: Value, { newData, data }: RuleContext) => {
-            if (data === undefined) {
+          _transform: (newData: Value, { _oldData }: RuleContext) => {
+            if (_oldData === undefined) {
               // const now = new Date().toISOString();
               // add createAt and updateAt
               return ({ ...newData, createAt: now, updateAt: now });
             } else {
               // ensure createAt is not edited
-              return ({ ...newData, createAt: data.createAt, updateAt: now });
+              return ({
+                ...newData,
+                createAt: _oldData.createAt,
+                updateAt: now,
+              });
             }
           },
           // validate saved contains createdAt and updatedAt
-          _validate: (_: Value, { newData }: RuleContext) => {
+          _validate: (newData: Value) => {
             return newData.createAt && newData.createAt;
           },
         },

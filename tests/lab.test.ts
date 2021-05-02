@@ -116,37 +116,62 @@ Deno.test("[Lab] symbols", () => {
   db.deleteStore();
 });
 
+Deno.test("[Lab] collection", () => {
+  const db = new StoreJson({
+    rules: {
+      _read: () => true,
+      _write: () => true,
+      _validate: Array.isArray,
+    },
+    initialData: [1, 2, 3],
+  });
+  db.push("", 4);
+  db.write();
+  db.load();
+  assertEquals(
+    db.get(""),
+    [1, 2, 3, 4],
+  );
+
+  assertThrows(() => db.set("sym", "hola"));
+  db.deleteStore();
+});
+
 // TODO support for Set
 
-// Deno.test("[Lab] Set", () => {
+Deno.test({
+  // only: true,
+  name: "[Lab] Set",
+  fn: () => {
+    const db = new StoreJson({
+      rules: {
+        _read: () => true,
+        _write: () => true,
+        set: {
+          _write: (newData) => newData instanceof Set,
+          _transform: (newData) => [...newData],
+          _as: (data) => {
+            return new Set(data);
+          },
+        },
+      },
+    });
+    const mySet = new Set([1, 2, 3, 3, 3]);
+    const returned = db.set("set", mySet);
 
-//   const db = new StoreJson({
-//     rules: {
-//       _read: () => true,
-//       _write: () => true,
-//       set: {
-//         _write: ({ newData }: RuleContext) =>
-//           // console.log({ newData }) || Array.isArray(newData) ||
-//           newData instanceof Set,
-//         _transform: ({ newData }: RuleContext) => [...newData],
-//         _as: ({ data }: RuleContext) => new Set(data),
-//       },
-//     },
-//   });
-//   const mySet = new Set([1, 2, 3, 3, 3]);
-//   console.log(mySet instanceof Set);
+    assertEquals(returned, mySet);
+    assertEquals(
+      db.get("set"),
+      mySet,
+    );
+    assertEquals(
+      db.get("set").has(1),
+      true,
+    );
 
-//   db.set("set", mySet);
-//   // db.write();
-//   // db.load();
-
-//   assertEquals(
-//     db.get("set"),
-//     mySet,
-//   );
-
-//   // assertThrows(() => db.set("set", "hola"));
-// });
+    assertThrows(() => db.set("set", "hola"));
+  },
+});
 
 // Deno.test({
 //   name: "[Lab] rules as array",

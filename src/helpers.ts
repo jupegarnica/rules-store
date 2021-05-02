@@ -151,13 +151,21 @@ export const deepMerge = (
 
 export const deepClone = (obj: Value) => {
   if (!isObjectOrArray(obj)) return obj;
+
+  if ((obj) instanceof Set) {
+    const clone = new Set();
+    for (const key of obj) {
+      clone.add(deepClone(key));
+    }
+    return clone;
+  }
+
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);
   Object.keys(clone);
   for (const key in clone) {
     clone[key] = deepClone(obj[key]);
   }
-  // assertDeepClone(obj, clone);
   return clone;
 };
 // export const deepClone = (obj: Value) => {
@@ -312,8 +320,7 @@ export function findDeepestRule(
     index++;
   } while (index < keys.length);
 
-  const result = { params, [ruleType]: rule, rulePath };
-  return result;
+  return { params, [ruleType]: rule, rulePath };
 }
 
 export function findAllRules(

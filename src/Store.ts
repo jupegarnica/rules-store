@@ -618,6 +618,7 @@ export class Store {
           target,
         );
         newValue = value(...args);
+        debugger;
         mutation.value = newValue; // do not run mutation again committing to #data
       }
       if (cloneValue) {
@@ -626,25 +627,25 @@ export class Store {
 
       if (type === "set") {
         removed.push(...deepSet(target, keys, newValue));
-      }
+      } else {
+        const parentKeys = keys.filter((_: Value, index: number) =>
+          (index) !== keys.length - 1
+        );
+        const lastKey = keys[keys.length - 1];
+        const parent = deepGet(target, parentKeys);
 
-      const parentKeys = keys.filter((_: Value, index: number) =>
-        (index) !== keys.length - 1
-      );
-      const lastKey = keys[keys.length - 1];
-      const parent = deepGet(target, parentKeys);
-
-      if (type === "remove") {
-        const [valueRemoved] = parent.splice(Number(lastKey), 1);
-        removed.push({
-          type: "add",
-          value: valueRemoved,
-          keys,
-        });
-      }
-      if (type === "add") {
-        parent.splice(Number(lastKey), 0, newValue);
-        removed.push({ type: "remove", keys, value: undefined });
+        if (type === "remove") {
+          const [valueRemoved] = parent.splice(Number(lastKey), 1);
+          removed.push({
+            type: "add",
+            value: valueRemoved,
+            keys,
+          });
+        }
+        if (type === "add") {
+          parent.splice(Number(lastKey), 0, newValue);
+          removed.push({ type: "remove", keys, value: undefined });
+        }
       }
     }
   }

@@ -1,12 +1,12 @@
 // deno-lint-ignore no-explicit-any
 export type Value = any;
-// TODO
 // export type Value =
 //   | string
 //   | number
 //   | null
 //   | undefined
-//   | { [key: string]: Value }
+//   | symbol
+//   | ObjectOrArray
 //   | Value[];
 
 // deno-lint-ignore no-explicit-any

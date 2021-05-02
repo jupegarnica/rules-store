@@ -58,8 +58,6 @@ Deno.test("[Rules _write] .remove", () => {
 
 Deno.test("[Rules _write] .remove _write true but _read false ", () => {
   const rules = {
-    _read: () => true,
-
     arr: {
       _write: () => true,
       _read: () => false,

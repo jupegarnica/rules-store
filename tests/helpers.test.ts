@@ -7,6 +7,7 @@ import {
   deepGet,
   deepMerge,
   deepSet,
+  findRulesOnPath,
   getParamFromObject,
   getParamsFromKeys,
   isNumberKey,
@@ -891,3 +892,255 @@ Deno.test({
     );
   },
 });
+
+Deno.test({
+  // only: true,
+  name: "[Helpers] findRulesOnPath",
+  fn: () => {
+    const rules = {
+      people: {
+        $name: {
+          age: {
+            _read: () => true,
+          },
+        },
+      },
+    };
+    const found = findRulesOnPath(
+      ["people", "garn", "age"],
+      "_read",
+      rules,
+    );
+
+    assertEquals(found.length, 1);
+    assertEquals(found[0].params.$name, "garn");
+    assertEquals(found[0].rulePath, ["people", "garn", "age"]);
+    assertEquals(found[0]._read?.(context), true);
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Helpers] findRulesOnPath not found",
+  fn: () => {
+    const rules = {
+      people: {
+        $name: {
+          _read: () => true,
+        },
+      },
+    };
+
+    const found = findRulesOnPath(
+      ["404", "garn", "age"],
+      "_read",
+      rules,
+    );
+    assertEquals(found.length, 0);
+  },
+});
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath multiple rules",
+    fn: () => {
+      const rules = {
+        _read: () => 0,
+        people: {
+          _read: () => 1,
+          $name: {
+            _read: () => 2,
+            age: {
+              _read: () => 3,
+            },
+          },
+        },
+      };
+      const found = findRulesOnPath(
+        ["people", "garn", "age"],
+        "_read",
+        rules,
+      );
+      assertEquals(found.length, 4);
+
+      assertEquals(found[0]._read(context), 0);
+      assertEquals(found[0].params, {});
+      assertEquals(found[0].rulePath, []);
+
+      assertEquals(found[1]._read(context), 1);
+      assertEquals(found[1].params, {});
+      assertEquals(found[1].rulePath, ["people"]);
+
+      assertEquals(found[2]._read(context), 2);
+      assertEquals(found[2].params, { $name: "garn" });
+      assertEquals(found[2].rulePath, ["people", "garn"]);
+
+      assertEquals(found[3]._read(context), 3);
+      assertEquals(found[3].params, { $name: "garn" });
+      assertEquals(found[3].rulePath, ["people", "garn", "age"]);
+    },
+  },
+);
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath multiple rules",
+    fn: () => {
+      const rules = {
+        _read: () => 0,
+        people: {
+          _write: () => 1,
+        },
+      };
+      const found = findRulesOnPath(
+        ["people", "garn"],
+        "_read",
+        rules,
+      );
+      assertEquals(found.length, 1);
+      assertEquals(found[0]._read(context), 0);
+      assertEquals(found[0].params, {});
+      assertEquals(found[0].rulePath, []);
+    },
+  },
+);
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath multiple rules",
+    fn: () => {
+      const rules = {
+        _read: () => 0,
+        people: {
+          _write: () => 1,
+          $name: {
+            _write: () => 1,
+            age: {
+              _read: () => 1,
+            },
+          },
+        },
+      };
+      const found = findRulesOnPath(
+        ["people", "garn", "age", "else"],
+        "_read",
+        rules,
+      );
+      assertEquals(found.length, 2);
+    },
+  },
+);
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath stops quick",
+    fn: () => {
+      const rules = {
+        _read: () => 0,
+        people: {
+          _write: () => 1,
+          $name: {
+            _write: () => 1,
+            age: {
+              _read: () => 1,
+            },
+          },
+        },
+      };
+      const found = findRulesOnPath(
+        [],
+        "_read",
+        rules,
+      );
+      assertEquals(found.length, 1);
+    },
+  },
+);
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath stops quick",
+    fn: () => {
+      const rules = {
+        _read: () => 0,
+      };
+      const found = findRulesOnPath(
+        ["people", "garn", "age", "else"],
+        "_read",
+        rules,
+      );
+      assertEquals(found.length, 1);
+    },
+  },
+);
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath multiple path",
+    fn: () => {
+      const rules = {
+        providers: {
+          $name: {
+            age: {
+              _read: () => 0,
+            },
+          },
+        },
+        $foo: {
+          $bar: {
+            age: { _read: () => 2 },
+          },
+        },
+      };
+      const found = findRulesOnPath(
+        ["providers", "garn", "age"],
+        "_read",
+        rules,
+      );
+
+      assertEquals(found.length, 1);
+      assertEquals(found[0]._read(context), 0);
+      assertEquals(found[0].params, { $name: "garn" });
+      assertEquals(found[0].rulePath, ["providers", "garn", "age"]);
+    },
+  },
+);
+
+Deno.test(
+  {
+    // only: true,
+    name: "[Helpers] findRulesOnPath multiple path",
+    fn: () => {
+      const rules = {
+        providers: {
+          $name: {
+            age: {
+              _read: () => 0,
+            },
+          },
+        },
+        $foo: {
+          $bar: {
+            age: { _read: () => 2 },
+          },
+        },
+      };
+      const found = findRulesOnPath(
+        ["users", "garn", "age"],
+        "_read",
+        rules,
+      );
+
+      assertEquals(found.length, 1);
+      assertEquals(found[0]._read(context), 2);
+      assertEquals(found[0].params, { $foo: "users", $bar: "garn" });
+      assertEquals(found[0].rulePath, ["users", "garn", "age"]);
+    },
+  },
+);

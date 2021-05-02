@@ -280,47 +280,92 @@ export const deepSet = (
   return removed;
 };
 
-export function findDeepestRule(
+// export function findDeepestRule(
+//   keys: Keys,
+//   ruleType: string,
+//   rules: Rules,
+// ): RuleFound {
+//   const params: Params = {};
+//   const currentPath = [] as Keys;
+//   let rulePath = [] as Keys;
+//   // deno-lint-ignore no-explicit-any
+//   let worker = rules as any;
+//   // deno-lint-ignore no-explicit-any
+//   let rule: Rule | any;
+//   let index = 0;
+
+//   do {
+//     const key = keys[index];
+//     const child = worker[key];
+//     const maybeParam = getParamFromObject(worker);
+//     let maybeRule = worker[ruleType];
+
+//     if (maybeRule) rule = maybeRule;
+//     if (isObjectOrArray(child)) {
+//       worker = child;
+//     } else {
+//       if (maybeParam) {
+//         params[maybeParam] = key;
+//         worker = worker[maybeParam];
+//       } else {
+//         break;
+//       }
+//     }
+//     currentPath.push(key);
+//     maybeRule = worker[ruleType];
+//     if (maybeRule) {
+//       rule = maybeRule;
+//       rulePath = [...currentPath];
+//     }
+//     index++;
+//   } while (index < keys.length);
+
+//   return { params, [ruleType]: rule, rulePath };
+// }
+
+export function findRulesOnPath(
   keys: Keys,
   ruleType: string,
   rules: Rules,
-): RuleFound {
-  const params: Params = {};
+): RuleFound[] {
   const currentPath = [] as Keys;
-  let rulePath = [] as Keys;
   // deno-lint-ignore no-explicit-any
   let worker = rules as any;
-  // deno-lint-ignore no-explicit-any
-  let rule: Rule | any;
   let index = 0;
+  const rulesFound = [] as RuleFound[];
+  const params: Params = {};
 
   do {
     const key = keys[index];
     const child = worker[key];
     const maybeParam = getParamFromObject(worker);
-    let maybeRule = worker[ruleType];
+    const maybeRule = worker[ruleType];
 
-    if (maybeRule) rule = maybeRule;
-    if (isObjectOrArray(child)) {
+    if (typeof maybeRule === "function") {
+      const found = {
+        params: { ...params },
+        [ruleType]: maybeRule,
+        rulePath: [...currentPath],
+      };
+      rulesFound.push(found);
+    }
+
+    if (!key) {
+      break;
+    } else if (isObjectOrArray(child)) {
       worker = child;
+    } else if (maybeParam) {
+      params[maybeParam] = key;
+      worker = worker[maybeParam];
     } else {
-      if (maybeParam) {
-        params[maybeParam] = key;
-        worker = worker[maybeParam];
-      } else {
-        break;
-      }
+      break;
     }
-    currentPath.push(key);
-    maybeRule = worker[ruleType];
-    if (maybeRule) {
-      rule = maybeRule;
-      rulePath = [...currentPath];
-    }
-    index++;
-  } while (index < keys.length);
 
-  return { params, [ruleType]: rule, rulePath };
+    currentPath.push(key);
+    index++;
+  } while (index <= keys.length);
+
+  return rulesFound;
 }
 
 export function findAllRules(

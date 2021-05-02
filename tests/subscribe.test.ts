@@ -93,7 +93,6 @@ Deno.test("[Observe] root throws", () => {
 Deno.test("[Observe] checks read rule", () => {
   const db = new Store({
     rules: {
-      _read: () => true,
       a: {
         _read: () => false,
       },

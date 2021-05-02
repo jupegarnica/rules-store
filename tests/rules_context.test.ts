@@ -32,7 +32,6 @@ Deno.test("[Rules context] _write newData", () => {
   const rules = {
     people: {
       _read: () => true,
-      _write: () => true,
       $name: {
         _write(newData: Value) {
           calls++;
@@ -43,9 +42,10 @@ Deno.test("[Rules context] _write newData", () => {
       },
     },
   };
-  const db = new Store({ rules });
-  db.set("people", { garn: { age: 1 }, pepe: { age: 2 } });
-  assertEquals(calls, 0); // don't throw because it sets on parent
+  const db = new Store({
+    rules,
+    initialData: {people: { garn: { age: 1 }, pepe: { age: 2 } }},
+  });
   assertEquals(db.get("people.garn.age"), 1);
   assertEquals(db.get("people.pepe.age"), 2);
   assertThrows(() => db.set("people.garn", { age: 0 }));
@@ -198,7 +198,6 @@ Deno.test("[Rules context] params _write at root", () => {
 Deno.test("[Rules context] params multiple params", () => {
   let calls = 0;
   const rules = {
-    _write: () => true,
     $a: {
       $b: {
         $c: {

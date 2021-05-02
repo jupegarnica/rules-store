@@ -6,8 +6,8 @@ import {
   deepMerge,
   deepSet,
   findAllRules,
-  findDeepestRule,
   findRule,
+  findRulesOnPath,
   getParamsFromKeys,
   isNumberKey,
   isObjectOrArray,
@@ -498,47 +498,44 @@ export class Store {
     ruleType: "_read" | "_write",
     keys: Keys,
   ): void {
-    const ruleAndParams = findDeepestRule(
+    const rulesFound = findRulesOnPath(
       keys,
       ruleType,
       this.#rules,
     );
-
-    const rule = ruleAndParams[ruleType];
-    const params = ruleAndParams.params;
-    const rulePath = ruleAndParams.rulePath;
-    try {
-      if (typeof rule !== "function") {
-        throw new PermissionError(
-          `Not explicit permission to ${
-            ruleType.replace(
-              "_",
-              "",
-            )
-          }`,
-        );
-      }
+    if (rulesFound.length === 0) {
+      throw new PermissionError(
+        `Not explicit permission to ${
+          ruleType.replace(
+            "_",
+            "",
+          )
+        }`,
+      );
+    }
+    let path: Keys = [];
+    for (const ruleFound of rulesFound) {
+      const rule = ruleFound[ruleType];
+      const params = ruleFound.params;
+      const rulePath = ruleFound.rulePath;
       const ruleArgs = this._createRuleArgs(
         params,
         rulePath,
       );
 
-      const allowed = rule && rule(...ruleArgs);
+      const allowed = rule(...ruleArgs);
 
-      if (!allowed) {
-        throw new PermissionError(
-          `${
-            ruleType.replace(
-              "_",
-              "",
-            )
-          } disallowed at path ${pathFromKeys(rulePath)}`,
-        );
-      }
-      return;
-    } catch (error) {
-      throw error;
+      if (allowed) return;
+      else path = rulePath;
     }
+    throw new PermissionError(
+      `${
+        ruleType.replace(
+          "_",
+          "",
+        )
+      } disallowed at path ${pathFromKeys(path)}`,
+    );
   }
   private _checkValidation(diff: ObjectOrArray): void {
     const ruleType = "_validate";

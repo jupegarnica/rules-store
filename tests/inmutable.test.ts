@@ -205,7 +205,6 @@ Deno.test("[Rules context] data inmutable even root", () => {
     return true;
   };
   const rules = {
-    _write: () => true,
     $a: {
       $b: {
         _write: rule,
@@ -230,7 +229,6 @@ Deno.test("[Rules context] data, newData, rootData inmutable", () => {
     return true;
   };
   const rules = {
-    _write: () => true,
     $a: {
       _write: rule,
       _read: rule,

@@ -42,7 +42,7 @@ Deno.test("[Rules _read] root", () => {
   };
   const db = new Store({ rules });
   assertThrows(
-    () => db.get("a"),
+    () => db.get(""),
     PermissionError,
     "read disallowed at path /",
   );
@@ -67,61 +67,23 @@ Deno.test("[Rules _read] overlapping rules", () => {
   assertThrows(() => db.get("b"));
 });
 
-Deno.test("[Rules _read] overlapping rules", () => {
-  const rules = {
-    _read: () => true,
-    a: { _read: () => false },
-  };
-  const db = new Store({ rules });
-
-  assertEquals(db.get("b"), undefined);
-
-  assertThrows(
-    () => db.get("a"),
-    PermissionError,
-    "read disallowed at path /a",
-  );
-  assertThrows(
-    () => db.get("a.b"),
-    PermissionError,
-    "read disallowed at path /a",
-  );
-});
-
 Deno.test(
-  "[Rules _read] access protected data from parent",
+  "[Rules _read] permission rules cascade",
   () => {
     const rules = {
       _read: () => true,
       _write: () => true,
-      a: { _read: () => false },
+      a: { _read: () => false, _write: () => false },
     };
-    const db = new Store({ rules });
-    db.set("a", 1);
+    const db = new Store({ rules, initialData: { a: 1 } });
     assertEquals(db.get(""), { a: 1 });
-
-    assertThrows(
-      () => db.get("a"),
-      PermissionError,
-      "read disallowed at path /a",
+    assertEquals(db.get("a"), 1);
+    assertEquals(
+      db.set("a", 2),
+      2,
     );
   },
 );
-
-Deno.test("[Rules _read] protecting the root", () => {
-  const rules = {
-    _read: () => false,
-    a: { _read: () => false },
-  };
-  const db = new Store({ rules });
-  // db.set("a", 1);
-
-  assertThrows(
-    () => assertEquals(db.get(""), { a: 1 }),
-    PermissionError,
-    "read disallowed at path /",
-  );
-});
 
 Deno.test("[Rules _read] with find", () => {
   const rules = {
@@ -192,7 +154,7 @@ Deno.test("[Rules _read] with findOneAndRemove", () => {
 
 Deno.test("[Rules _read] find with one child not allowed", () => {
   const rules = {
-    arr: { _read: () => true, "1": { _read: () => false } },
+    arr: { $i: { _read: () => true }, "1": { _read: () => false } },
   };
   const db = new StoreJson({
     rules,
@@ -208,7 +170,11 @@ Deno.test("[Rules _read] find with one child not allowed", () => {
 
 Deno.test("[Rules _read]  findOne with one child not allowed", () => {
   const rules = {
-    arr: { _read: () => true, "0": { _read: () => false } },
+    arr: {
+      "0": {
+        _read: () => false,
+      },
+    },
   };
   const db = new StoreJson({
     rules,

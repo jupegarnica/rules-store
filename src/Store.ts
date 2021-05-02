@@ -29,6 +29,7 @@ import type {
   ObserverPayload,
   Params,
   RuleArgs,
+  RuleContext,
   Rules,
   Subscription,
   Value,
@@ -439,20 +440,18 @@ export class Store {
     const oldData = deepGet(this.#data, rulePath);
     const data = newData;
 
-    const context = {
+    const context: RuleContext = {
+      _oldData: oldData,
+      _newData: newData,
+      _rootData: this._data,
+      newData: undefined,
+      oldData: undefined,
+      rootData: {},
       ...params,
-      oldData,
-      newData,
-      rootData: this._data,
     };
-    // TODO remove cloning
     applyCloneOnGet(context, "oldData", oldData);
     applyCloneOnGet(context, "rootData", this._data);
-    applyCloneOnGet(
-      context,
-      "newData",
-      newData,
-    );
+    applyCloneOnGet(context, "newData", newData);
     return [data, context] as RuleArgs;
   }
   private _createSubscriptionPayload(

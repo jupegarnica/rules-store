@@ -134,10 +134,6 @@ Deno.test("[Store] find in a array", () => {
     ([, value]) => value % 2 !== 0,
   );
   const [[key, value]] = results;
-  // console.log([
-  //   ["0", 1],
-  //   ["2", 3],
-  // ], results)
   assertEquals(results, [
     ["0", 1],
     ["2", 3],

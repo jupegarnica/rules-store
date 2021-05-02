@@ -108,8 +108,7 @@ export const assertDeepClone = (a: Value, b: Value): void => {
       throw new Error(`not clone ${a} ${b}`);
     }
     return;
-  }
-  if (a === b) {
+  } else if (a === b) {
     throw new Error("not clone");
   }
 

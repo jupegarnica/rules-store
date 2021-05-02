@@ -113,8 +113,7 @@ Deno.test("[Transactions] on remove", () => {
 });
 
 Deno.test("[Transactions] on push subscription", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+  const mock: Spy<void> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
@@ -162,9 +161,31 @@ Deno.test({
   },
 });
 
+Deno.test({
+  // only: true,
+  name: "[Transactions] on push fails during transaction 2",
+  fn: () => {
+    const db = new Store({
+      initialData: { a: [1, 2, 3] },
+      rules: {
+        a: {
+          _read: () => true,
+          _write: (newData: Value) => newData.length <= 6,
+        },
+      },
+    });
+    db.beginTransaction();
+    db.push("a", 4);
+    assertThrows(() => {
+      db.push("a", 5, 6, 7);
+    });
+    db.commit();
+    assertEquals(db.get("a"), [1, 2, 3, 4]);
+  },
+});
+
 Deno.test("[Transactions] on remove subscription", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+  const mock: Spy<void> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
@@ -183,8 +204,7 @@ Deno.test("[Transactions] on remove subscription", () => {
 });
 
 Deno.test("[Transactions] on remove subscription 2", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+  const mock: Spy<void> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
@@ -203,8 +223,7 @@ Deno.test("[Transactions] on remove subscription 2", () => {
 });
 
 Deno.test("[Transactions] on remove subscription 3", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+  const mock: Spy<void> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
@@ -227,8 +246,7 @@ Deno.test({
   // only: true,
   name: "[Transactions] on remove rollback",
   fn: () => {
-    // deno-lint-ignore no-explicit-any
-    const mock: Spy<any> = spy();
+    const mock: Spy<void> = spy();
 
     const db = new Store({ initialData: { a: [1, 2, 3] } });
     db.observe(
@@ -254,8 +272,7 @@ Deno.test({
 });
 
 Deno.test("[Transactions] findAndRemove should perform a transaction", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+  const mock: Spy<void> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
@@ -270,8 +287,7 @@ Deno.test("[Transactions] findAndRemove should perform a transaction", () => {
 });
 
 Deno.test("[Transactions] findAndRemove subscription on children once each", () => {
-  // deno-lint-ignore no-explicit-any
-  const mock: Spy<any> = spy();
+  const mock: Spy<void> = spy();
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(

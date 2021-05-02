@@ -65,12 +65,8 @@ Deno.test({
         $index: {
           _read: () => true,
           _write: () => true,
-          // _write: ({ newData, data }: RuleContext) =>
-          //   !data || newData.createAt === data.createAt,
 
           _transform: (_: Value, { newData, data }: RuleContext) => {
-            // console.log({ newData, data });
-            // console.count("_trans");
             if (data === undefined) {
               // const now = new Date().toISOString();
               // add createAt and updateAt
@@ -82,7 +78,6 @@ Deno.test({
           },
           // validate saved contains createdAt and updatedAt
           _validate: (_: Value, { newData }: RuleContext) => {
-            // console.log(newData);
             return newData.createAt && newData.createAt;
           },
         },

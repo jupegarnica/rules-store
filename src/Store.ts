@@ -38,9 +38,12 @@ import { PermissionError, ValidationError } from "./Errors.ts";
 
 import { allowAll } from "./rulesTemplates.ts";
 
-// assertDeepClone,
-const { assertDeepClone } = await import("./helpers.ts");
-const { assertEquals } = await import("../tests/test_deps.ts");
+// const assertClone = false;
+// if (assertClone) {
+//   var { assertDeepClone } = await import("./helpers.ts");
+//   var { assertEquals } = await import("../tests/test_deps.ts");
+// }
+
 /**
  * A database in RAM heavily inspired from firebase realtime database.
  *
@@ -177,12 +180,7 @@ export class Store {
     }
     if (isNumberKey(lastKey)) {
       // remove array child
-      const isTransaction = this.#duringTransaction;
-      // this.beginTransaction();
-      debugger;
       this._mutate(keys, undefined, "remove");
-
-      if (!isTransaction) this.commit();
     } else {
       // remove object key
       this._mutate(keys, undefined, "set");
@@ -207,6 +205,8 @@ export class Store {
     if (!Array.isArray(target)) {
       throw new TypeError("Target is not Array");
     }
+    const mutationsToRollback = [] as Mutation[];
+    const mutationsApplied = [] as Mutation[];
     const isTransaction = this.#duringTransaction;
     this.beginTransaction();
     try {
@@ -215,13 +215,21 @@ export class Store {
       for (const index in values) {
         const targetIndex = initialLength + Number(index);
         const keysToNewItem = addChildToKeys(keys, String(targetIndex));
-        this._mutate(keysToNewItem, values[index], "add");
+        const { removed, applied } = this._mutate(
+          keysToNewItem,
+          values[index],
+          "add",
+        );
+        mutationsApplied.push(...applied);
+        mutationsToRollback.push(...removed);
         returned.push(this._getAs(keysToNewItem));
       }
       if (!isTransaction) this.commit();
       return returned.length > 1 ? returned : returned[0];
     } catch (error) {
-      this.rollback();
+      if (!isTransaction) this.rollback();
+      else this._rollback(mutationsToRollback, mutationsApplied);
+
       throw error;
     }
   }
@@ -400,12 +408,18 @@ export class Store {
     );
     this.#mutationsToRollback = [];
     this.#mutationsToCommit = [];
+
+    // if (assertClone) {
+    //   assertEquals(this._data, this.#newData);
+    //   assertDeepClone(this._data, this.#newData);
+    // }
   }
 
   public rollback() {
     this.#duringTransaction = false;
     this._rollback(
       this.#mutationsToRollback,
+      this.#mutationsToCommit,
     );
     this.#mutationsToRollback = [];
     this.#mutationsToCommit = [];
@@ -640,13 +654,14 @@ export class Store {
     keys: Keys,
     value: Value,
     type: MutationType = "set",
-  ): void {
+  ): { applied: Mutation[]; removed: Mutation[] } {
     const removed: Mutation[] = [];
+    let mutationsToApply: Mutation[] = [];
 
     try {
       // create write diff
       const diff = this._dataShape;
-      deepSet(diff, keys, value ?? null);
+      deepSet(diff, keys, (value ?? null));
 
       // apply write
       this._applyMutations(
@@ -654,10 +669,11 @@ export class Store {
         [{ keys, value, type: type === "remove" ? "set" : type }],
         removed,
       );
+
       this._checkPermission("_write", keys);
 
       // apply _transform rule
-      const mutationsToApply = this._findMutations(
+      mutationsToApply = this._findMutations(
         "_transform",
         diff,
       );
@@ -670,48 +686,35 @@ export class Store {
 
       this._checkValidation(diff);
       deepMerge(this.#mutationDiff, diff);
-      let mutationRemove: Mutation = {
-        keys,
-        type: "remove",
-        value: undefined,
-      };
 
-      if (type === "remove") {
-        mutationsToApply.push(mutationRemove);
-      }
+      const currentMutation = { keys, value, type };
+      mutationsToApply.unshift(currentMutation);
 
       if (!this.#duringTransaction) {
-        this._commit([
-          { keys, value: deepClone(value), type: "set" },
-          ...mutationsToApply,
-        ]);
-      }
-
-      if (this.#duringTransaction) {
-        this.#mutationsToCommit.push(
-          { keys, value: deepClone(value), type: "set" },
-          ...mutationsToApply,
-        );
-        this.#mutationsToRollback.push(...removed);
+        this._commit(mutationsToApply);
       }
       if (type === "remove") {
         this._applyMutations(
           this.#newData,
-          [mutationRemove],
+          [currentMutation],
           removed,
         );
       }
+      if (this.#duringTransaction) {
+        this.#mutationsToCommit.push(...mutationsToApply);
+        this.#mutationsToRollback.push(...removed);
+      }
     } catch (error) {
-      this._rollback(removed);
+      this._rollback(removed, mutationsToApply);
       throw error;
-    } finally {
-      // console.log("this.#data", this.#data);
-      // console.log("this.#newData", this.#newData);
-
-      // assertEquals(this._data, this.#newData);
-      // TODO FIX
-      // assertDeepClone(this._data, this.#newData);
+      // } finally {
+      //   if (assertClone && !this.#duringTransaction) {
+      //     assertEquals(this._data, this.#newData);
+      //     assertDeepClone(this._data, this.#newData);
+      //   }
     }
+
+    return { applied: mutationsToApply, removed };
   }
 
   protected _commit(
@@ -721,24 +724,28 @@ export class Store {
     const removed = [] as Mutation[];
     try {
       this._applyMutations(this.#data, toCommit, removed, true);
-      // this._applyMutations(this.#newData, toCommit, [], false);
-      // console.log("this.#data", this.#data);
-      // console.log("this.#newData", this.#newData);
       this.#mutationDiff = this._dataShape;
     } catch (error) {
-      this._rollback(removed);
+      this._rollback(removed, toCommit);
       throw error;
     }
   }
-  private _rollback(mutations: Mutation[]): void {
+  private _rollback(toRollback: Mutation[], applied: Mutation[]): void {
     const removed = [] as Mutation[];
     this._applyMutations(
       this.#newData,
-      mutations.reverse(),
+      toRollback.reverse(),
       removed,
     );
-    // assertEquals(this._data, this.#newData);
-    // assertDeepClone(this._data, this.#newData);
+    this.#mutationsToCommit = this.#mutationsToCommit.filter((saved) =>
+      applied.every((applied) => saved !== applied)
+    );
+    // if (!this.#duringTransaction && assertClone) {
+    //   // console.log(this._data, this.#newData);
+
+    //   assertEquals(this._data, this.#newData);
+    //   assertDeepClone(this._data, this.#newData);
+    // }
   }
 
   private _notify() {

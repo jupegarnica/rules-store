@@ -339,7 +339,7 @@ Deno.test({
         _read: () => true,
         a: {
           $i: {
-            _write: (data: Value, { _oldData }) => {
+            _write: (data: Value, { _oldData }: RuleContext) => {
               return data || _oldData !== 2;
             },
           },
@@ -370,7 +370,7 @@ Deno.test({
         _read: () => true,
         a: {
           $i: {
-            _write: (data: Value, { _oldData }) => {
+            _write: (data: Value, { _oldData }: RuleContext) => {
               return data || _oldData !== 2;
             },
           },

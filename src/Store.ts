@@ -642,7 +642,6 @@ export class Store {
           target,
         );
         newValue = value(...args);
-        debugger;
         mutation.value = newValue; // do not run mutation again committing to #data
       }
       if (cloneValue) {

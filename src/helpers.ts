@@ -12,8 +12,22 @@ import type {
 // import debounce from "https://dev.jspm.io/lodash.debounce";
 // export { debounce };
 
-export function isObjectOrArray(obj: unknown): boolean {
-  return typeof obj === "object" && obj !== null && !(obj instanceof Date);
+// export function isObjectOrArray(obj: unknown): boolean {
+//   return typeof obj === "object" && obj !== null && !(obj instanceof Date);
+// }
+
+// deno-lint-ignore no-explicit-any
+export function isObjectOrArray(obj: any): boolean {
+  return obj?.constructor === Object ||
+    Array.isArray(obj);
+}
+
+// deno-lint-ignore no-explicit-any
+export function isSet(obj: any): any {
+  if (!obj) return;
+  if (obj.constructor === Set || obj.constructor === WeakSet) {
+    return obj.constructor;
+  }
 }
 // match "\" "/" o "."
 export function keysFromPath(path: string): Keys {
@@ -150,15 +164,15 @@ export const deepMerge = (
 // };
 
 export const deepClone = (obj: Value) => {
-  if (!isObjectOrArray(obj)) return obj;
-
-  if ((obj) instanceof Set) {
-    const clone = new Set();
+  const SetConstructor = isSet(obj);
+  if (SetConstructor) {
+    const clone = new SetConstructor();
     for (const key of obj) {
       clone.add(deepClone(key));
     }
     return clone;
   }
+  if (!isObjectOrArray(obj)) return obj;
 
   const initialShape = Array.isArray(obj) ? [] : {};
   const clone = Object.assign(initialShape, obj);

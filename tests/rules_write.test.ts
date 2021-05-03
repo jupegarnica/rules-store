@@ -85,10 +85,8 @@ Deno.test("[Rules _write] .remove _write true but _read false ", () => {
 Deno.test("[Rules _write] with .findAndRemove _write true but _read false", () => {
   const rules = {
     arr: {
-      $i: {
-        _write: () => true,
-        _read: () => false,
-      },
+      _write: () => true,
+      _read: () => false,
     },
   };
   const db = new StoreJson({
@@ -99,7 +97,7 @@ Deno.test("[Rules _write] with .findAndRemove _write true but _read false", () =
   assertThrows(
     () => db.findAndRemove("arr", () => true),
     PermissionError,
-    "/arr/0",
+    "/arr",
   );
 });
 

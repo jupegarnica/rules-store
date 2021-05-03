@@ -20,6 +20,8 @@ export type ValueOrFunction = Value | Callable;
 export type KeyValue = [string, Value];
 // deno-lint-ignore no-explicit-any
 export type Finder = (pair: KeyValue) => any;
+// deno-lint-ignore no-explicit-any
+export type Mapper = (pair: KeyValue) => any;
 
 export type ObserverContext = {
   newData: Value;

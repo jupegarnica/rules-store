@@ -310,6 +310,70 @@ Deno.test("[Store] Set negative array index", () => {
   assertThrows(() => db.set("arr.a", -4), TypeError, "not Object");
 });
 
+Deno.test({
+  // only: true,
+  name: "[Store] findAndUpdate",
+  fn: () => {
+    const db = new Store();
+    db.set("obj", { a: 1, b: 2, c: 3 });
+    const updated = db.findAndUpdate(
+      "obj",
+      ([, value]) => value > 1,
+      ([, value]) => value * 2,
+    );
+    assertEquals(updated, [["b", 4], ["c", 6]]);
+    assertEquals(db.get("obj"), { a: 1, b: 4, c: 6 });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Store] findAndUpdate not found",
+  fn: () => {
+    const db = new Store();
+    db.set("obj", { a: 1, b: 2, c: 3 });
+    const updated = db.findAndUpdate(
+      "obj",
+      ([, value]) => value > 10,
+      ([, value]) => value * 2,
+    );
+    assertEquals(updated, []);
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3 });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Store] findOneAndUpdate",
+  fn: () => {
+    const db = new Store();
+    db.set("obj", { a: 1, b: 2, c: 3 });
+    const updated = db.findOneAndUpdate(
+      "obj",
+      ([, value]) => value > 1,
+      ([, value]) => value * 2,
+    );
+    assertEquals(updated, ["b", 4]);
+    assertEquals(db.get("obj"), { a: 1, b: 4, c: 3 });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Store] findOneAndUpdate not found",
+  fn: () => {
+    const db = new Store();
+    db.set("obj", { a: 1, b: 2, c: 3 });
+    const updated = db.findOneAndUpdate(
+      "obj",
+      ([, value]) => value > 10,
+      ([, value]) => value * 2,
+    );
+    assertEquals(updated, ["", undefined]);
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3 });
+  },
+});
+
 // Deno.test("[Store] Set negative array index", () => {
 //   const db = new Store();
 //   db.set("arr", [1, 2, 3]);

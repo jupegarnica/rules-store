@@ -22,6 +22,7 @@ import type {
   Finder,
   Keys,
   KeyValue,
+  Mapper,
   Mutation,
   MutationType,
   ObjectOrArray,
@@ -240,10 +241,10 @@ export class Store {
     if (!isObjectOrArray(target)) {
       throw new TypeError("Target not Object or Array");
     }
+    this._checkPermission("_read", keys);
     const results = [] as KeyValue[];
     for (const key in target) {
       const innerKeys = addChildToKeys(keys, key);
-      this._checkPermission("_read", innerKeys);
       const value = this._getAs(innerKeys);
       const pair = [key, value] as KeyValue;
 
@@ -261,7 +262,7 @@ export class Store {
    * @param path The path to the target to perform the search
    * @param finder The finder should return a truthy value in order to return that node
    * ([key,value]) => any
-   * @returns  A pair [key,value] returned
+   * @returns  A pair [key,value] found. If not found will return a empty key: ['', undefined]
    */
   public findOne(
     path: string,
@@ -288,12 +289,11 @@ export class Store {
   }
 
   /**
-   * Find some children and remove it
+   * Find some children and remove them
    *
    * @param {string}  path The path to the target to perform the search
    * @param {Function} finder The finder should return a truthy value in order to remove that node
    * ([key,value]) => any
-   * @param {boolean} returnsRemoved do not return the removed value in order to not check against the read rule.  Defaults to true,
    * @returns  An array of pairs [key,value] removed
    */
   public findAndRemove(
@@ -341,6 +341,81 @@ export class Store {
   }
 
   /**
+   * Find some children and update them
+   *
+   * @param {string}  path The path to the target to perform the search
+   * @param {Finder} finder The finder should return a truthy value in order to remove that node
+   * ([key,value]) => any
+   * @param {Mapper} mapper The mapper receives a [key,value] and returns the new value transformed
+   * @returns  An array of pairs [key,value] updated
+   */
+
+  public findAndUpdate(
+    path: string,
+    finder: Finder,
+    mapper: Mapper,
+  ): KeyValue[] {
+    const results = this.find(path, finder);
+    const keys = keysFromPath(path);
+    const isTransaction = this.#duringTransaction;
+    this.beginTransaction();
+    const mutationsToRollback = [] as Mutation[];
+    const mutationsApplied = [] as Mutation[];
+    const returned = [] as KeyValue[];
+
+    try {
+      for (const [key, value] of results) {
+        const targetPath = addChildToKeys(keys, key);
+        const newValue = mapper([key, value]);
+        const { removed, applied } = this._mutate(
+          targetPath,
+          newValue,
+          "set",
+        );
+        returned.push([key, newValue]);
+        mutationsApplied.push(...applied);
+        mutationsToRollback.push(...removed);
+      }
+      if (!isTransaction) this.commit();
+    } catch (error) {
+      if (!isTransaction) this.rollback();
+      else this._rollback(mutationsToRollback, mutationsApplied);
+      throw error;
+    }
+
+    return returned;
+  }
+
+  /**
+   * Find one child and update it
+   *
+   * @param path The path to the target to perform the search
+   * @param finderThe finder should return a truthy value in order to remove that node
+   * ([key,value]) => any
+   * @param {Mapper} mapper The mapper receives a [key,value] and returns the new value transformed
+   * @returns  A pair [key,value] updated
+   */
+  public findOneAndUpdate(
+    path: string,
+    finder: Finder,
+    mapper: Mapper,
+  ): KeyValue | void {
+    const [key, value] = this.findOne(path, finder);
+    const keys = keysFromPath(path);
+    let newValue: Value;
+    if (key) {
+      const targetPath = addChildToKeys(keys, key);
+      newValue = mapper([key, value]);
+      this._mutate(
+        targetPath,
+        newValue,
+        "set",
+      );
+    }
+
+    return [key, newValue];
+  }
+  /**
    * Find one child and remove it
    *
    * @param path The path to the target to perform the search
@@ -351,13 +426,12 @@ export class Store {
   public findOneAndRemove(
     path: string,
     finder: Finder,
-    returnsRemoved = true,
   ): KeyValue | void {
     const result = this.findOne(path, finder);
     const keys = keysFromPath(path);
     if (result) {
       const keysToRemove = addChildToKeys(keys, result[0]);
-      this.remove(pathFromKeys(keysToRemove), returnsRemoved);
+      this.remove(pathFromKeys(keysToRemove));
     }
 
     return result;
@@ -613,9 +687,7 @@ export class Store {
       false,
     );
 
-    const r = deepGet(diff, path);
-
-    return r;
+    return deepGet(diff, path);
   }
 
   private _applyMutations(
@@ -726,9 +798,9 @@ export class Store {
     } catch (error) {
       this._rollback(removed, mutationsToApply);
       throw error;
-    // } finally {
-    //   if (assertClone && !this.#duringTransaction) {
-    //     assertDeepClone(this._data, this.#newData);
+      // } finally {
+      //   if (assertClone && !this.#duringTransaction) {
+      //     assertDeepClone(this._data, this.#newData);
       // }
     }
 

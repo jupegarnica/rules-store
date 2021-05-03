@@ -18,11 +18,11 @@
           count: 0,
         },
         rules: {
-          _write: () => true,
-          _read: () => true,
           count: {
-            _as: (data) => `count: ${data}`,
-            _transform: Number,
+            _write: () => true,
+            _read: () => true,
+            _as: (data) => `--${data}--`,
+            // _transform: Number,
           },
         },
       });
@@ -32,7 +32,8 @@
       }, 1000);
 
       const node = document.querySelector('.count');
-      store.observe('count', ({ newData, oldData }) => {
+
+      store.observe('count', (_, { newData, oldData }) => {
         node.innerHTML = `
         <h1>${newData}</h1>
         <h3>${oldData}</h3>

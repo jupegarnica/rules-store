@@ -558,10 +558,10 @@ class Store {
         if (!isObjectOrArray(target)) {
             throw new TypeError("Target not Object or Array");
         }
+        this._checkPermission("_read", keys);
         const results = [];
         for(const key in target){
             const innerKeys = addChildToKeys(keys, key);
-            this._checkPermission("_read", innerKeys);
             const value = this._getAs(innerKeys);
             const pair = [
                 key,
@@ -627,12 +627,60 @@ class Store {
         }
         return results;
     }
-    findOneAndRemove(path, finder, returnsRemoved = true) {
+    findAndUpdate(path, finder, mapper) {
+        const results = this.find(path, finder);
+        const keys = keysFromPath(path);
+        const isTransaction = this.#duringTransaction;
+        this.beginTransaction();
+        const mutationsToRollback = [];
+        const mutationsApplied = [];
+        const returned = [];
+        try {
+            for (const [key, value] of results){
+                const targetPath = addChildToKeys(keys, key);
+                const newValue = mapper([
+                    key,
+                    value
+                ]);
+                const { removed , applied  } = this._mutate(targetPath, newValue, "set");
+                returned.push([
+                    key,
+                    newValue
+                ]);
+                mutationsApplied.push(...applied);
+                mutationsToRollback.push(...removed);
+            }
+            if (!isTransaction) this.commit();
+        } catch (error) {
+            if (!isTransaction) this.rollback();
+            else this._rollback(mutationsToRollback, mutationsApplied);
+            throw error;
+        }
+        return returned;
+    }
+    findOneAndUpdate(path, finder, mapper) {
+        const [key, value] = this.findOne(path, finder);
+        const keys = keysFromPath(path);
+        let newValue;
+        if (key) {
+            const targetPath = addChildToKeys(keys, key);
+            newValue = mapper([
+                key,
+                value
+            ]);
+            this._mutate(targetPath, newValue, "set");
+        }
+        return [
+            key,
+            newValue
+        ];
+    }
+    findOneAndRemove(path, finder) {
         const result = this.findOne(path, finder);
         const keys = keysFromPath(path);
         if (result) {
             const keysToRemove = addChildToKeys(keys, result[0]);
-            this.remove(pathFromKeys(keysToRemove), returnsRemoved);
+            this.remove(pathFromKeys(keysToRemove));
         }
         return result;
     }
@@ -710,7 +758,7 @@ class Store {
             context
         ];
     }
-    _createSubscriptionPayload(params, keys) {
+    _createObserverArgs(params, keys) {
         const oldData = this._getAsFrom(this.#data, keys);
         const newData = this._getAsFrom(this.#newData, keys);
         const payload = {
@@ -723,7 +771,10 @@ class Store {
         };
         applyCloneOnGet(payload, "newData", newData);
         applyCloneOnGet(payload, "oldData", oldData);
-        return payload;
+        return [
+            newData,
+            payload
+        ];
     }
     _checkPermission(ruleType, keys) {
         const rulesFound = findRulesOnPath(keys, ruleType, this.#rules);
@@ -796,8 +847,7 @@ class Store {
         deepSet(diff, path, value);
         const mutationsToApply = this._findMutations("_as", diff.root, keys);
         this._applyMutations(diff.root, mutationsToApply, [], false);
-        const r = deepGet(diff, path);
-        return r;
+        return deepGet(diff, path);
     }
     _applyMutations(target, mutations, removed, cloneValue = false) {
         for (const mutation of mutations){
@@ -916,9 +966,9 @@ class Store {
                 const oldData = deepGet(this.#data, keys);
                 const newData = deepGet(this.#newData, keys);
                 if (!equal(oldData, newData)) {
-                    const payload = this._createSubscriptionPayload(params, keys);
+                    const args = this._createObserverArgs(params, keys);
                     try {
-                        callback(payload);
+                        callback(...args);
                     } catch (error) {
                         console.error(`Subscription callback ${id} has thrown.\n`, error.message);
                     }
@@ -937,8 +987,13 @@ class StorePersistance extends Store {
         this.#autoSave = config1?.autoSave ?? false;
         this.#writeLazyDelay = config1?.writeLazyDelay ?? 0;
         const name = config1?.name || ".store.db";
+        let folder = config1?.folder;
+        if (!folder && typeof Deno !== "undefined") {
+            const defaultFolder = Deno.mainModule.replace("file://", "").split("/").slice(0, -1).join("/");
+            folder = defaultFolder;
+        }
         this.#storePath = [
-            config1?.folder,
+            folder,
             name
         ].filter(Boolean).join("/");
         this.load();

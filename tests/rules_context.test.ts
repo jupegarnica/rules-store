@@ -44,7 +44,7 @@ Deno.test("[Rules context] _write newData", () => {
   };
   const db = new Store({
     rules,
-    initialData: {people: { garn: { age: 1 }, pepe: { age: 2 } }},
+    initialData: { people: { garn: { age: 1 }, pepe: { age: 2 } } },
   });
   assertEquals(db.get("people.garn.age"), 1);
   assertEquals(db.get("people.pepe.age"), 2);

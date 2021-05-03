@@ -28,7 +28,7 @@ Deno.test("[Lab] dates persistance as ISO String", () => {
     _write: () => () => true,
   };
 
-  const db = new StoreJson({ rules, filename: "tests/test.json" });
+  const db = new StoreJson({ rules, name: "tests/test.json" });
   const date = new Date("1999-01-08T23:00:00.000Z");
   const iso = date.toISOString();
   db.set("date", date);
@@ -52,7 +52,7 @@ Deno.test("[Lab] _transform", () => {
       _read: () => true,
       _write: () => true,
       props: {
-        _transform: (_: Value, { newData }: RuleContext) => {
+        _transform: (newData: Value) => {
           const _new = ({
             ...newData,
             count: Object.keys(newData).length,
@@ -114,28 +114,32 @@ Deno.test("[Lab] symbols", () => {
   assertThrows(() => db.set("sym", "hola"));
   db.deleteStore();
 });
-// TODO fix root array
 
-// Deno.test("[Lab] collection", () => {
-//   const db = new StoreJson({
-//     rules: {
-//       _read: () => true,
-//       _write: () => true,
-//       _validate: Array.isArray,
-//     },
-//     initialData: [1, 2, 3],
-//   });
-//   db.push("", 4);
-//   db.write();
-//   db.load();
-//   assertEquals(
-//     db.get(""),
-//     [1, 2, 3, 4],
-//   );
+Deno.test("[Lab] collection", () => {
+  const db = new StoreJson({
+    rules: {
+      _read: () => true,
+      _write: () => true,
+      // _validate: Array.isArray,
+    },
+    initialData: [1, 2, 3],
+  });
+  db.push("", 4);
+  db.write();
+  db.load();
+  assertEquals(
+    db.get(""),
+    [1, 2, 3, 4],
+  );
 
-//   assertThrows(() => db.set("sym", "hola"));
-//   db.deleteStore();
-// });
+  assertEquals(
+    db.get("0"),
+    1,
+  );
+
+  db.deleteStore();
+  assertThrows(() => db.set("hola", "mundo"), TypeError, "not Object");
+});
 
 Deno.test({
   // only: true,

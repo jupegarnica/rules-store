@@ -1,15 +1,9 @@
 import { existsSync } from "./deps.ts";
+import { StoreNotFoundError } from "./Errors.ts";
 
 import { StorePersistance } from "./StorePersistance.ts";
-/**
- * A database in RAM with persistance plain text as JSON.
- *
- */
+
 export class StoreJson extends StorePersistance {
-  /**
-   * Load stored data from disk into cache.
-   *
-   */
   load(): void {
     const storePath = this.storePath;
     if (!existsSync(storePath)) return;
@@ -23,10 +17,6 @@ export class StoreJson extends StorePersistance {
     return;
   }
 
-  /**
-   * Writes cached data to disk.
-   *
-   */
   public write(): void {
     const data = JSON.stringify(
       this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
@@ -36,5 +26,13 @@ export class StoreJson extends StorePersistance {
       this.storePath,
       encoder.encode(data),
     );
+  }
+  public deleteStore(): void {
+    const storePath = this.storePath;
+    if (!existsSync(storePath)) {
+      throw new StoreNotFoundError(`${storePath} not exists`);
+    }
+    Deno.removeSync(storePath);
+    return;
   }
 }

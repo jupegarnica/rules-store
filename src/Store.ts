@@ -46,7 +46,7 @@ import { allowAll } from "./rulesTemplates.ts";
 // }
 
 /**
- * A database in RAM heavily inspired from firebase realtime database.
+ * A data Store heavily inspired from firebase realtime database.
  *
  */
 export class Store {
@@ -77,7 +77,6 @@ export class Store {
    * @param {Rules} config.rules - it defaults to allowAll
    *
    * */
-
   constructor(config: BaseConfig = {}) {
     if (config.rules) {
       this._assertValidRules(config.rules);
@@ -108,25 +107,17 @@ export class Store {
    */
   public get(
     path: string,
-    {
-      UNSAFELY_DO_NOT_GET_CLONED_DATA_TO_IMPROVE_PERFORMANCE: notClone = false,
-    } = {},
   ): Value {
     const keys = keysFromPath(path);
     this._checkPermission("_read", keys);
-    let data = this._getAs(keys);
-    if (!notClone) {
-      data = deepClone(data);
-    }
-    return data;
+    return this._getAs(keys);
   }
 
   public getRef(
     path: string,
   ): Value {
     const keys = keysFromPath(path);
-    this._checkPermission("_read", keys);
-    return this._get(keys);
+    return this._getAndCheck(keys);
   }
 
   /**
@@ -169,6 +160,7 @@ export class Store {
    * If pointing to an array item, the item will be remove, as array.splice(index,1)
    *
    * @param path The path
+   * @param returnRemoved whether or not it will return the value removed. Useful to skip read rules.  Defaults to true
    * @returns  The value removed
    *
    */
@@ -239,7 +231,7 @@ export class Store {
    * Find some children
    *
    * @param path The path to the target to perform the search
-   * @param finder If the finder returns a truthy value that key (or item in an array) will be returned
+   * @param finder The finder should return a truthy value in order to return that node
    * ([key,value]) => any
    * @returns  An array of pairs [key,value] found
    */
@@ -268,7 +260,7 @@ export class Store {
    * Find one child
    *
    * @param path The path to the target to perform the search
-   * @param finder If the finder returns a truthy value that key (or item in an array) will be returned
+   * @param finder The finder should return a truthy value in order to return that node
    * ([key,value]) => any
    * @returns  A pair [key,value] returned
    */
@@ -300,7 +292,7 @@ export class Store {
    * Find some children and remove it
    *
    * @param {string}  path The path to the target to perform the search
-   * @param {Function} finder If the finder returns a truthy value that key (or item in an array) will be remove
+   * @param {Function} finder The finder should return a truthy value in order to remove that node
    * ([key,value]) => any
    * @param {boolean} returnsRemoved do not return the removed value in order to not check against the read rule.  Defaults to true,
    * @returns  An array of pairs [key,value] removed
@@ -353,7 +345,7 @@ export class Store {
    * Find one child and remove it
    *
    * @param path The path to the target to perform the search
-   * @param finder If the finder returns a truthy value that key (or item in an array) will be remove
+   * @param finderThe finder should return a truthy value in order to remove that node
    * ([key,value]) => any
    * @returns  A pair [key,value] removed
    */
@@ -400,8 +392,8 @@ export class Store {
   /**
    * Unobserve to changes in the path
    *
-   * @param path The path
-   * @param id the subscription identifier
+   * @param {number} id the subscription identifier
+   * @return {boolean} returns true if the subscription has been removed, or false if the subscription id hasn't been found
    */
   public off(id: number): boolean {
     const oldLength = this.#subscriptions.length;
@@ -486,6 +478,8 @@ export class Store {
     const newData = (this._getAsFrom(this.#newData, keys));
     const payload = {
       ...params,
+      _oldData: oldData,
+      _newData: newData,
       isUpdated: oldData !== undefined && newData !== undefined,
       isCreated: oldData === undefined,
       isDeleted: newData === undefined,
@@ -597,7 +591,12 @@ export class Store {
   // }
 
   private _getAsFrom(target: ObjectOrArray, keys: Keys): Value {
-    const value = deepClone(deepGet(target, keys));
+    let value;
+    if (target === this.#data) {
+      value = deepClone(deepGet(target, keys));
+    } else {
+      value = (deepGet(target, keys));
+    }
 
     const diff = { root: this._dataShape };
     const path = ["root", ...keys];
@@ -696,6 +695,8 @@ export class Store {
       mutationsToApply = this._findMutations(
         "_transform",
         diff,
+        // TODO should transform only the payload?
+        // keys,
       );
 
       this._applyMutations(

@@ -91,7 +91,7 @@ Deno.test("[Rules _read] with find", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(() => db.find("", () => true));
@@ -105,7 +105,7 @@ Deno.test("[Rules _read] with findAndRemove", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(() => db.find("", () => true), PermissionError, "/arr");
@@ -123,7 +123,7 @@ Deno.test("[Rules _read] with findOne", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(
@@ -145,7 +145,7 @@ Deno.test("[Rules _read] with findOneAndRemove", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
   assertThrows(() => db.findOneAndRemove("", () => true));
   assertThrows(() => db.findOneAndRemove("arr", () => true));
@@ -158,7 +158,7 @@ Deno.test("[Rules _read] find with one child not allowed", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(
@@ -178,7 +178,7 @@ Deno.test("[Rules _read]  findOne with one child not allowed", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(

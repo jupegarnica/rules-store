@@ -7,7 +7,7 @@ const testStorePath = "../test.store.json";
 ////////////////////////
 
 Deno.test("[StoreJson] Write DB", async () => {
-  const db = new StoreJson({ filename: testStorePath });
+  const db = new StoreJson({ name: testStorePath });
 
   db.set("number", 5);
   assertEquals(db.get("number"), 5);
@@ -19,9 +19,9 @@ Deno.test("[StoreJson] Write DB", async () => {
   await Deno.remove(db.storePath);
 });
 
-Deno.test("[StoreJson] load DB with filename", () => {
+Deno.test("[StoreJson] load DB with name", () => {
   const db = new StoreJson({
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertEquals(db.get("arr.0"), 1);
@@ -33,7 +33,7 @@ Deno.test("[StoreJson] load DB with filename", () => {
 
 Deno.test("[StoreJson] load DB with folder", () => {
   const db = new StoreJson({
-    filename: "test.json",
+    name: "test.json",
     folder: "./tests",
   });
 
@@ -45,14 +45,14 @@ Deno.test("[StoreJson] load DB with folder", () => {
 });
 
 Deno.test("[StoreJson] DB write and delete store", () => {
-  const db = new StoreJson({ filename: testStorePath });
+  const db = new StoreJson({ name: testStorePath });
 
   db.set("number5", 5);
   db.set("number10", 10);
 
   db.write();
 
-  const db2 = new StoreJson({ filename: testStorePath });
+  const db2 = new StoreJson({ name: testStorePath });
 
   assertEquals(db2.get("number5"), 5);
 
@@ -69,7 +69,7 @@ Deno.test("[StoreJson] DB write and delete store", () => {
 
 Deno.test("[StoreJson] autoSave config on set", async () => {
   const db = new StoreJson({
-    filename: testStorePath,
+    name: testStorePath,
     autoSave: true,
   });
   db.set("number5", 5);
@@ -81,7 +81,7 @@ Deno.test("[StoreJson] autoSave config on set", async () => {
 
 Deno.test("[StoreJson] autoSave config on push", async () => {
   const db = new StoreJson({
-    filename: testStorePath,
+    name: testStorePath,
     autoSave: true,
   });
   db.set("arr", []);
@@ -93,7 +93,7 @@ Deno.test("[StoreJson] autoSave config on push", async () => {
 });
 Deno.test("[StoreJson] autoSave config on remove", async () => {
   const db = new StoreJson({
-    filename: testStorePath,
+    name: testStorePath,
     autoSave: true,
   });
   db.set("arr", [1, 2]);
@@ -107,7 +107,7 @@ Deno.test("[StoreJson] autoSave config on remove", async () => {
 
 Deno.test("[StoreJson] autoSave config on findAndRemove", async () => {
   const db = new StoreJson({
-    filename: testStorePath,
+    name: testStorePath,
     autoSave: true,
   });
   db.set("arr", [1, 2]);
@@ -119,7 +119,7 @@ Deno.test("[StoreJson] autoSave config on findAndRemove", async () => {
 });
 Deno.test("[StoreJson] autoSave config on findOneAndRemove", async () => {
   const db = new StoreJson({
-    filename: testStorePath,
+    name: testStorePath,
     autoSave: true,
   });
   db.set("arr", [1, 2]);

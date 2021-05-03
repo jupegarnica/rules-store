@@ -13,6 +13,11 @@ scripts:
   lint: deno lint --unstable **/*.ts
   format: deno fmt  **/*.ts
   format-check: deno fmt --check -q **/*.ts
+  bundle-node:
+      - deno bundle --unstable src/Store.ts dist/Store.mjs
+  bundle-browser:
+      - deno bundle --unstable -c tsconfig-browser.json  src/StoreLocalStorage.ts dist/StoreLocalStorage.mjs
+      - deno bundle --unstable src/StoreSessionStorage.ts dist/StoreSessionStorage.mjs
   update:
     cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts src/deps.ts tests/test_deps.ts
     watch: false

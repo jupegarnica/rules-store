@@ -26,29 +26,34 @@ Deno.test({
   },
 });
 
-Deno.test("[Rules Examples] list of numbers", () => {
-  const rules = {
-    _read: () => true,
-    myNumbers: {
-      _write: Array.isArray,
-      $index: {
-        _validate: (newData: Value) =>
-          typeof newData === "number" || typeof newData === "undefined",
+Deno.test({
+  // only: true,
+  name: "[Rules Examples] list of numbers",
+  fn: () => {
+    const rules = {
+      _read: () => true,
+      _write: () => true,
+      myNumbers: {
+        _validate: Array.isArray,
+        $index: {
+          _validate: (newData: Value) =>
+            typeof newData === "number" || typeof newData === "undefined",
+        },
       },
-    },
-  };
+    };
 
-  const db = new Store({ rules });
-  const A = db.set("myNumbers", [1, 2]);
-  assertEquals(A, [1, 2]);
-  db.set("myNumbers.2", 3);
-  db.push("myNumbers", 4);
-  db.remove("myNumbers.0");
+    const db = new Store({ rules });
+    const A = db.set("myNumbers", [1, 2]);
+    assertEquals(A, [1, 2]);
+    db.set("myNumbers.2", 3);
+    db.push("myNumbers", 4);
+    db.remove("myNumbers.0");
 
-  assertThrows(() => db.set("myNumbers.2", null));
-  assertThrows(() => db.set("myNumbers", null));
-  assertThrows(() => db.push("myNumbers", 5, null));
-  assertEquals(db.get("myNumbers"), [2, 3, 4]);
+    assertThrows(() => db.set("myNumbers.2", null));
+    assertThrows(() => db.set("myNumbers", null));
+    assertThrows(() => db.push("myNumbers", 5, null));
+    assertEquals(db.get("myNumbers"), [2, 3, 4]);
+  },
 });
 
 Deno.test({
@@ -76,7 +81,7 @@ Deno.test({
               });
             }
           },
-          // validate saved contains createdAt and updatedAt
+          // validate if contains createdAt and updatedAt
           _validate: (newData: Value) => {
             return newData.createAt && newData.createAt;
           },
@@ -103,6 +108,74 @@ Deno.test({
       email: "Rosalyn_Walter42@hotmail.com",
       createAt: now,
     });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Rules Examples] save maxAge",
+  fn: () => {
+    const rules = {
+      users: {
+        _write: () => true,
+        _read: () => true,
+        // deno-lint-ignore no-explicit-any
+        _transform: ({ data }: any) => ({
+          data,
+          // deno-lint-ignore no-explicit-any
+          maxAge: Math.max(...data.map((u: any) => u.age)),
+          totalUsers: data.length,
+        }),
+      },
+    };
+
+    const db = new Store({
+      rules,
+      initialData: { users: { data: [], maxAge: 0 } },
+    });
+    db.push("users.data", { age: 18 });
+    db.push("users.data", { age: 20 });
+    db.push("users.data", { age: 56 });
+    db.push("users.data", { age: 34 });
+    db.push("users.data", { age: 45 });
+
+    assertEquals(db.get("users.totalUsers"), 5);
+    assertEquals(db.get("users.maxAge"), 56);
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Rules Examples] read maxAge",
+  fn: () => {
+    const rules = {
+      users: {
+        _write: () => true,
+        _read: () => true,
+        // deno-lint-ignore no-explicit-any
+        _as: ({ data }: any) => ({
+          data,
+          // deno-lint-ignore no-explicit-any
+          maxAge: Math.max(...data.map((u: any) => u.age)),
+          totalUsers: data.length,
+        }),
+      },
+    };
+
+    const db = new Store({
+      rules,
+      initialData: { users: { data: [] } },
+    });
+    db.push("users.data", { age: 18 });
+    db.push("users.data", { age: 20 });
+    db.push("users.data", { age: 56 });
+    db.push("users.data", { age: 34 });
+    db.push("users.data", { age: 45 });
+
+    assertEquals(db.get("users.totalUsers"), undefined);
+    assertEquals(db.get("users.maxAge"), undefined);
+    assertEquals(db.get("users").maxAge, 56);
+    assertEquals(db.get("users").totalUsers, 5);
   },
 });
 

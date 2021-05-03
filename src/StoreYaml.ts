@@ -1,4 +1,6 @@
 import { existsSync } from "./deps.ts";
+import { StoreNotFoundError } from "./Errors.ts";
+
 import {
   parse,
   stringify,
@@ -6,14 +8,8 @@ import {
 
 import type { Value } from "./types.ts";
 import { StorePersistance } from "./StorePersistance.ts";
-/**
- * A database in RAM with persistance plain text as Yaml.
- */
+
 export class StoreYaml extends StorePersistance {
-  /**
-   * Load stored data from disk into cache.
-   *
-   */
   public load(): void {
     const storePath = this.storePath;
     if (!existsSync(storePath)) return;
@@ -27,10 +23,6 @@ export class StoreYaml extends StorePersistance {
     return;
   }
 
-  /**
-   * Writes cached data to disk.
-   *
-   */
   public write(): void {
     const data = this.getPrivateData({
       I_PROMISE_I_WONT_MUTATE_THIS_DATA: true,
@@ -38,5 +30,13 @@ export class StoreYaml extends StorePersistance {
     const txt = stringify(data);
     const encoder = new TextEncoder();
     return Deno.writeFileSync(this.storePath, encoder.encode(txt));
+  }
+  public deleteStore(): void {
+    const storePath = this.storePath;
+    if (!existsSync(storePath)) {
+      throw new StoreNotFoundError(`${storePath} not exists`);
+    }
+    Deno.removeSync(storePath);
+    return;
   }
 }

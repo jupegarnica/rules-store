@@ -23,7 +23,9 @@ export type Finder = (pair: KeyValue) => any;
 
 export type ObserverPayload = {
   newData: Value;
+  _newData: Value;
   oldData: Value;
+  _oldData: Value;
   isUpdated: boolean;
   isCreated: boolean;
   isDeleted: boolean;
@@ -82,7 +84,7 @@ export type BaseConfig = {
 };
 export type Config = BaseConfig & {
   autoSave?: boolean;
-  filename?: string;
+  name?: string;
   folder?: string;
   writeLazyDelay?: number;
 };

@@ -7,7 +7,7 @@ const testStorePath = "../test.store.yaml";
 ////////////////////////
 
 Deno.test("[StoreYaml] Write DB", async () => {
-  const db = new StoreYaml({ filename: testStorePath });
+  const db = new StoreYaml({ name: testStorePath });
 
   db.set("number", 5);
   assertEquals(db.get("number"), 5);
@@ -19,9 +19,9 @@ Deno.test("[StoreYaml] Write DB", async () => {
   await Deno.remove(db.storePath);
 });
 
-Deno.test("[StoreYaml] load DB with filename", () => {
+Deno.test("[StoreYaml] load DB with name", () => {
   const db = new StoreYaml({
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertEquals(db.get("arr.0"), 1);
@@ -33,7 +33,7 @@ Deno.test("[StoreYaml] load DB with filename", () => {
 
 Deno.test("[StoreYaml] load DB with folder", () => {
   const db = new StoreYaml({
-    filename: "test.json",
+    name: "test.json",
     folder: "./tests",
   });
 
@@ -44,14 +44,14 @@ Deno.test("[StoreYaml] load DB with folder", () => {
   assertEquals(existsSync(db.storePath), true);
 });
 Deno.test("[StoreYaml] DB write and delete store", () => {
-  const db = new StoreYaml({ filename: testStorePath });
+  const db = new StoreYaml({ name: testStorePath });
 
   db.set("number5", 5);
   db.set("number10", 10);
 
   db.write();
 
-  const db2 = new StoreYaml({ filename: testStorePath });
+  const db2 = new StoreYaml({ name: testStorePath });
 
   assertEquals(db2.get("number5"), 5);
 
@@ -67,7 +67,7 @@ Deno.test("[StoreYaml] DB write and delete store", () => {
 });
 
 Deno.test("[StoreYaml] autoSave config on set", async () => {
-  const db = new StoreYaml({ filename: testStorePath, autoSave: true });
+  const db = new StoreYaml({ name: testStorePath, autoSave: true });
   db.set("number5", 5);
   await delay(2);
   assertEquals(existsSync(db.storePath), true);
@@ -76,7 +76,7 @@ Deno.test("[StoreYaml] autoSave config on set", async () => {
 });
 
 Deno.test("[StoreYaml] autoSave config on push", async () => {
-  const db = new StoreYaml({ filename: testStorePath, autoSave: true });
+  const db = new StoreYaml({ name: testStorePath, autoSave: true });
 
   db.set("arr", []);
   db.push("arr", 1, 2);
@@ -87,7 +87,7 @@ Deno.test("[StoreYaml] autoSave config on push", async () => {
   assertEquals(existsSync(db.storePath), false);
 });
 Deno.test("[StoreYaml] autoSave config on remove", async () => {
-  const db = new StoreYaml({ filename: testStorePath, autoSave: true });
+  const db = new StoreYaml({ name: testStorePath, autoSave: true });
   db.set("arr", [1, 2]);
   db.remove("arr.0");
 
@@ -110,7 +110,7 @@ Deno.test("[StoreYaml] set and get null", () => {
 //  TODO fix empty items in array,
 
 // Deno.test("[StoreYaml] to fix", async () => {
-//   const db = new StoreYaml({ filename: testStorePath, autoSave: false });
+//   const db = new StoreYaml({ name: testStorePath, autoSave: false });
 
 //   db.set("arr", [, 1]);
 //   console.log(db.get(""));

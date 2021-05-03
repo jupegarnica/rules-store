@@ -1,12 +1,6 @@
-import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { Store } from "./Store.ts";
-import { StoreNotFoundError } from "./Errors.ts";
 import type { Config, Mutation, Value } from "./types.ts";
 import { debounce } from "./helpers.ts";
-/**
- * A database in RAM  with persistance plain text as JSON.
- *
- */
 export abstract class StorePersistance extends Store {
   /**
    * Config state
@@ -23,7 +17,7 @@ export abstract class StorePersistance extends Store {
    * Create a new Store instance.
    *
    * @param {Config} config - The configuration
-   * @param {string} config.filename - it defaults to .store.db
+   * @param {string} config.name - it defaults to .store.db
    * @param {string} config.folder - it defaults to mainModulePath
    * @param {boolean} config.autoSave - whether or not should be lazily write to disk after every update.
    * @param {number} config.writeLazyDelay - The debounce delay for .writeLazy.  It defaults to 0
@@ -33,9 +27,8 @@ export abstract class StorePersistance extends Store {
     super(config);
     this.#autoSave = config?.autoSave ?? false;
     this.#writeLazyDelay = config?.writeLazyDelay ?? 0;
-    const filename = config?.filename || ".store.db";
-    const folder = config?.folder || fromFileUrl(dirname(Deno.mainModule));
-    this.#storePath = resolve(folder, filename);
+    const name = config?.name || ".store.db";
+    this.#storePath = [config?.folder, name].filter(Boolean).join("/");
     this.load();
     this.writeLazy = debounce(
       () => this.write(),
@@ -64,24 +57,19 @@ export abstract class StorePersistance extends Store {
   }
 
   /**
-   * Load stored data from disk into cache.
+   * Load persisted data into cache
+   *
    */
   abstract load(): void;
   /**
-   * Writes cached data to disk synchronously
+   * Persist data
+   *
    */
   abstract write(): void;
 
   /**
-   * Deletes a store file .
+   * Deletes the persisted data .
    *
    */
-  public deleteStore(): void {
-    const storePath = this.#storePath;
-    if (!existsSync(storePath)) {
-      throw new StoreNotFoundError(`${storePath} not exists`);
-    }
-    Deno.removeSync(storePath);
-    return;
-  }
+  abstract deleteStore(): void;
 }

@@ -32,7 +32,7 @@ Deno.test("[Rules _write] .push", () => {
   };
   const db = new StoreYaml({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(() => {
@@ -48,7 +48,7 @@ Deno.test("[Rules _write] .remove", () => {
   };
   const db = new StoreYaml({
     rules,
-    filename: "./tests/test.yaml",
+    name: "./tests/test.yaml",
   });
 
   assertThrows(() => {
@@ -65,7 +65,7 @@ Deno.test("[Rules _write] .remove _write true but _read false ", () => {
   };
   const db = new StoreYaml({
     rules,
-    filename: "./tests/test.yaml",
+    name: "./tests/test.yaml",
   });
 
   assertThrows(
@@ -93,7 +93,7 @@ Deno.test("[Rules _write] with .findAndRemove _write true but _read false", () =
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(
@@ -109,7 +109,7 @@ Deno.test("[Rules _write] with .findOneAndRemove", () => {
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(() => db.findOneAndRemove("arr.0", () => true));
@@ -132,7 +132,7 @@ Deno.test("[Rules _write] with .findOneAndRemove _write true but _read false", (
   };
   const db = new StoreJson({
     rules,
-    filename: "./tests/test.json",
+    name: "./tests/test.json",
   });
 
   assertThrows(() => db.findOneAndRemove("arr", () => true));

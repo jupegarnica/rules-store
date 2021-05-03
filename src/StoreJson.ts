@@ -1,6 +1,5 @@
-import { existsSync } from "./deps.ts";
 import { StoreNotFoundError } from "./Errors.ts";
-
+import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { StorePersistance } from "./StorePersistance.ts";
 
 export class StoreJson extends StorePersistance {
@@ -15,6 +14,11 @@ export class StoreJson extends StorePersistance {
     this._setData(decoded);
 
     return;
+  }
+  public get storePath(): string {
+    const filename = this._name;
+    const folder = this._folder || fromFileUrl(dirname(Deno.mainModule));
+    return resolve(folder, filename);
   }
 
   public write(): void {

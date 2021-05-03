@@ -5,9 +5,10 @@ export abstract class StorePersistance extends Store {
   /**
    * Config state
    */
-  #storePath: string;
   #autoSave = false;
   #writeLazyDelay: number;
+  protected _name: string;
+  protected _folder: string;
   /**
    * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
    */
@@ -23,18 +24,12 @@ export abstract class StorePersistance extends Store {
    * @param {number} config.writeLazyDelay - The debounce delay for .writeLazy.  It defaults to 0
    * */
 
-  constructor(config?: Config) {
+  constructor(config: Config = {}) {
     super(config);
-    this.#autoSave = config?.autoSave ?? false;
-    this.#writeLazyDelay = config?.writeLazyDelay ?? 0;
-    const name = config?.name || ".store.db";
-    let folder = config?.folder;
-    if (!folder && typeof Deno !== "undefined") {
-      const defaultFolder = Deno.mainModule.replace("file://", "").split("/")
-        .slice(0, -1).join("/");
-      folder = defaultFolder;
-    }
-    this.#storePath = [folder, name].filter(Boolean).join("/");
+    this.#autoSave = config.autoSave ?? false;
+    this.#writeLazyDelay = config.writeLazyDelay ?? 0;
+    this._name = config.name || ".store.db";
+    this._folder = config.folder || "";
 
     this.load();
     this.writeLazy = debounce(
@@ -46,7 +41,7 @@ export abstract class StorePersistance extends Store {
    * Return internal storePath.
    */
   public get storePath(): string {
-    return this.#storePath;
+    return [this._folder, this._name].filter(Boolean).join("/");
   }
 
   protected _commit(

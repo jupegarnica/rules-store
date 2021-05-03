@@ -71,7 +71,7 @@ Deno.test("[Observe] assert payload inmutable", () => {
 
   db.set("a", { b: 0 });
   let called = 0;
-  const onChange: Observer = (_, {newData, oldData }) => {
+  const onChange: Observer = (_, { newData, oldData }) => {
     called++;
     newData.b = 2;
     oldData.b = 3;
@@ -86,8 +86,8 @@ Deno.test("[Observe] assert payload inmutable", () => {
   assertEquals(db.get("a"), { b: 1 });
   assertDeepClone(
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
-    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true })
-    )
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 Deno.test("[Observe] root throws", () => {
   const db = new Store();

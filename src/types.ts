@@ -21,7 +21,7 @@ export type KeyValue = [string, Value];
 // deno-lint-ignore no-explicit-any
 export type Finder = (pair: KeyValue) => any;
 
-export type ObserverPayload = {
+export type ObserverContext = {
   newData: Value;
   _newData: Value;
   oldData: Value;
@@ -30,7 +30,7 @@ export type ObserverPayload = {
   isCreated: boolean;
   isDeleted: boolean;
 };
-export type Observer = (data: ObserverPayload) => void;
+export type Observer = (data: Value, context: ObserverContext) => void;
 export type Subscription = {
   callback: Observer;
   id: number;

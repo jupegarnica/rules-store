@@ -12,7 +12,7 @@ import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 import { StoreJson } from "../../src/StoreJson.ts";
 import { StoreYaml } from "../../src/StoreYaml.ts";
 import { StoreBson } from "../../src/StoreBson.ts";
-import { KeyValue, ObserverPayload } from "../../src/types.ts";
+import { KeyValue, ObserverContext } from "../../src/types.ts";
 
 const only = Deno.args[1] ? new RegExp(Deno.args[1]) : new RegExp(".");
 
@@ -501,7 +501,7 @@ bench({
     const db = new StoreJson({ name: `./data/${RUNS}.json` });
     db.observe(
       "$item/i/i",
-      ({ newData, oldData }: ObserverPayload) => ({ newData, oldData }),
+      ({ newData, oldData }: ObserverContext) => ({ newData, oldData }),
     );
     b.start();
     db.set("item" + RUNS, "HELLO");

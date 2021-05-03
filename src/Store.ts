@@ -26,7 +26,7 @@ import type {
   MutationType,
   ObjectOrArray,
   Observer,
-  ObserverPayload,
+  ObserverContext,
   Params,
   RuleArgs,
   RuleContext,
@@ -470,10 +470,10 @@ export class Store {
     applyCloneOnGet(context, "newData", newData);
     return [data, context] as RuleArgs;
   }
-  private _createSubscriptionPayload(
+  private _createObserverArgs(
     params: Params,
     keys: Keys,
-  ): ObserverPayload {
+  ): [Value, ObserverContext] {
     const oldData = (this._getAsFrom(this.#data, keys));
     const newData = (this._getAsFrom(this.#newData, keys));
     const payload = {
@@ -483,10 +483,10 @@ export class Store {
       isUpdated: oldData !== undefined && newData !== undefined,
       isCreated: oldData === undefined,
       isDeleted: newData === undefined,
-    };
+    } as ObserverContext;
     applyCloneOnGet(payload, "newData", newData);
     applyCloneOnGet(payload, "oldData", oldData);
-    return payload as ObserverPayload;
+    return [newData, payload];
   }
   private _checkPermission(
     ruleType: "_read" | "_write",
@@ -792,12 +792,12 @@ export class Store {
         const oldData = deepGet(this.#data, keys);
         const newData = deepGet(this.#newData, keys);
         if (!equal(oldData, newData)) {
-          const payload = this._createSubscriptionPayload(
+          const args = this._createObserverArgs(
             params,
             keys,
           );
           try {
-            callback(payload);
+            callback(...args);
           } catch (error) {
             // TODO What to do when a subscription fails running callback?
             // Do not throw

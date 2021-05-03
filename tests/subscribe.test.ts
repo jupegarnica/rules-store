@@ -51,19 +51,19 @@ Deno.test("[Observe] assert payload isUpdated, isCreated and isDeleted", () => {
 
   db.observe("a", onChange);
   db.set("a", 0);
-  assertEquals(onChange.calls[0].args[0].isCreated, true);
-  assertEquals(onChange.calls[0].args[0].isUpdated, false);
-  assertEquals(onChange.calls[0].args[0].isDeleted, false);
+  assertEquals(onChange.calls[0].args[1].isCreated, true);
+  assertEquals(onChange.calls[0].args[1].isUpdated, false);
+  assertEquals(onChange.calls[0].args[1].isDeleted, false);
 
   db.set("a", 1);
-  assertEquals(onChange.calls[1].args[0].isCreated, false);
-  assertEquals(onChange.calls[1].args[0].isUpdated, true);
-  assertEquals(onChange.calls[1].args[0].isDeleted, false);
+  assertEquals(onChange.calls[1].args[1].isCreated, false);
+  assertEquals(onChange.calls[1].args[1].isUpdated, true);
+  assertEquals(onChange.calls[1].args[1].isDeleted, false);
 
   db.remove("a");
-  assertEquals(onChange.calls[2].args[0].isCreated, false);
-  assertEquals(onChange.calls[2].args[0].isDeleted, true);
-  assertEquals(onChange.calls[2].args[0].isUpdated, false);
+  assertEquals(onChange.calls[2].args[1].isCreated, false);
+  assertEquals(onChange.calls[2].args[1].isDeleted, true);
+  assertEquals(onChange.calls[2].args[1].isUpdated, false);
 });
 
 Deno.test("[Observe] assert payload inmutable", () => {
@@ -214,18 +214,18 @@ Deno.test("[Observe] assert newData and oldData", () => {
 
   db.set("a.b.c", 33);
   assertEquals(onChange.calls.length, 1);
-  assertEquals(onChange.calls[0].args[0].newData, { c: 33 });
-  assertEquals(onChange.calls[0].args[0].oldData, { c: true });
+  assertEquals(onChange.calls[0].args[1].newData, { c: 33 });
+  assertEquals(onChange.calls[0].args[1].oldData, { c: true });
 
   db.set("a.b.d", 34);
   assertEquals(onChange.calls.length, 2);
-  assertEquals(onChange.calls[1].args[0].newData, { c: 33, d: 34 });
-  assertEquals(onChange.calls[1].args[0].oldData, { c: 33 });
+  assertEquals(onChange.calls[1].args[1].newData, { c: 33, d: 34 });
+  assertEquals(onChange.calls[1].args[1].oldData, { c: 33 });
 
   db.set("a", 1);
   assertEquals(onChange.calls.length, 3);
-  assertEquals(onChange.calls[2].args[0].newData, undefined);
-  assertEquals(onChange.calls[2].args[0].oldData, { c: 33, d: 34 });
+  assertEquals(onChange.calls[2].args[1].newData, undefined);
+  assertEquals(onChange.calls[2].args[1].oldData, { c: 33, d: 34 });
 
   //  should not be call onChange
   db.set("a.z", true);
@@ -239,7 +239,7 @@ Deno.test("[Observe] assert newData and oldData cloned", () => {
   db.set("a.b.c", true);
   const mock: Spy<typeof testCalled> = spy(testCalled, "noop");
 
-  db.observe("a.b", ({ newData, oldData }) => ({
+  db.observe("a.b", (_: Value, { newData, oldData }) => ({
     newData,
     oldData,
   }));
@@ -253,9 +253,7 @@ Deno.test("[Observe] assert newData cloned", () => {
   db.set("a.b.c", true);
   const mock: Spy<typeof testCalled> = spy(testCalled, "noop");
 
-  db.observe("a.b", ({ newData }) => ({
-    newData,
-  }));
+  db.observe("a.b", (_: Value, { newData }) => newData);
   db.set("a.b.c", 33);
   assertEquals(mock.calls.length, 1);
   mock.restore();
@@ -266,7 +264,7 @@ Deno.test("[Observe] inmutable callback", () => {
   db.set("a.b.c", 0);
 
   let called = 0;
-  const onChange = ({ newData }: Value) => {
+  const onChange = (_: Value, { newData }: Value) => {
     called++;
     assertEquals(newData, { c: 1 });
     newData.c = 2;
@@ -285,7 +283,7 @@ Deno.test("[Observe] Deep remove with subscription", () => {
   db.set("a.b.c", 1);
 
   let called = 0;
-  const onChange: Observer = ({ newData, oldData }) => {
+  const onChange: Observer = (newData, { oldData }) => {
     called++;
     assertEquals(newData, undefined);
     assertEquals(oldData, 1);
@@ -314,9 +312,9 @@ Deno.test("[Observe] with params args", () => {
   const db = new Store();
   db.observe("$x", onChange);
   db.set("a", 1);
-  assertEquals(onChange.calls[0].args[0].oldData, undefined);
-  assertEquals(onChange.calls[0].args[0].newData, 1);
-  assertEquals(onChange.calls[0].args[0].$x, "a");
+  assertEquals(onChange.calls[0].args[1].oldData, undefined);
+  assertEquals(onChange.calls[0].args[1].newData, 1);
+  assertEquals(onChange.calls[0].args[1].$x, "a");
 });
 
 Deno.test("[Observe] with params args", () => {
@@ -326,12 +324,12 @@ Deno.test("[Observe] with params args", () => {
   db.set("a", { b: 1, c: 2 });
   assertEquals(onChange.calls.length, 2);
 
-  assertEquals(onChange.calls[0].args[0].oldData, undefined);
-  assertEquals(onChange.calls[0].args[0].newData, 1);
-  assertEquals(onChange.calls[0].args[0].$x, "b");
-  assertEquals(onChange.calls[1].args[0].oldData, undefined);
-  assertEquals(onChange.calls[1].args[0].newData, 2);
-  assertEquals(onChange.calls[1].args[0].$x, "c");
+  assertEquals(onChange.calls[0].args[1].oldData, undefined);
+  assertEquals(onChange.calls[0].args[1].newData, 1);
+  assertEquals(onChange.calls[0].args[1].$x, "b");
+  assertEquals(onChange.calls[1].args[1].oldData, undefined);
+  assertEquals(onChange.calls[1].args[1].newData, 2);
+  assertEquals(onChange.calls[1].args[1].$x, "c");
 });
 
 Deno.test({
@@ -347,12 +345,12 @@ Deno.test({
     db.push("users", { name: "garn" }, { name: "garni" });
 
     assertEquals(onChange.calls.length, 2);
-    assertEquals(onChange.calls[0].args[0].oldData, undefined);
-    assertEquals(onChange.calls[0].args[0].newData, "garn");
-    assertEquals(onChange.calls[0].args[0].$id, "0");
-    assertEquals(onChange.calls[1].args[0].oldData, undefined);
-    assertEquals(onChange.calls[1].args[0].newData, "garni");
-    assertEquals(onChange.calls[1].args[0].$id, "1");
+    assertEquals(onChange.calls[0].args[1].oldData, undefined);
+    assertEquals(onChange.calls[0].args[1].newData, "garn");
+    assertEquals(onChange.calls[0].args[1].$id, "0");
+    assertEquals(onChange.calls[1].args[1].oldData, undefined);
+    assertEquals(onChange.calls[1].args[1].newData, "garni");
+    assertEquals(onChange.calls[1].args[1].$id, "1");
   },
 });
 
@@ -368,9 +366,9 @@ Deno.test({
 
     db.remove("users/0");
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].newData, undefined);
-    assertEquals(onChange.calls[0].args[0].oldData, "garn");
-    assertEquals(onChange.calls[0].args[0].$id, "0");
+    assertEquals(onChange.calls[0].args[1].newData, undefined);
+    assertEquals(onChange.calls[0].args[1].oldData, "garn");
+    assertEquals(onChange.calls[0].args[1].$id, "0");
   },
 });
 
@@ -388,12 +386,12 @@ Deno.test({
     db.remove("users/0");
     db.commit();
     assertEquals(onChange.calls.length, 2);
-    assertEquals(onChange.calls[0].args[0].oldData, "garn");
-    assertEquals(onChange.calls[0].args[0].newData, undefined);
-    assertEquals(onChange.calls[0].args[0].$id, "0");
-    assertEquals(onChange.calls[1].args[0].oldData, "garni");
-    assertEquals(onChange.calls[1].args[0].newData, undefined);
-    assertEquals(onChange.calls[1].args[0].$id, "1");
+    assertEquals(onChange.calls[0].args[1].oldData, "garn");
+    assertEquals(onChange.calls[0].args[1].newData, undefined);
+    assertEquals(onChange.calls[0].args[1].$id, "0");
+    assertEquals(onChange.calls[1].args[1].oldData, "garni");
+    assertEquals(onChange.calls[1].args[1].newData, undefined);
+    assertEquals(onChange.calls[1].args[1].$id, "1");
   },
 });
 
@@ -412,8 +410,8 @@ Deno.test({
     db.push("users", { name: "garni2" });
     db.commit();
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].oldData, "garn");
-    assertEquals(onChange.calls[0].args[0].newData, "garni2");
+    assertEquals(onChange.calls[0].args[1].oldData, "garn");
+    assertEquals(onChange.calls[0].args[1].newData, "garni2");
   },
 });
 
@@ -431,9 +429,9 @@ Deno.test({
     db.push("users", { name: "garni2" });
     db.commit();
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].oldData, "garni");
-    assertEquals(onChange.calls[0].args[0].newData, "garni2");
-    assertEquals(onChange.calls[0].args[0].$id, "1");
+    assertEquals(onChange.calls[0].args[1].oldData, "garni");
+    assertEquals(onChange.calls[0].args[1].newData, "garni2");
+    assertEquals(onChange.calls[0].args[1].$id, "1");
   },
 });
 
@@ -448,8 +446,8 @@ Deno.test({
     db.observe("users/0/name", onChange);
     db.set("users/0/name", "garn2");
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].oldData, "garn");
-    assertEquals(onChange.calls[0].args[0].newData, "garn2");
+    assertEquals(onChange.calls[0].args[1].oldData, "garn");
+    assertEquals(onChange.calls[0].args[1].newData, "garn2");
   },
 });
 
@@ -476,21 +474,21 @@ Deno.test({
 
     db.push("users", { name: "2" });
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].oldData, undefined);
-    assertEquals(onChange.calls[0].args[0].$i, "1");
-    assertEquals(onChange.calls[0].args[0].newData, {
+    assertEquals(onChange.calls[0].args[1].oldData, undefined);
+    assertEquals(onChange.calls[0].args[1].$i, "1");
+    assertEquals(onChange.calls[0].args[1].newData, {
       name: "2",
       hola: "mundo",
     });
     db.set("users/1", { name: "3" });
 
     assertEquals(onChange.calls.length, 2);
-    assertEquals(onChange.calls[1].args[0].oldData, {
+    assertEquals(onChange.calls[1].args[1].oldData, {
       name: "2",
       hola: "mundo",
     });
-    assertEquals(onChange.calls[1].args[0].$i, "1");
-    assertEquals(onChange.calls[1].args[0].newData, {
+    assertEquals(onChange.calls[1].args[1].$i, "1");
+    assertEquals(onChange.calls[1].args[1].newData, {
       name: "3",
       hola: "mundo",
     });
@@ -521,22 +519,22 @@ Deno.test({
     db.set("users/0", { name: "2" });
 
     assertEquals(onChange.calls.length, 1);
-    assertEquals(onChange.calls[0].args[0].oldData, {
+    assertEquals(onChange.calls[0].args[1].oldData, {
       name: "1",
       hola: "mundo",
     });
-    assertEquals(onChange.calls[0].args[0].$i, "0");
-    assertEquals(onChange.calls[0].args[0].newData, {
+    assertEquals(onChange.calls[0].args[1].$i, "0");
+    assertEquals(onChange.calls[0].args[1].newData, {
       name: "2",
       hola: "mundo",
     });
     db.set("users/0", { name: "3" });
 
-    assertEquals(onChange.calls[1].args[0].oldData, {
+    assertEquals(onChange.calls[1].args[1].oldData, {
       name: "2",
       hola: "mundo",
     });
-    assertEquals(onChange.calls[1].args[0].newData, {
+    assertEquals(onChange.calls[1].args[1].newData, {
       name: "3",
       hola: "mundo",
     });

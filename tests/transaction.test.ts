@@ -118,7 +118,7 @@ Deno.test("[Transactions] on push subscription", () => {
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
     "a",
-    ({ newData, oldData }) => {
+    (newData, { oldData }) => {
       assertEquals(newData, [1, 2, 3, 10]);
       assertEquals(oldData, [1, 2, 3]);
       mock();
@@ -190,7 +190,7 @@ Deno.test("[Transactions] on remove subscription", () => {
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
     "a.1",
-    ({ newData, oldData }) => {
+    (newData, { oldData }) => {
       assertEquals(newData, 3);
       assertEquals(oldData, 2);
       mock();
@@ -209,7 +209,7 @@ Deno.test("[Transactions] on remove subscription 2", () => {
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
     "a",
-    ({ newData, oldData }) => {
+    (newData, { oldData }) => {
       assertEquals(newData, [1, 3]);
       assertEquals(oldData, [1, 2, 3]);
       mock();
@@ -228,7 +228,7 @@ Deno.test("[Transactions] on remove subscription 3", () => {
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
     "a",
-    ({ newData, oldData }) => {
+    (newData, { oldData }) => {
       assertEquals(newData, [1]);
       assertEquals(oldData, [1, 2, 3]);
       mock();

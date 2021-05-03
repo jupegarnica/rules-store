@@ -179,5 +179,4 @@ Deno.test({
   },
 });
 
-// TODO Deno.test("[Rules Examples] Mongo structure")
 // TODO Deno.test("[Rules Examples] Tables structure")

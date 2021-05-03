@@ -3,14 +3,14 @@ import { Store } from "../src/Store.ts";
 import { Observer, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
-import { testCalled } from "../src/helpers.ts";
+import { assertDeepClone, testCalled } from "../src/helpers.ts";
 
 Deno.test("[Observe]", () => {
   const db = new Store();
 
   db.set("A", 0);
   let called = 0;
-  const onChange: Observer = ({ newData }) => {
+  const onChange: Observer = (newData) => {
     called++;
     assertEquals(newData, called);
   };
@@ -31,7 +31,7 @@ Deno.test("[Observe] assert payload", () => {
 
   db.set("A", 0);
   let called = 0;
-  const onChange: Observer = ({ newData, oldData }) => {
+  const onChange: Observer = (newData, { oldData }) => {
     called++;
     assertEquals(newData, 1);
     assertEquals(oldData, 0);
@@ -71,7 +71,7 @@ Deno.test("[Observe] assert payload inmutable", () => {
 
   db.set("a", { b: 0 });
   let called = 0;
-  const onChange: Observer = ({ newData, oldData }) => {
+  const onChange: Observer = (_, {newData, oldData }) => {
     called++;
     newData.b = 2;
     oldData.b = 3;
@@ -84,6 +84,10 @@ Deno.test("[Observe] assert payload inmutable", () => {
   db.set("a.b", 1);
   assertEquals(called, 1);
   assertEquals(db.get("a"), { b: 1 });
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true })
+    )
 });
 Deno.test("[Observe] root throws", () => {
   const db = new Store();
@@ -135,7 +139,7 @@ Deno.test("[Observe] with deeper set", () => {
   db.set("a.b", { c: 0, d: 0 });
 
   let called = 0;
-  const onChange: Observer = ({ newData }) => {
+  const onChange: Observer = (newData) => {
     called++;
     assertEquals(newData.c, 1);
   };
@@ -152,7 +156,7 @@ Deno.test("[Observe]", () => {
 
   db.set("A", 1);
   let called = 0;
-  const onChange: Observer = ({ newData }) => {
+  const onChange: Observer = (newData) => {
     called++;
     assertEquals(newData, called + 1);
   };
@@ -174,7 +178,7 @@ Deno.test("[Observe] .off", () => {
   db.set("A", 1);
 
   let called = false;
-  const onChange: Observer = ({ newData }) => {
+  const onChange: Observer = (newData) => {
     called = true;
     assertEquals(newData, 1);
   };
@@ -193,7 +197,7 @@ Deno.test("[Observe] Deep basic ", () => {
   db.set("a.b.c", true);
 
   let called = false;
-  const onChangeC: Observer = ({ newData }) => {
+  const onChangeC: Observer = (newData) => {
     called = true;
     assertEquals(newData, true);
   };
@@ -205,7 +209,7 @@ Deno.test("[Observe] Deep basic ", () => {
 Deno.test("[Observe] assert newData and oldData", () => {
   const db = new Store();
   db.set("a.b.c", true);
-  const onChange: Spy<void> = spy(({ newData, oldData }) => ({
+  const onChange: Spy<void> = spy((newData, { oldData }) => ({
     newData,
     oldData,
   }));
@@ -545,7 +549,7 @@ Deno.test({
   only: false,
   name: "[Observe] watch for created",
   fn: () => {
-    const onChange: Spy<void> = spy(({ newData, oldData }) => {
+    const onChange: Spy<void> = spy((newData, { oldData }) => {
       assertEquals(!!newData && !oldData, true);
     });
     const db = new Store({
@@ -561,7 +565,7 @@ Deno.test({
   only: false,
   name: "[Observe] watch for updated",
   fn: () => {
-    const onChange: Spy<void> = spy(({ newData, oldData }) => {
+    const onChange: Spy<void> = spy((newData, { oldData }) => {
       assertEquals(!!newData && !!oldData, true);
     });
     const db = new Store({
@@ -578,7 +582,7 @@ Deno.test({
   only: false,
   name: "[Observe] watch for removed",
   fn: () => {
-    const onChange: Spy<void> = spy(({ newData, oldData }) => {
+    const onChange: Spy<void> = spy((newData, { oldData }) => {
       assertEquals(!newData && !!oldData, true);
     });
     const db = new Store({

@@ -42,7 +42,6 @@ import { allowAll } from "./rulesTemplates.ts";
 // const assertClone = false;
 // if (assertClone) {
 //   var { assertDeepClone } = await import("./helpers.ts");
-//   var { assertEquals } = await import("../tests/test_deps.ts");
 // }
 
 /**
@@ -427,7 +426,6 @@ export class Store {
     this.#mutationsToCommit = [];
 
     // if (assertClone) {
-    //   assertEquals(this._data, this.#newData);
     //   assertDeepClone(this._data, this.#newData);
     // }
   }
@@ -728,11 +726,10 @@ export class Store {
     } catch (error) {
       this._rollback(removed, mutationsToApply);
       throw error;
-      // } finally {
-      //   if (assertClone && !this.#duringTransaction) {
-      //     assertEquals(this._data, this.#newData);
-      //     assertDeepClone(this._data, this.#newData);
-      //   }
+    // } finally {
+    //   if (assertClone && !this.#duringTransaction) {
+    //     assertDeepClone(this._data, this.#newData);
+      // }
     }
 
     return { applied: mutationsToApply, removed };
@@ -762,10 +759,9 @@ export class Store {
       applied.every((applied) => saved !== applied)
     );
     // if (!this.#duringTransaction && assertClone) {
-    //   // console.log(this._data, this.#newData);
+    //   // // console.log(this._data, this.#newData);
 
-    //   assertEquals(this._data, this.#newData);
-    //   assertDeepClone(this._data, this.#newData);
+    //   // assertDeepClone(this._data, this.#newData);
     // }
   }
 

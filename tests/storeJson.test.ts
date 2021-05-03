@@ -1,22 +1,26 @@
 import { StoreJson } from "../src/StoreJson.ts";
 import { existsSync } from "../src/deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
-const testStorePath = "../test.store.json";
+const testStorePath = "./tests/test.store.json";
 
 // Persistance StoreJson
 ////////////////////////
 
-Deno.test("[StoreJson] Write DB", async () => {
-  const db = new StoreJson({ name: testStorePath });
+Deno.test({
+  // only: true,
+  name: "[StoreJson] Write DB",
+  fn: async () => {
+    const db = new StoreJson({ name: testStorePath });
 
-  db.set("number", 5);
-  assertEquals(db.get("number"), 5);
+    db.set("number", 5);
+    assertEquals(db.get("number"), 5);
 
-  db.write();
+    db.write();
 
-  assertEquals(existsSync(db.storePath), true);
+    assertEquals(existsSync(db.storePath), true);
 
-  await Deno.remove(db.storePath);
+    await Deno.remove(db.storePath);
+  },
 });
 
 Deno.test("[StoreJson] load DB with name", () => {

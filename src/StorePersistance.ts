@@ -28,7 +28,14 @@ export abstract class StorePersistance extends Store {
     this.#autoSave = config?.autoSave ?? false;
     this.#writeLazyDelay = config?.writeLazyDelay ?? 0;
     const name = config?.name || ".store.db";
-    this.#storePath = [config?.folder, name].filter(Boolean).join("/");
+    let folder = config?.folder;
+    if (!folder && typeof Deno !== "undefined") {
+      const defaultFolder = Deno.mainModule.replace("file://", "").split("/")
+        .slice(0, -1).join("/");
+      folder = defaultFolder;
+    }
+    this.#storePath = [folder, name].filter(Boolean).join("/");
+
     this.load();
     this.writeLazy = debounce(
       () => this.write(),

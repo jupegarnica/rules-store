@@ -278,7 +278,7 @@ Deno.test({
 });
 
 Deno.test({
-  only: true,
+  // only: true,
   // ignore: true,
   name: "[Examples] auth store readme",
   fn: async () => {

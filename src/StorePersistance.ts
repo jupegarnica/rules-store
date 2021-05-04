@@ -9,6 +9,7 @@ export abstract class StorePersistance extends Store {
   #writeLazyDelay: number;
   protected _name: string;
   protected _folder: string;
+  protected _storePath = "";
   /**
    * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
    */
@@ -30,7 +31,7 @@ export abstract class StorePersistance extends Store {
     this.#writeLazyDelay = config.writeLazyDelay ?? 0;
     this._name = config.name || ".store.db";
     this._folder = config.folder || "";
-
+    this._storePath = [this._folder, this._name].filter(Boolean).join("/");
     this.load();
     this.writeLazy = debounce(
       () => this.write(),
@@ -41,7 +42,7 @@ export abstract class StorePersistance extends Store {
    * Return internal storePath.
    */
   public get storePath(): string {
-    return [this._folder, this._name].filter(Boolean).join("/");
+    return this._storePath;
   }
 
   protected _commit(

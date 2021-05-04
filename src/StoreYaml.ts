@@ -11,7 +11,10 @@ import { StorePersistance } from "./StorePersistance.ts";
 
 export class StoreYaml extends StorePersistance {
   public load(): void {
-    const storePath = this.storePath;
+    const filename = this._name;
+    const folder = this._folder || fromFileUrl(dirname(Deno.mainModule));
+    const storePath = resolve(folder, filename);
+    this._storePath = storePath;
     if (!existsSync(storePath)) return;
 
     const data = Deno.readFileSync(storePath);
@@ -21,11 +24,6 @@ export class StoreYaml extends StorePersistance {
     this._setData(decoded);
 
     return;
-  }
-  public get storePath(): string {
-    const filename = this._name;
-    const folder = this._folder || fromFileUrl(dirname(Deno.mainModule));
-    return resolve(folder, filename);
   }
 
   public write(): void {

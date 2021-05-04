@@ -9,10 +9,10 @@ import type {
 
 import { duration } from "https://deno.land/x/tims/mod.ts";
 import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
-import { StoreJson } from "../../src/StoreJson.ts";
-import { StoreYaml } from "../../src/StoreYaml.ts";
-import { StoreBson } from "../../src/StoreBson.ts";
-import { KeyValue, ObserverContext } from "../../src/types.ts";
+import { StoreJson } from "../../core/StoreJson.ts";
+import { StoreYaml } from "../../core/StoreYaml.ts";
+import { StoreBson } from "../../core/StoreBson.ts";
+import { KeyValue, ObserverContext } from "../../core/types.ts";
 
 const FOLDER = "data";
 

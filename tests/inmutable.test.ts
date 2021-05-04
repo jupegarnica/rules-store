@@ -1,8 +1,8 @@
 import { assertEquals, spy } from "./test_deps.ts";
-import { Store } from "../src/Store.ts";
+import { Store } from "../core/Store.ts";
 import type { Spy } from "./test_deps.ts";
-import type { KeyValue, RuleContext, Value } from "../src/types.ts";
-import { testCalled } from "../src/helpers.ts";
+import type { KeyValue, RuleContext, Value } from "../core/types.ts";
+import { testCalled } from "../core/helpers.ts";
 
 Deno.test("[Store] Set inmutable behavior", () => {
   const db = new Store();

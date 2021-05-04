@@ -1,8 +1,8 @@
-import { Store } from "../src/Store.ts";
-import type { KeyValue, RuleContext, Value } from "../src/types.ts";
+import { Store } from "../core/Store.ts";
+import type { KeyValue, RuleContext, Value } from "../core/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
-import { PermissionError } from "../src/Errors.ts";
+import { PermissionError } from "../core/Errors.ts";
 
 Deno.test("[Transactions] commit", () => {
   const db = new Store();

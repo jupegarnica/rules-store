@@ -1,5 +1,5 @@
-import { StoreJson } from "../src/StoreJson.ts";
-import { existsSync } from "../src/deps.ts";
+import { StoreJson } from "../core/StoreJson.ts";
+import { existsSync } from "../core/deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 const testStorePath = "./tests/test.store.json";
 

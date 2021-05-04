@@ -1,6 +1,6 @@
-import { Store } from "../src/Store.ts";
+import { Store } from "../core/Store.ts";
 import { assertEquals, assertObjectMatch, assertThrows } from "./test_deps.ts";
-import type { RuleContext, Value } from "../src/types.ts";
+import type { RuleContext, Value } from "../core/types.ts";
 
 Deno.test({
   // only: true,

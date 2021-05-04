@@ -1,5 +1,5 @@
-import { Store } from "../src/Store.ts";
-import type { Value } from "../src/types.ts";
+import { Store } from "../core/Store.ts";
+import type { Value } from "../core/types.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 
 Deno.test("[Rules _as] get", () => {

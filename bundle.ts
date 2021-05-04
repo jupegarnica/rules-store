@@ -1,5 +1,5 @@
 try {
-  const { files } = await Deno.emit("./src/StoreLocalStorage.ts", {
+  const { files } = await Deno.emit("./core/StoreLocalStorage.ts", {
     bundle: "esm",
   });
   for (const key in files) {
@@ -10,7 +10,7 @@ try {
 }
 
 try {
-  const { files } = await Deno.emit("./src/StoreSessionStorage.ts", {
+  const { files } = await Deno.emit("./core/StoreSessionStorage.ts", {
     bundle: "esm",
   });
   for (const key in files) {

@@ -1,8 +1,8 @@
-import { Store } from "../src/Store.ts";
+import { Store } from "../core/Store.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
-import type { RuleContext, Value } from "../src/types.ts";
-import { PermissionError } from "../src/Errors.ts";
+import type { RuleContext, Value } from "../core/types.ts";
+import { PermissionError } from "../core/Errors.ts";
 
 Deno.test({
   // only: true,

@@ -34,11 +34,11 @@ for await (const event of watcher) {
   }
 }
 
-// import { deepSet } from "../src/helpers.ts";
-// import { Store } from "../src/Store.ts";
+// import { deepSet } from "../core/helpers.ts";
+// import { Store } from "../core/Store.ts";
 // import { assertEquals, assertThrows } from "./test_deps.ts";
-// // import type { RuleContext } from "../src/types.ts";
-// // import { ValidationError } from "../src/Errors.ts";
+// // import type { RuleContext } from "../core/types.ts";
+// // import { ValidationError } from "../core/Errors.ts";
 // const db = new Store();
 // // db.set("a.b", { c:0, d:0 } );
 // db.set("a.b", { c:0 } );

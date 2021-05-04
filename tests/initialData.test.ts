@@ -1,4 +1,4 @@
-// import { StoreJson } from "../src/StoreJson.ts";
+// import { StoreJson } from "../core/StoreJson.ts";
 // import { assertEquals, assertThrows } from "./test_deps.ts";
 
 // Deno.test("[StoreJson] initialData", () => {

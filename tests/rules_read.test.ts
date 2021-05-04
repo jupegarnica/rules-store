@@ -1,6 +1,6 @@
-import { PermissionError } from "../src/Errors.ts";
-import { Store } from "../src/Store.ts";
-import { StoreJson } from "../src/StoreJson.ts";
+import { PermissionError } from "../core/Errors.ts";
+import { Store } from "../core/Store.ts";
+import { StoreJson } from "../core/StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 
 Deno.test("[Rules _read] basic", () => {

@@ -1,4 +1,4 @@
-import { StoreJson } from "../src/StoreJson.ts";
+import { StoreJson } from "../core/StoreJson.ts";
 import { assertEquals } from "./test_deps.ts";
 
 class Car {

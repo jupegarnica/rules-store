@@ -1,4 +1,4 @@
-// import { DeepProxy , proxyHandler} from "../src/deepProxy.js";
+// import { DeepProxy , proxyHandler} from "../core/deepProxy.js";
 import {
   // deepProxy,
   assertDeepClone,
@@ -13,9 +13,9 @@ import {
   isNumberKey,
   keysFromPath,
   pathsMatched,
-} from "../src/helpers.ts";
-import { ObjectOrArray } from "../src/types.ts";
-import { findAllRules, findRule } from "../src/helpers.ts";
+} from "../core/helpers.ts";
+import { ObjectOrArray } from "../core/types.ts";
+import { findAllRules, findRule } from "../core/helpers.ts";
 import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 
 Deno.test("[Helpers] deepSet", () => {

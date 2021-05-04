@@ -69,9 +69,9 @@ const rules = {
   $item: {
     i: {
       i: {
-        _transform: (data) => data,
-        _writeAs: (data) => data,
-        _readAs: (data) => data,
+        _transform: (data: number) => data,
+        _writeAs: (data: number) => data,
+        _readAs: (data: number) => data,
         _validate: () => true,
       },
     },
@@ -99,11 +99,7 @@ bench({
 
     b.start();
     for (let i = 0; i < RUNS; i++) {
-      db.set(`item` + i, { i: { i: { i } } });
-
-      // db.set(`item` + i, {
-      //   i: { i: { i: { i: { i: { i: { i: { i: { i: { i: { i } } } } } } } } } },
-      // });
+      db.set(`item` + i, i);
     }
     b.stop();
   },

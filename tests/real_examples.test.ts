@@ -113,50 +113,15 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Rules Examples] save maxAge",
-  fn: () => {
-    const rules = {
-      users: {
-        _write: () => true,
-        _read: () => true,
-        // deno-lint-ignore no-explicit-any
-        _transform: ({ data }: any) => ({
-          data,
-          // deno-lint-ignore no-explicit-any
-          maxAge: Math.max(...data.map((u: any) => u.age)),
-          totalUsers: data.length,
-        }),
-      },
-    };
-
-    const db = new Store({
-      rules,
-      initialData: { users: { data: [], maxAge: 0 } },
-    });
-    db.push("users.data", { age: 18 });
-    db.push("users.data", { age: 20 });
-    db.push("users.data", { age: 56 });
-    db.push("users.data", { age: 34 });
-    db.push("users.data", { age: 45 });
-
-    assertEquals(db.get("users.totalUsers"), 5);
-    assertEquals(db.get("users.maxAge"), 56);
-  },
-});
-
-Deno.test({
-  // only: true,
   name: "[Rules Examples] read maxAge",
   fn: () => {
     const rules = {
       users: {
         _write: () => true,
         _read: () => true,
-        // deno-lint-ignore no-explicit-any
-        _as: ({ data }: any) => ({
+        _as: ({ data }: Value) => ({
           data,
-          // deno-lint-ignore no-explicit-any
-          maxAge: Math.max(...data.map((u: any) => u.age)),
+          maxAge: Math.max(...data.map((u: Value) => u.age)),
           totalUsers: data.length,
         }),
       },

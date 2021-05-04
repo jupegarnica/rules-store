@@ -766,7 +766,7 @@ export class Store {
         "_transform",
         diff,
         // TODO should transform only the payload?
-        // keys,
+        keys,
       );
 
       this._applyMutations(

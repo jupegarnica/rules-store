@@ -36,40 +36,39 @@ Deno.test("[Lab] dates persistance as ISO String", () => {
   db.write();
   db.load();
   assertEquals(db.get("date"), iso);
-  // db.deleteStore();
 });
 
-Deno.test("[Lab] _transform", () => {
-  const db = new StoreJson({
-    initialData: {
-      props: {
-        a: 1,
-        b: 2,
-        c: 3,
-      },
-    },
-    rules: {
-      _read: () => true,
-      _write: () => true,
-      props: {
-        _transform: (newData: Value) => {
-          const _new = ({
-            ...newData,
-            count: Object.keys(newData).length,
-          });
-          return _new;
-        },
-      },
-    },
-  });
+// Deno.test("[Lab] _transform", () => {
+//   const db = new StoreJson({
+//     initialData: {
+//       props: {
+//         a: 1,
+//         b: 2,
+//         c: 3,
+//       },
+//     },
+//     rules: {
+//       _read: () => true,
+//       _write: () => true,
+//       props: {
+//         _transform: (newData: Value) => {
+//           const _new = ({
+//             ...newData,
+//             count: Object.keys(newData).length,
+//           });
+//           return _new;
+//         },
+//       },
+//     },
+//   });
 
-  db.set("props.d", 4);
+//   db.set("props.d", 4);
 
-  assertEquals(
-    db.get("props.count"),
-    4,
-  );
-});
+//   assertEquals(
+//     db.get("props.count"),
+//     4,
+//   );
+// });
 
 Deno.test({
   name: "[Lab] _transform on root throws",

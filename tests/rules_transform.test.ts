@@ -95,22 +95,6 @@ Deno.test("[Rules _transform] on remove", () => {
   assertEquals(mock.calls.length, 1);
   assertEquals(db.get(""), { b: 2 });
 });
-Deno.test("[Rules _transform] in the parent", () => {
-  const rules = {
-    _write: () => true,
-    _read: () => true,
-    a: {
-      _transform: (newData: Value) => ({ ...newData, hola: "mundo" }),
-    },
-  };
-  const initialData = {
-    a: { b: { c: 1 } },
-  };
-  const db = new Store({ rules, initialData });
-
-  db.set("a.b.c", "2");
-  assertEquals(db.get("a.hola"), "mundo");
-});
 
 Deno.test("[Rules _transform] node not touched", () => {
   const rules = {
@@ -159,7 +143,7 @@ Deno.test("[Rules _transform] newData receive the  precedente transformations", 
     rules,
     initialData: { a: { b: { c: 0 } } },
   });
-  db.set("a.b.c", 1);
+  db.set("a", { b: { c: 1 } });
 
   assertEquals(db.get(""), {
     "a": {
@@ -188,7 +172,7 @@ Deno.test("[Rules _transform] apply all bottom up", () => {
     rules,
     initialData: { a: { b: { c: 0 } } },
   });
-  db.set("a.b.c", 1);
+  db.set("a", { b: { c: 1 } });
 
   assertEquals(db.get(""), {
     a: {
@@ -245,7 +229,7 @@ Deno.test("[Rules _transform] apply rollback if transform fails", () => {
     rules,
     initialData: { a: { b: { c: 0 } } },
   });
-  assertThrows(() => db.set("a.b.c", 1));
+  assertThrows(() => db.set("a", { b: { c: 1 } }));
   assertEquals(db.get(""), { a: { b: { c: 0 } } });
   assertEquals(
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),

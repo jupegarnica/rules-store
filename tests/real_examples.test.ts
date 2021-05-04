@@ -285,16 +285,18 @@ Deno.test({
     const initialData = {
       users: {},
     };
+
     const rules = {
       users: {
         $uuid: {
           _write: () => true,
           _read: () => true,
           email: {
-            _validate: isEmail,
+            _validate: (email: string) => isEmail(email),
           },
           password: {
-            _transform: (plainPass: string) => encrypt(plainPass),
+            _validate: (password: string) => password.length >= 8,
+            _writeAs: (password: string) => encrypt(password),
             _readAs: () => "********",
           },
         },
@@ -305,38 +307,34 @@ Deno.test({
       autoSave: true,
       rules,
     });
-    try {
-      const uuid = v4.generate();
+    const uuid = v4.generate();
 
-      assertThrows(
-        () => {
-          authStore.set("users/" + uuid, {
-            email: "@notValidEmail",
-            password: "1234",
-          });
-        },
-        ValidationError,
+    authStore.set("users/" + uuid, {
+      email: "juan@geekshubs.com",
+      password: "12345678",
+    });
+
+    assertEquals(
+      authStore.get("users/" + uuid),
+      {
+        email: "juan@geekshubs.com",
+        password: "********",
+      },
+    );
+    try {
+      authStore.set("users/" + uuid, {
+        email: "@notValidEmail",
+        password: "12345678",
+      });
+    } catch (error) {
+      assertEquals(error instanceof ValidationError, true);
+      assertEquals(
+        error.message,
         `Validation fails at path /users/${uuid}/email`,
       );
-
-      authStore.set("users/" + uuid, {
-        email: "juan@geekshubs.com",
-        password: "1234",
-      });
-      assertEquals(
-        authStore.get("users/" + uuid),
-        {
-          email: "juan@geekshubs.com",
-          password: "********",
-        },
-      );
-
-      await authStore.writeLazy();
-      authStore.deleteStore();
-    } catch (error) {
-      await authStore.writeLazy();
-      authStore.deleteStore();
-      throw error;
     }
+
+    await authStore.writeLazy();
+    authStore.deleteStore();
   },
 });

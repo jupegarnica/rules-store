@@ -63,6 +63,14 @@ export class Store {
   #mutationsToCommit: Mutation[] = [];
   #mutationsToRollback: Mutation[] = [];
   #mutationDiff: ObjectOrArray = {};
+  #enabledRules = {
+    _read: true,
+    _write: true,
+    _readAs: true,
+    _writeAs: true,
+    _transform: true,
+    _validate: true,
+  };
 
   get _dataShape() {
     return Array.isArray(this.#newData) ? [] : {};
@@ -81,6 +89,11 @@ export class Store {
   constructor(config: BaseConfig = {}) {
     if (config.rules) {
       this._assertValidRules(config.rules);
+    }
+    if (config.skipRules) {
+      for (const rule of config.skipRules) {
+        this.#enabledRules[rule] = false;
+      }
     }
     this.#rules = deepClone(config.rules ?? allowAll);
     this._setData(deepClone(config.initialData ?? {}));
@@ -643,7 +656,9 @@ export class Store {
     return deepGet(this._data, keys);
   }
   private _getAndCheck(keys: Keys): Value {
-    this._checkPermission("_read", keys);
+    if (this.#enabledRules["_read"]) {
+      this._checkPermission("_read", keys);
+    }
     return (this._get(keys));
   }
   private _getAs(keys: Keys): Value {
@@ -669,6 +684,9 @@ export class Store {
       value = deepClone(deepGet(target, keys));
     } else {
       value = (deepGet(target, keys));
+    }
+    if (!this.#enabledRules["_readAs"]) {
+      return value;
     }
 
     const diff = { root: this._dataShape };
@@ -753,42 +771,48 @@ export class Store {
       const diff = this._dataShape;
       deepSet(diff, keys, (value ?? null));
 
-      // apply write
-      this._applyMutations(
-        this.#newData,
-        [{ keys, value, type: type === "remove" ? "set" : type }],
-        removed,
-      );
+      if (this.#enabledRules["_write"]) {
+        // apply write
+        this._applyMutations(
+          this.#newData,
+          [{ keys, value, type: type === "remove" ? "set" : type }],
+          removed,
+        );
 
-      this._checkPermission("_write", keys);
+        this._checkPermission("_write", keys);
+      }
+      if (this.#enabledRules["_transform"]) {
+        // apply _transform rule
+        const transformMutations = this._findMutations(
+          "_transform",
+          diff,
+          keys,
+        );
+        mutationsToApply.push(...transformMutations);
+        this._applyMutations(
+          this.#newData,
+          transformMutations,
+          removed,
+        );
+      }
+      if (this.#enabledRules["_validate"]) {
+        this._checkValidation(diff);
+      }
 
-      // apply _transform rule
-      const transformMutations = this._findMutations(
-        "_transform",
-        diff,
-        keys,
-      );
-      mutationsToApply.push(...transformMutations);
-      this._applyMutations(
-        this.#newData,
-        transformMutations,
-        removed,
-      );
-
-      this._checkValidation(diff);
-
-      // apply _writeAs rule
-      const writeAsMutations = this._findMutations(
-        "_writeAs",
-        diff,
-        keys,
-      );
-      mutationsToApply.push(...writeAsMutations);
-      this._applyMutations(
-        this.#newData,
-        writeAsMutations,
-        removed,
-      );
+      if (this.#enabledRules["_writeAs"]) {
+        // apply _writeAs rule
+        const writeAsMutations = this._findMutations(
+          "_writeAs",
+          diff,
+          keys,
+        );
+        mutationsToApply.push(...writeAsMutations);
+        this._applyMutations(
+          this.#newData,
+          writeAsMutations,
+          removed,
+        );
+      }
 
       deepMerge(this.#mutationDiff, diff);
 

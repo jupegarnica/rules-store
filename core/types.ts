@@ -90,6 +90,14 @@ export type Rules = {
 export type BaseConfig = {
   rules?: Rules;
   initialData?: ObjectOrArray;
+  skipRules?: [
+    "_read",
+    "_write",
+    "_readAs",
+    "_writeAs",
+    "_transform",
+    "_validate",
+  ];
 };
 export type Config = BaseConfig & {
   autoSave?: boolean;

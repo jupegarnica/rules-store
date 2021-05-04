@@ -5,7 +5,7 @@ import { StorePersistance } from "./StorePersistance.ts";
 export class StoreJson extends StorePersistance {
   load(): void {
     const filename = this._name;
-    const folder = this._folder || fromFileUrl(dirname(Deno.mainModule));
+    const folder = resolve(fromFileUrl(dirname(Deno.mainModule)), this._folder);
     const storePath = resolve(folder, filename);
     this._storePath = storePath;
     if (!existsSync(storePath)) return;

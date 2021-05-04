@@ -12,16 +12,11 @@
 - [x] rule \_transform
 - [x] rule \_as
 - [x] .observe('/path/$params/key')
-- [ ] SubscriptionPayload with isUpdated isDeleted isCreated
-- [ ] \_getAs applied deeper, not only to the target path
-- [ ] .findAndUpdate .findOneAndUpdate
-- [ ] Support for JSON5?
-- [ ] do not allow set to undefined
-- [ ] parse json with wasm
-- [ ] .setTransaction({path: value, path2:value})
+- [x] SubscriptionPayload with isUpdated isDeleted isCreated
+- [x] \_getAs applied deeper, not only to the target path
+- [x] .findAndUpdate .findOneAndUpdate
 - [ ] bundle StoreLocalStorage
 - [ ] bundle to npm
-- [ ] maybe .sort(fn)
 
 #
 

@@ -764,7 +764,7 @@ export class Store {
     type: MutationType = "set",
   ): { applied: Mutation[]; removed: Mutation[] } {
     const removed: Mutation[] = [];
-    let mutationsToApply: Mutation[] = [];
+    const mutationsToApply: Mutation[] = [];
 
     try {
       // create write diff

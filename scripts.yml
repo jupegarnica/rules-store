@@ -19,7 +19,7 @@ scripts:
       - deno bundle --unstable src/StoreLocalStorage.ts dist/StoreLocalStorage.mjs
       - deno bundle --unstable src/StoreSessionStorage.ts dist/StoreSessionStorage.mjs
   update:
-    cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts src/deps.ts tests/test_deps.ts
+    cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts core/deps.ts tests/test_deps.ts
     watch: false
 
 watcher:

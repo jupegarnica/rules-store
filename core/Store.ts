@@ -763,20 +763,33 @@ export class Store {
       this._checkPermission("_write", keys);
 
       // apply _transform rule
-      mutationsToApply = this._findMutations(
+      const transformMutations = this._findMutations(
         "_transform",
         diff,
-        // TODO should transform only the payload?
         keys,
       );
-
+      mutationsToApply.push(...transformMutations);
       this._applyMutations(
         this.#newData,
-        mutationsToApply,
+        transformMutations,
         removed,
       );
 
       this._checkValidation(diff);
+
+      // apply _writeAs rule
+      const writeAsMutations = this._findMutations(
+        "_writeAs",
+        diff,
+        keys,
+      );
+      mutationsToApply.push(...writeAsMutations);
+      this._applyMutations(
+        this.#newData,
+        writeAsMutations,
+        removed,
+      );
+
       deepMerge(this.#mutationDiff, diff);
 
       const currentMutation = { keys, value, type };

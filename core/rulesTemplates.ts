@@ -11,13 +11,13 @@ export const denyAll: Rules = {
 };
 
 export const onlyCreate: Rules = {
-  _write: (newData: Value, { oldData }: RuleContext) =>
-    oldData === undefined && newData !== undefined,
+  _write: (newData: Value, { _oldData }: RuleContext) =>
+    _oldData === undefined && newData !== undefined,
 };
 
 export const onlyUpdate: Rules = {
-  _write: (newData: Value, { oldData }: RuleContext) =>
-    oldData !== undefined && newData !== undefined,
+  _write: (newData: Value, { _oldData }: RuleContext) =>
+    _oldData !== undefined && newData !== undefined,
 };
 
 export const onlyRemove: Rules = {
@@ -25,8 +25,8 @@ export const onlyRemove: Rules = {
 };
 
 export const noUpdate: Rules = {
-  _write: (newData: Value, { oldData }: RuleContext) =>
-    oldData === undefined || newData === undefined,
+  _write: (newData: Value, { _oldData }: RuleContext) =>
+    _oldData === undefined || newData === undefined,
 };
 
 export const noDelete: Rules = {
@@ -34,20 +34,20 @@ export const noDelete: Rules = {
 };
 
 export const noCreate: Rules = {
-  _write: (_: Value, { oldData }) => oldData !== undefined,
+  _write: (_: Value, { _oldData }) => _oldData !== undefined,
 };
 
 export const withTimestamps = {
-  _transform: (_: Value, { newData, oldData }: RuleContext) => {
+  _transform: (_: Value, { newData, _oldData }: RuleContext) => {
     const now = new Date().toISOString();
-    if (oldData === undefined) {
+    if (_oldData === undefined) {
       // add createAt and updateAt
       return newData &&
         ({ ...newData, createAt: now, updateAt: now });
     } else {
       // ensure createAt is not edited
       return newData &&
-        ({ ...newData, createAt: oldData.createAt, updateAt: now });
+        ({ ...newData, createAt: _oldData.createAt, updateAt: now });
     }
   },
 };

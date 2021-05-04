@@ -595,7 +595,7 @@ Deno.test({
   },
 });
 Deno.test({
-  only: false,
+  // only: true,
   name: "[Observe] subscription fails running callback",
   fn: () => {
     const db = new Store({
@@ -605,7 +605,12 @@ Deno.test({
       throw new Error("ups");
     });
     // remove
-    db.remove("users/0");
-    assertEquals(db.get("users"), []);
+    assertThrows(() => db.remove("users/0"));
+    assertEquals(db.get("users"), [{ name: "garn" }]);
+
+    assertDeepClone(
+      db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+      db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    );
   },
 });

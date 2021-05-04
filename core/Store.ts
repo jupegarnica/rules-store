@@ -25,6 +25,7 @@ import type {
   Mapper,
   Mutation,
   MutationType,
+  Notification,
   ObjectOrArray,
   Observer,
   ObserverContext,
@@ -550,8 +551,8 @@ export class Store {
     const newData = (this._getAsFrom(this.#newData, keys));
     const payload = {
       ...params,
-      _oldData: oldData,
-      _newData: newData,
+      oldData: oldData,
+      newData: newData,
       isUpdated: oldData !== undefined && newData !== undefined,
       isCreated: oldData === undefined,
       isDeleted: newData === undefined,
@@ -810,20 +811,25 @@ export class Store {
   protected _commit(
     toCommit: Mutation[],
   ): void {
-    this._notify();
+    const notifications = this._findNotifications();
     const removed = [] as Mutation[];
     try {
       this._applyMutations(this.#data, toCommit, removed, true);
       this.#mutationDiff = this._dataShape;
+      this._notify(notifications);
     } catch (error) {
-      this._rollback(removed, toCommit);
+      this._rollback(removed, toCommit, this.#data);
       throw error;
     }
   }
-  private _rollback(toRollback: Mutation[], applied: Mutation[]): void {
+  private _rollback(
+    toRollback: Mutation[],
+    applied: Mutation[],
+    target = this.#newData,
+  ): void {
     const removed = [] as Mutation[];
     this._applyMutations(
-      this.#newData,
+      target,
       toRollback.reverse(),
       removed,
     );
@@ -833,19 +839,31 @@ export class Store {
     // if (!this.#duringTransaction && assertClone) {
     //   // // console.log(this._data, this.#newData);
 
-    //   // assertDeepClone(this._data, this.#newData);
+    //   assertDeepClone(this._data, this.#newData);
     // }
   }
+  private _notify(notifications: Notification[]): void {
+    for (const { callback, args, id } of notifications) {
+      try {
+        callback(...args);
+      } catch (error) {
+        // TODO What to do when a subscription fails running callback?
+        console.error(
+          `Subscription callback ${id} has thrown.\n`,
+          error.message,
+        );
+        throw error;
+      }
+    }
+  }
 
-  private _notify() {
-    if (Object.keys(this.#mutationDiff).length === 0) return;
+  private _findNotifications(): Notification[] {
+    const notifications = [] as Notification[];
+    if (Object.keys(this.#mutationDiff).length === 0) return notifications;
     for (const subscription of this.#subscriptions) {
       const { path, callback, id } = subscription;
       const paths = pathsMatched(this.#mutationDiff, path);
-
       for (const keys of paths) {
-        const params = getParamsFromKeys(keys, path);
-
         try {
           this._checkPermission("_read", keys);
         } catch (error) {
@@ -855,29 +873,21 @@ export class Store {
             error.message,
           );
           // throw error;
-          return;
+          continue;
         }
         const oldData = deepGet(this.#data, keys);
         const newData = deepGet(this.#newData, keys);
         if (!equal(oldData, newData)) {
+          const params = getParamsFromKeys(keys, path);
           const args = this._createObserverArgs(
             params,
             keys,
           );
-          try {
-            callback(...args);
-          } catch (error) {
-            // TODO What to do when a subscription fails running callback?
-            // Do not throw
-            console.error(
-              `Subscription callback ${id} has thrown.\n`,
-              error.message,
-            );
-            // throw error;
-          }
+          notifications.push({ callback, args, id });
         }
       }
     }
+    return notifications;
   }
   // private _removeItem(targetKeys: Keys, keyToRemove: string) {
   //   const removed = [] as Mutation[];

@@ -23,6 +23,11 @@ export type Finder = (pair: KeyValue) => any;
 // deno-lint-ignore no-explicit-any
 export type Mapper = (pair: KeyValue) => any;
 
+export type Notification = {
+  callback: Observer;
+  id: number;
+  args: ObserverArgs;
+};
 export type ObserverContext = {
   newData: Value;
   _newData: Value;
@@ -31,8 +36,10 @@ export type ObserverContext = {
   isUpdated: boolean;
   isCreated: boolean;
   isDeleted: boolean;
+  [param: string]: string | Value;
 };
-export type Observer = (data: Value, context: ObserverContext) => void;
+export type ObserverArgs = [Value, ObserverContext];
+export type Observer = (...args: ObserverArgs) => void;
 export type Subscription = {
   callback: Observer;
   id: number;

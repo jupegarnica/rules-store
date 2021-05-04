@@ -1,10 +1,17 @@
 import { Store } from "../core/Store.ts";
+import { StoreYaml } from "../core/StoreYaml.ts";
 import { assertEquals, assertObjectMatch, assertThrows } from "./test_deps.ts";
 import type { RuleContext, Value } from "../core/types.ts";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
+import { isEmail } from "https://deno.land/x/isemail/mod.ts";
+import { v4 } from "https://deno.land/std@0.95.0/uuid/mod.ts";
 
+// Generate a v4 uuid.
+const encrypt = bcrypt.hashSync;
+// const decrypt = bcrypt.compareSync;
 Deno.test({
   // only: true,
-  name: "[Rules Examples] counter",
+  name: "[Examples] counter",
   fn: () => {
     const rules = {
       count: {
@@ -28,7 +35,7 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Rules Examples] list of numbers",
+  name: "[Examples] list of numbers",
   fn: () => {
     const rules = {
       _read: () => true,
@@ -58,7 +65,7 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Rules Examples] createAt updateAt",
+  name: "[Examples] createAt updateAt",
   fn: () => {
     const now = new Date().toISOString();
     const rules = {
@@ -113,7 +120,7 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Rules Examples] read maxAge",
+  name: "[Examples] read maxAge",
   fn: () => {
     const rules = {
       users: {
@@ -144,4 +151,84 @@ Deno.test({
   },
 });
 
-// TODO Deno.test("[Rules Examples] Tables structure")
+// TODO Deno.test("[Examples] Tables structure")
+
+Deno.test({
+  // only: true,
+  // ignore: true,
+  name: "[Examples] auth store",
+  fn: () => {
+    const initialData = {
+      users: {},
+      roles: {
+        admin: 1,
+        client: 2,
+      },
+      emails: {},
+    };
+    const rules = {
+      emails: {
+        _write: () => true,
+        _read: () => false,
+      },
+      roles: {
+        _write: () => false,
+        _read: () => false,
+      },
+      users: {
+        _write: () => true,
+        _read: () => true,
+        $uuid: {
+          _validate: (user) =>
+            user.name && user.email && user.role && user.password,
+          name: {
+            _validate: (name) => typeof name === "string" && name.length >= 3,
+          },
+          email: {
+            _validate: (email) => isEmail(email),
+          },
+          role: {
+            _validate: (role, { rootData }) => role in rootData.roles,
+          },
+          password: {
+            _transform: (plainPass) => encrypt(plainPass),
+          },
+        },
+      },
+    };
+    const authStore = new StoreYaml({
+      name: "auth.yaml",
+      initialData,
+      rules,
+    });
+    authStore.observe(
+      "users/$uuid/email",
+      (email, { isCreated, isUpdated, isDeleted, oldData, $uuid }) => {
+        console.log({ isCreated, isUpdated, isDeleted, oldData, $uuid });
+        if (isCreated) {
+          authStore.set("emails/" + email, $uuid);
+        }
+        if (isDeleted) {
+          authStore.remove("emails/" + oldData);
+        }
+        if (isUpdated) {
+          authStore.remove("emails/" + oldData);
+          authStore.set("emails/" + email, $uuid);
+        }
+
+        authStore.write();
+      },
+    );
+
+    console.log(("juan@garn.dev"));
+    console.log(isEmail("juan@garn.dev"));
+
+    const newUUID = v4.generate();
+    authStore.set("users/" + newUUID, {
+      name: "garn",
+      email: "juan@garn.dev",
+      password: "1234",
+      role: "admin",
+    });
+  },
+});

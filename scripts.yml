@@ -22,14 +22,14 @@ scripts:
     cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts core/deps.ts tests/test_deps.ts
     watch: false
 
-watcher:
-  # The number of milliseconds after the last change.
-  interval: 350
-  # The file extensions that it will scan for.
-  exts: ['js', 'jsx', 'ts', 'tsx', 'yaml', 'yml']
-  # The globs that it will scan for.
-  match: ['**/*.*']
-  # The globs that it will not scan for.
-  skip: ['*/.git/*']
-  # Use the legacy file monitoring algorithm. (walking)
-  legacy: false
+# watcher:
+#   # The number of milliseconds after the last change.
+#   interval: 350
+#   # The file extensions that it will scan for.
+#   exts: ['js', 'jsx', 'ts', 'tsx', 'yaml', 'yml']
+#   # The globs that it will scan for.
+#   match: ['**/*.*']
+#   # The globs that it will not scan for.
+#   skip: ['*/.git/*']
+#   # Use the legacy file monitoring algorithm. (walking)
+#   legacy: false

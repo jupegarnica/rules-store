@@ -8,3 +8,26 @@
 
 // // const db = new StoreJson({ name: "db.json" });
 // const db = new Store();
+// const r = /"((?!")((\w)|(\.)))*"/g;
+// const r = /"((.)*?)"/gm;
+// const r = /(["])(?:(?=(\\?))\2.)*?\1/g;
+const r = /"(([.])|[^"])+"/g;
+const text = `
+ const db = new Store({ rules, initialData: { a: { b: { c: 1 } } } });
+    assertEquals(db.get("a.b.c"), "z1");
+    assertEquals(db.get("a.b"), { c: "z1", extra: 33 });
+    assertEquals(db.get("a"), '{"b":{"c":"z1","extra":33}}');
+`;
+
+for (const match of text.matchAll(r)) {
+  console.log(match);
+}
+
+console.log(
+  r.exec(text),
+);
+
+// var myArray;
+// while ((myArray = r.exec(text)) !== null) {
+//   console.log(myArray);
+// }

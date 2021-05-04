@@ -5,6 +5,7 @@ import type { RuleContext, Value } from "../core/types.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 import { isEmail } from "https://deno.land/x/isemail/mod.ts";
 import { v4 } from "https://deno.land/std@0.95.0/uuid/mod.ts";
+import { ValidationError } from "../core/Errors.ts";
 
 // Generate a v4 uuid.
 const encrypt = bcrypt.hashSync;
@@ -126,7 +127,7 @@ Deno.test({
       users: {
         _write: () => true,
         _read: () => true,
-        _as: ({ data }: Value) => ({
+        _readAs: ({ data }: Value) => ({
           data,
           maxAge: Math.max(...data.map((u: Value) => u.age)),
           totalUsers: data.length,
@@ -155,9 +156,9 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  ignore: true,
-  name: "[Examples] auth store",
-  fn: () => {
+  // ignore: true,
+  name: "[Examples] auth store complex",
+  fn: async () => {
     const initialData = {
       users: {},
       roles: {
@@ -169,7 +170,7 @@ Deno.test({
     const rules = {
       emails: {
         _write: () => true,
-        _read: () => false,
+        _read: () => true,
       },
       roles: {
         _write: () => false,
@@ -179,56 +180,163 @@ Deno.test({
         _write: () => true,
         _read: () => true,
         $uuid: {
-          _validate: (user) =>
-            user.name && user.email && user.role && user.password,
+          _validate: (user: Value) =>
+            // allow delete
+            !user ||
+            // required field
+            (user.name && user.email && user.role && user.password),
           name: {
-            _validate: (name) => typeof name === "string" && name.length >= 3,
+            _validate: (name: string) =>
+              typeof name === "string" && name.length >= 3,
           },
           email: {
-            _validate: (email) => isEmail(email),
+            _validate: (email: string, { rootData }: RuleContext) => {
+              if (!isEmail(email)) {
+                throw new Error("not a valid email");
+              }
+              if ((email in rootData.emails)) {
+                throw new Error("email in use");
+              }
+              return true;
+            },
           },
           role: {
-            _validate: (role, { rootData }) => role in rootData.roles,
+            _validate: (role: string, { rootData }: RuleContext) =>
+              role in rootData.roles,
           },
           password: {
-            _transform: (plainPass) => encrypt(plainPass),
+            _transform: (plainPass: string) => encrypt(plainPass),
+            _readAs: () => "********",
           },
         },
       },
     };
     const authStore = new StoreYaml({
       name: "auth.yaml",
+      folder: "tests",
       initialData,
+      autoSave: true,
       rules,
     });
-    authStore.observe(
-      "users/$uuid/email",
-      (email, { isCreated, isUpdated, isDeleted, oldData, $uuid }) => {
-        console.log({ isCreated, isUpdated, isDeleted, oldData, $uuid });
-        if (isCreated) {
-          authStore.set("emails/" + email, $uuid);
-        }
-        if (isDeleted) {
-          authStore.remove("emails/" + oldData);
-        }
-        if (isUpdated) {
-          authStore.remove("emails/" + oldData);
-          authStore.set("emails/" + email, $uuid);
-        }
+    try {
+      authStore.observe(
+        "users/$uuid/email",
+        (email, { isCreated, isUpdated, isDeleted, oldData, $uuid }) => {
+          if (isCreated) {
+            authStore.set("emails/" + email, $uuid);
+          }
+          if (isDeleted) {
+            authStore.remove("emails/" + oldData);
+          }
+          if (isUpdated) {
+            authStore.remove("emails/" + oldData);
+            authStore.set("emails/" + email, $uuid);
+          }
+        },
+      );
 
-        authStore.write();
+      const uuid = v4.generate();
+      const email1 = "juan@garn.dev";
+      const email2 = "juan@valencia.io";
+      authStore.set("users/" + uuid, {
+        name: "garn",
+        email: email1,
+        password: "1234",
+        role: "admin",
+      });
+      assertEquals(authStore.get("emails/" + email1), uuid);
+
+      authStore.set(`users/${uuid}/email`, email2);
+
+      assertEquals(authStore.get("emails/" + email1), undefined);
+      assertEquals(authStore.get("emails/" + email2), uuid);
+
+      // can not create a whole new user with a used email
+      assertThrows(
+        () => {
+          authStore.set("users/" + uuid, {
+            name: "other",
+            email: email2,
+            password: "1234",
+            role: "admin",
+          });
+        },
+        Error,
+        "in use",
+      );
+      authStore.remove("/users/" + uuid);
+      assertEquals(authStore.get("emails/" + email2), undefined);
+
+      await authStore.writeLazy();
+      authStore.deleteStore();
+    } catch (error) {
+      await authStore.writeLazy();
+      authStore.deleteStore();
+      throw error;
+    }
+  },
+});
+
+Deno.test({
+  only: true,
+  // ignore: true,
+  name: "[Examples] auth store readme",
+  fn: async () => {
+    const initialData = {
+      users: {},
+    };
+    const rules = {
+      users: {
+        $uuid: {
+          _write: () => true,
+          _read: () => true,
+          email: {
+            _validate: isEmail,
+          },
+          password: {
+            _transform: (plainPass: string) => encrypt(plainPass),
+            _readAs: () => "********",
+          },
+        },
       },
-    );
-
-    // console.log(("juan@garn.dev"));
-    // console.log(isEmail("juan@garn.dev"));
-
-    const newUUID = v4.generate();
-    authStore.set("users/" + newUUID, {
-      name: "garn",
-      email: "juan@garn.dev",
-      password: "1234",
-      role: "admin",
+    };
+    const authStore = new StoreYaml({
+      initialData,
+      autoSave: true,
+      rules,
     });
+    try {
+      const uuid = v4.generate();
+
+      assertThrows(
+        () => {
+          authStore.set("users/" + uuid, {
+            email: "@notValidEmail",
+            password: "1234",
+          });
+        },
+        ValidationError,
+        `Validation fails at path /users/${uuid}/email`,
+      );
+
+      authStore.set("users/" + uuid, {
+        email: "juan@geekshubs.com",
+        password: "1234",
+      });
+      assertEquals(
+        authStore.get("users/" + uuid),
+        {
+          email: "juan@geekshubs.com",
+          password: "********",
+        },
+      );
+
+      await authStore.writeLazy();
+      authStore.deleteStore();
+    } catch (error) {
+      await authStore.writeLazy();
+      authStore.deleteStore();
+      throw error;
+    }
   },
 });

@@ -1,50 +1,59 @@
-# Rules Data Store
+# Rules Store
 
 _An observable data store heavily inspired from firebase rules_
 
-Rules DS is not about an observable data store with persistence to localStorage, json or yaml.
+Rules Store is not about an observable data store with persistence to localStorage, json or yaml.
 
-**Rules DS is about managing runtime state data with security and confidence** writing a rules object which ensure all data is stored as expected. Maybe that sound familiar if you work with Databases, but it no usual talking about runtime state management in frontend or backend.
+**Rules Store is about managing runtime state data with security and confidence** writing a rules object which ensure all data is stored as expected. Maybe that sound familiar if you work with Databases, but it no usual talking about runtime state management in frontend or backend.
 
-## Intro
+## Example
 
 ```ts
-const authStore = new Store({
-  initialData: {
-    users: {},
-    roles: {
-      admin: 1,
-      client: 2,
-    },
-  },
+const initialData = {
+  users: {},
+};
 
-  rules: {
-    roles: {
-      _write: () => false,
-      _read: () => false,
-    },
-    users: {
+const rules = {
+  users: {
+    $uuid: {
       _write: () => true,
       _read: () => true,
-      $uuid: {
-        name: {
-          _validate: (name) =>
-            typeof name === 'string' && name.length >= 3,
-        },
-        email: {
-          _validate: (name) => isEmail(name),
-        },
-        role: {
-          _validate: (role, { rootData }) =>
-            role in _rootData.roles,
-        },
-        password: {
-          _transform: (plainPass) => encrypt(plainPass),
-          _as: (encryptedPass) => decrypt(encryptedPass),
-        },
+      email: {
+        _validate: (email: string) => isEmail(email),
+      },
+      password: {
+        _transform: (password: string) => encrypt(password),
+        _readAs: () => '********',
       },
     },
   },
+};
+const authStore = new Store({
+  initialData,
+  autoSave: true,
+  rules,
+});
+const uuid = v4.generate();
+
+assertThrows(
+  () => {
+    authStore.set('users/' + uuid, {
+      email: '@notValidEmail',
+      password: '1234',
+    });
+  },
+  ValidationError,
+  `Validation fails at path /users/${uuid}/email`,
+);
+
+authStore.set('users/' + uuid, {
+  email: 'juan@geekshubs.com',
+  password: '1234',
+});
+
+assertEquals(authStore.get('users/' + uuid), {
+  email: 'juan@geekshubs.com',
+  password: '********',
 });
 ```
 
@@ -60,11 +69,12 @@ const authStore = new Store({
 - [x] performance benchmarks
 - [x] rule \_validate
 - [x] rule \_transform
-- [x] rule \_as
+- [x] rule \_readAs
 - [x] .observe('/path/$params/key')
 - [x] SubscriptionPayload with isUpdated isDeleted isCreated
 - [x] \_getAs applied deeper, not only to the target path
 - [x] .findAndUpdate .findOneAndUpdate
+- [ ] rule \_writeAs
 - [ ] bundle StoreLocalStorage
 - [ ] bundle to npm
 - [ ] Write to disk as transaction. https://github.com/npm/write-file-atomic

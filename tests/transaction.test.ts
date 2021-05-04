@@ -2,6 +2,7 @@ import { Store } from "../src/Store.ts";
 import type { KeyValue, RuleContext, Value } from "../src/types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
+import { PermissionError } from "../src/Errors.ts";
 
 Deno.test("[Transactions] commit", () => {
   const db = new Store();
@@ -388,5 +389,111 @@ Deno.test({
 
     db.rollback();
     assertEquals(db.get("a"), [1, 2, 3]);
+  },
+});
+
+Deno.test({
+  // only: true,
+  name:
+    "[Transactions] findAndUpdate perform as a transaction, if one write operation fails the rest must rollback",
+  fn: () => {
+    const db = new Store({
+      rules: {
+        obj: {
+          $key: {
+            _write: (_, { $key }) => $key !== "b",
+          },
+          _read: () => true,
+        },
+      },
+      initialData: {
+        obj: { a: 1, b: 2, c: 3 },
+      },
+    });
+
+    assertThrows(
+      () =>
+        db.findAndUpdate(
+          "obj",
+          ([, value]) => value > 1,
+          ([, value]) => value * 2,
+        ),
+      PermissionError,
+      "/obj/b",
+    );
+
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3 });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Transactions] findAndUpdate fails and commit",
+  fn: () => {
+    const db = new Store({
+      rules: {
+        obj: {
+          $key: {
+            _write: (_, { $key }) => $key !== "b",
+          },
+          _read: () => true,
+        },
+      },
+      initialData: {
+        obj: { a: 1, b: 2, c: 3 },
+      },
+    });
+
+    db.beginTransaction();
+    db.set("obj/d", 4);
+    assertThrows(
+      () =>
+        db.findAndUpdate(
+          "obj",
+          ([, value]) => value > 1,
+          ([, value]) => value * 2,
+        ),
+      PermissionError,
+      "/obj/b",
+    );
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3, d: 4 });
+    db.commit();
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3, d: 4 });
+  },
+});
+
+Deno.test({
+  // only: true,
+  name: "[Transactions] findAndUpdate fails and rollback",
+  fn: () => {
+    const db = new Store({
+      rules: {
+        obj: {
+          $key: {
+            _write: (_, { $key }) => $key !== "b",
+          },
+          _read: () => true,
+        },
+      },
+      initialData: {
+        obj: { a: 1, b: 2, c: 3 },
+      },
+    });
+
+    db.beginTransaction();
+    db.set("obj/d", 4);
+    assertThrows(
+      () =>
+        db.findAndUpdate(
+          "obj",
+          ([, value]) => value > 1,
+          ([, value]) => value * 2,
+        ),
+      PermissionError,
+      "/obj/b",
+    );
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3, d: 4 });
+    db.rollback();
+    assertEquals(db.get("obj"), { a: 1, b: 2, c: 3 });
   },
 });

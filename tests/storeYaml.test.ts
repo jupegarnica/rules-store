@@ -115,5 +115,4 @@ Deno.test("[StoreYaml] set and get null", () => {
 //   db.set("arr", [, 1]);
 //   console.log(db.get(""));
 //   await db.writeLazy();
-
 // });

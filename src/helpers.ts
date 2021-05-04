@@ -143,7 +143,6 @@ export const deepMerge = (
       Object.assign(source[key], deepMerge(target[key], source[key]));
     }
   }
-  // TODO Needed?
   // const shape = Array.isArray(source) ? [] : {};
   // Object.assign(target ?? shape, source);
   Object.assign(target, source);

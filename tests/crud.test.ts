@@ -8,28 +8,28 @@ Deno.test("[Store] Simple set and get", () => {
   const A = db.get("a");
   assertEquals(A, 1);
 
-  const B = db.get("a.b");
+  const B = db.get("a/b");
   assertEquals(B, undefined);
 });
 
 Deno.test("[Store] setting arrays", () => {
   const db = new Store();
 
-  db.set("b.0.a", 1);
+  db.set("b/0/a", 1);
   const B = db.get("b");
 
   assertEquals(B, [{ a: 1 }]);
 
-  db.set("c.0.0", 1);
+  db.set("c/0/0", 1);
   const C = db.get("c");
   assertEquals(C, [[1]]);
 
-  db.set("d.1.1.1", 1);
+  db.set("d/1/1/1", 1);
   const D = db.get("d");
   assertEquals(D, [, [, [, 1]]]);
 
   db.set("e", [0]);
-  db.set("e.1.1.1", 1);
+  db.set("e/1/1/1", 1);
   const E = db.get("e");
   assertEquals(E, [0, [, [, 1]]]);
 });
@@ -46,68 +46,68 @@ Deno.test("[Store] invalid root path", () => {
 
 Deno.test("[Store] Deep remove", () => {
   const db = new Store();
-  db.set("a.b.c", true);
+  db.set("a/b/c", true);
 
-  const B = db.remove("a.b");
+  const B = db.remove("a/b");
 
   assertEquals(B, { c: true });
-  assertEquals(db.get("a.b.c"), undefined);
+  assertEquals(db.get("a/b/c"), undefined);
 });
 
 Deno.test("[Store] Deep remove array child", () => {
   const db = new Store();
-  db.set("a.b", [0, 1, 2]);
+  db.set("a/b", [0, 1, 2]);
 
-  const B = db.remove("a.b.1");
+  const B = db.remove("a/b/1");
 
   assertEquals(B, 1);
-  assertEquals(db.get("a.b"), [0, 2]);
+  assertEquals(db.get("a/b"), [0, 2]);
 });
 
 Deno.test("[Store] Deep set and get", () => {
   const db = new Store();
-  db.set("a.b.c", true);
-  const C = db.get("a.b.c");
+  db.set("a/b/c", true);
+  const C = db.get("a/b/c");
   assertEquals(C, true);
-  const B = db.get("a.b");
+  const B = db.get("a/b");
   assertEquals(B, { c: true });
 });
 
 Deno.test("[Store] Deep set and get undefined", () => {
   const db = new Store();
-  db.set("a.b.c", true);
-  const C = db.get("a.c");
+  db.set("a/b/c", true);
+  const C = db.get("a/c");
   assertEquals(C, undefined);
-  const B = db.get("a.b.c.z.x.x");
+  const B = db.get("a/b/c/z/x/x");
   assertEquals(B, undefined);
 });
 
 Deno.test("[Store] push into an array", () => {
   const db = new Store();
-  db.set("a.b", []);
+  db.set("a/b", []);
 
-  const B = db.push("a.b", 1);
+  const B = db.push("a/b", 1);
 
   assertEquals(B, 1);
-  assertEquals(db.get("a.b"), [1]);
-  const B2 = db.push("a.b", 2, 3, 4);
+  assertEquals(db.get("a/b"), [1]);
+  const B2 = db.push("a/b", 2, 3, 4);
   assertEquals(B2, [2, 3, 4]);
-  assertEquals(db.get("a.b"), [1, 2, 3, 4]);
+  assertEquals(db.get("a/b"), [1, 2, 3, 4]);
 });
 
 Deno.test("[Store] push into an not array", () => {
   const db = new Store();
-  db.set("a.b", {});
+  db.set("a/b", {});
 
   assertThrows(() => {
-    db.push("a.b", 1);
+    db.push("a/b", 1);
   });
 });
 
 Deno.test("[Store] Set with a function", () => {
   const db = new Store();
   db.set("a", { b: 1 });
-  const B = db.set("a.b", (oldValue: number) => oldValue + 1);
+  const B = db.set("a/b", (oldValue: number) => oldValue + 1);
   assertEquals(B, 2);
 });
 
@@ -171,7 +171,7 @@ Deno.test("[Store] find by key in array", () => {
 Deno.test("[Store] find at not object", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);
-  assertThrows(() => db.find("arr.0", () => true));
+  assertThrows(() => db.find("arr/0", () => true));
 });
 
 Deno.test("[Store] findOne not found", () => {
@@ -208,13 +208,13 @@ Deno.test("[Store] findOne by key in array", () => {
 Deno.test("[Store] findOne  at not object", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);
-  assertThrows(() => db.findOne("arr.0", () => true));
+  assertThrows(() => db.findOne("arr/0", () => true));
 });
 
 Deno.test("[Store] findOne array length", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);
-  assertThrows(() => db.findOne("arr.length", () => true));
+  assertThrows(() => db.findOne("arr/length", () => true));
 });
 
 Deno.test("[Store] findAndRemove by key in obj", () => {
@@ -287,8 +287,8 @@ Deno.test("[Store] invalid set", () => {
   const db = new Store();
   db.set("arr", [1, 2]);
   db.set("obj", { a: 1 });
-  assertThrows(() => db.set("obj.1", 3), TypeError, "not Array");
-  assertThrows(() => db.set("arr.a", 3), TypeError, "not Object");
+  assertThrows(() => db.set("obj/1", 3), TypeError, "not Array");
+  assertThrows(() => db.set("arr/a", 3), TypeError, "not Object");
 });
 
 Deno.test("[Store] invalid set on push", () => {
@@ -296,18 +296,18 @@ Deno.test("[Store] invalid set on push", () => {
     obj: {},
   };
   const db = new Store({ initialData });
-  assertThrows(() => db.push("obj.1", 1), TypeError, "not Array");
+  assertThrows(() => db.push("obj/1", 1), TypeError, "not Array");
 });
 
 Deno.test("[Store] Set negative array index", () => {
   const db = new Store();
   db.set("arr", [1, 2, 3]);
   db.set("obj", {});
-  db.set("obj.-4", -4);
+  db.set("obj/-4", -4);
   assertEquals(db.get("obj"), { "-4": -4 });
-  db.set("arr.4", 4);
-  assertThrows(() => db.set("arr.-4", -4), TypeError, "not Object");
-  assertThrows(() => db.set("arr.a", -4), TypeError, "not Object");
+  db.set("arr/4", 4);
+  assertThrows(() => db.set("arr/-4", -4), TypeError, "not Object");
+  assertThrows(() => db.set("arr/a", -4), TypeError, "not Object");
 });
 
 Deno.test({
@@ -378,24 +378,24 @@ Deno.test({
 //   const db = new Store();
 //   db.set("arr", [1, 2, 3]);
 
-//   db.set("arr.-1", -3);
+//   db.set("arr/-1", -3);
 
 //   assertEquals(db.get("arr"), [1, 2, -3]);
-//   db.set("arr.-2", -2);
+//   db.set("arr/-2", -2);
 //   assertEquals(db.get("arr"), [1, -2, -3]);
-//   db.set("arr.-3", -1);
+//   db.set("arr/-3", -1);
 //   assertEquals(db.get("arr"), [-1, -2, -3]);
 
-//   assertThrows(() => db.set("arr.-4", -4), TypeError, "Invalid index");
+//   assertThrows(() => db.set("arr/-4", -4), TypeError, "Invalid index");
 // });
 
 // Deno.test("[Store] Get negative array index", () => {
 //   const db = new Store();
 //   db.set("arr", [1, 2, 3]);
-//   assertEquals(db.get("arr.-1"), 3);
-//   assertEquals(db.get("arr.-2"), 2);
-//   assertEquals(db.get("arr.-3"), 1);
-//   assertEquals(db.get("arr.-7"), undefined);
+//   assertEquals(db.get("arr/-1"), 3);
+//   assertEquals(db.get("arr/-2"), 2);
+//   assertEquals(db.get("arr/-3"), 1);
+//   assertEquals(db.get("arr/-7"), undefined);
 // });
 
 // Deno.test("experimental", () => {

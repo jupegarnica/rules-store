@@ -69,10 +69,125 @@ users:
     email: juan@garn.dev
     password: $2a$10$lEV9MfB85YZuoron1476hu3RPuD4n5Dyf4JjIBDkuqY4z7v09.3kW
     role: admin
+  96ee9f78-cdfa-462a-b26f-e5091dfb954f:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$zU6BLqUwuLEJ.QPvxFBVfeyObNcUJi4igjI9VkxltDFAeCquvINCi
+    role: admin
+  faa2380c-b00e-498f-952a-d020232ac7eb:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$i2L8l6KnR42D7.5hENfq3uoKmV7Ew850V76BrW5M1tuCfLU7OVQQ2
+    role: admin
+  7e30f0b4-5fbb-4852-a589-f0369e7256a9:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$h3mC4Tub9Wi11rGGY8gP8O6VoPShXqvjSEsgpi8zB6g3ZQtANNEzu
+    role: admin
+  c5d958a8-6b27-424c-8a4a-ea629a0f964d:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$Qjf9y7IMC1jQbq/OmqioXeYLk6MTi6679DUk0ixZisVWfVxHMmX8q
+    role: admin
+  78b390cf-b256-4726-a69a-a20264c9e4ed:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$BBlgF2Aox24ZVPRAFxj/i.5KBpIGYUZPQkpdhhYfp9sH5wcqJs98e
+    role: admin
+  f3ee9f88-e158-480a-945f-94a273a271d6:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$dPMHHL1qcVe6W/Er1rrEtOaJW2KZBaGyWPB5x5VBh/lpQqA0tDtG.
+    role: admin
+  d4052cfd-c09e-4879-97cc-f50aea9b09cf:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$mRPeHkPHAU1CfHvW3kzIrODKaxntsjnULZy5E/4Ttdyq1udCIAEM.
+    role: admin
+  215a1894-ad62-44e9-a971-e49b2ead06a2:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$85rOo1e/TCARkAwnIVkyceepWTxsiAgEwEOgFj228ZyiLnFKgSVYm
+    role: admin
+  8351bc9b-d377-450b-bb98-dc8ef6eb0c69:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$WvIxi6tlMiSK./XJznzU6OaNbWz0vwZrtgha7OG9UhC72yivVVB2e
+    role: admin
+  9a7537fe-58e3-4561-86b2-7d51fc8a7f10:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$bwP9LjLXkVpespy7zNi96OpuihM3yKR325xxWivyNbQV1q9AOq1ry
+    role: admin
+  7ecb45fb-e727-4b70-975e-53d4542bfd24:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$ezfx2DrVoQnIjFfca6ieMu.Jr5OEyatpDsmgT5fhyHa.V3yPS/LCK
+    role: admin
+  069ce6cc-367d-4505-b3ac-15423a604393:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$WeAL9xBhrcO8sZLi5ZVGpOnOXygxMeNG6wYCqVdmTnwBDMSH7kfYW
+    role: admin
+  c5373b2e-6058-4888-a169-fff42c3bff1a:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$YA8E3.4u/jN4MzRU1ZbfMePIRJMrrNGDrPNnQHd7VUPhp0sXWsl6G
+    role: admin
+  e8ef8b50-2252-4124-a8c4-1b4b542c6840:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$UI/DrA3zxwj259PxMW3ofuGddjqdbotDok2DpQSfJ9j4dp0GQ1pLu
+    role: admin
+  6257c0c2-341f-437a-b656-edbd014aa02b:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$dX8S3ruHksQqdwdz6HbIHuRNUW.ZVr0nU1cHGF3QuyOjy/k4uR8OK
+    role: admin
+  610335b2-9edc-4969-bb39-8961a923c9e8:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$vfm0Azs88zFhR04rPSpyn.jgeMMqWR265EwuJkSlqLhT6XGi/zkMG
+    role: admin
+  07f70b4d-0aa3-463d-81c0-edc3cd8b5d99:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$aKjXrtfGSozINmsAjAhDk..1rMrFaVxHDBHX5Hphoz8UMPw62V1.6
+    role: admin
+  aac9a215-09a5-40b1-9dee-06f89eba9af6:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$KRTo9NmhxUrR8tS0GpRKNO1P.OZgqZ6P1SjSREoAOV09GrZncRwSC
+    role: admin
+  4a0b880b-4576-4fac-a188-2da730350114:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$hTktEnPXjXQ8Kzpd9feaJ.5sPYC4J47tH0bAIrqjcsJNoRzaJGyLi
+    role: admin
+  972741bf-5124-4e3f-b616-7f68d44d1bce:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$Ys0rtn3F8ONHkAIYfdnb0.2NyOdkbj0ZqtaajtTOTJuE.t4qmT0Je
+    role: admin
+  f692b17f-8ae1-4164-ab40-63d738dd470f:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$xXj9DH59UHGwyn3Xu2x.sOkio.SlXvakIRsTF0aQhQxhJRDJ0JQ2O
+    role: admin
+  ba0d1dfc-6ce2-43f5-8353-ec39ae3280f2:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$4aVEpJxooV56aBCyesfAuuzS0hn365GyBG9dKKQyy4snJp6YW6Ae6
+    role: admin
+  a40ba8c1-126a-4951-a7fe-0ce368b1b89e:
+    name: garn
+    email: juan@garn.dev
+    password: $2a$10$D2.SeLioy4Mo4HM5kL9BX.jWy/yTfd85dLSziuwaqmSRxPlx00abS
+    role: admin
 roles:
   admin: 1
   client: 2
 emails:
-  juan@garn.dev: aa2b2e06-3e88-4f01-9cd5-d42ff510c57f
+  juan@garn.dev: a40ba8c1-126a-4951-a7fe-0ce368b1b89e
   juan@garn:
     dev: 51fcead1-5360-4da4-807b-40125b4da7b5

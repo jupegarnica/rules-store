@@ -186,13 +186,11 @@ Deno.test("[Helpers] deepGet array", () => {
 });
 
 Deno.test("[Helpers] keysFromPath", () => {
-  assertEquals(keysFromPath("x.y.z"), ["x", "y", "z"]);
+  assertEquals(keysFromPath("x.y.z"), ["x.y.z"]);
   assertEquals(keysFromPath("x/y/z"), ["x", "y", "z"]);
   assertEquals(keysFromPath("/x/y/z"), ["x", "y", "z"]);
   assertEquals(keysFromPath("x/y/z/"), ["x", "y", "z"]);
   assertEquals(keysFromPath("/x/y/z/"), ["x", "y", "z"]);
-  assertEquals(keysFromPath("\\x\\y\\z\\"), ["x", "y", "z"]);
-  assertEquals(keysFromPath("\\x.y/z\\"), ["x", "y", "z"]);
 });
 
 Deno.test("[Helpers] isNumberKey", () => {

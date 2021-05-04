@@ -46,9 +46,9 @@ Deno.test("[Rules context] _write newData", () => {
     rules,
     initialData: { people: { garn: { age: 1 }, pepe: { age: 2 } } },
   });
-  assertEquals(db.get("people.garn.age"), 1);
-  assertEquals(db.get("people.pepe.age"), 2);
-  assertThrows(() => db.set("people.garn", { age: 0 }));
+  assertEquals(db.get("people/garn/age"), 1);
+  assertEquals(db.get("people/pepe/age"), 2);
+  assertThrows(() => db.set("people/garn", { age: 0 }));
   assertEquals(calls, 1);
 });
 
@@ -64,8 +64,8 @@ Deno.test("[Rules context] _write newData", () => {
   };
   const db = new Store({ rules });
   db.set("people", { garn: { age: 1 }, pepe: { age: 2 } });
-  assertEquals(db.get("people.garn.age"), 1);
-  assertEquals(db.get("people.pepe.age"), 2);
+  assertEquals(db.get("people/garn/age"), 1);
+  assertEquals(db.get("people/pepe/age"), 2);
 });
 
 Deno.test("[Rules context] newData .set and .push from different level", () => {
@@ -83,7 +83,7 @@ Deno.test("[Rules context] newData .set and .push from different level", () => {
   const A = db.set("myList", [0]);
   assertEquals(calls, 1);
   assertEquals(A, [0]);
-  db.set("myList.1", 1);
+  db.set("myList/1", 1);
   assertEquals(calls, 2);
   db.push("myList", 2);
   assertEquals(calls, 3);
@@ -112,7 +112,7 @@ Deno.test({
     assertEquals(A, [0]);
     db.push("myList", 1);
     assertEquals(onWrite.calls.length, 2);
-    db.remove("myList.1");
+    db.remove("myList/1");
     assertEquals(onWrite.calls.length, 3);
     assertEquals(db.get("myList"), [0]);
   },
@@ -126,10 +126,10 @@ Deno.test("[Rules context] _read depending the oldData", () => {
     },
   };
   const db = new Store({ rules });
-  db.set("a.b", 1);
-  assertEquals(db.get("a.b"), 1);
-  // db.set("a.b", 2);
-  // assertThrows(() => db.get("a.b"));
+  db.set("a/b", 1);
+  assertEquals(db.get("a/b"), 1);
+  // db.set("a/b", 2);
+  // assertThrows(() => db.get("a/b"));
 });
 
 Deno.test("[Rules context] params _read", () => {
@@ -150,10 +150,10 @@ Deno.test("[Rules context] params _read", () => {
   };
   const db = new Store({ rules });
   db.set("people", { garn: { age: 1 }, pepe: { age: 2 } });
-  assertEquals(db.get("people.garn.age"), 1);
+  assertEquals(db.get("people/garn/age"), 1);
   assertEquals(calls, 1);
   assertThrows(
-    () => db.get("people.pepe.age"),
+    () => db.get("people/pepe/age"),
     PermissionError,
     "read disallowed",
   );
@@ -174,9 +174,9 @@ Deno.test("[Rules context] params _read at root", () => {
   };
   const db = new Store({ rules });
   db.set("people", { garn: { age: 1 }, pepe: { age: 2 } });
-  assertEquals(db.get("people.garn.age"), 1);
+  assertEquals(db.get("people/garn/age"), 1);
   assertThrows(
-    () => db.get("clients.garn.age"),
+    () => db.get("clients/garn/age"),
     PermissionError,
     "/clients",
   );
@@ -210,9 +210,9 @@ Deno.test("[Rules context] params multiple params", () => {
     },
   };
   const db = new Store({ rules });
-  db.set("a.b.c", 1);
+  db.set("a/b/c", 1);
   assertEquals(calls, 1);
-  assertThrows(() => db.set("x.y.z", 1));
+  assertThrows(() => db.set("x/y/z", 1));
   assertEquals(calls, 2);
 });
 
@@ -231,10 +231,10 @@ Deno.test("[Rules context] rootData", () => {
     },
   };
   const db = new Store({ rules });
-  db.set("a.b", 1);
-  db.get("x.y.z");
+  db.set("a/b", 1);
+  db.get("x/y/z");
   assertEquals(calls, 1);
 
-  db.get("w.x.y.z");
+  db.get("w/x/y/z");
   assertEquals(calls, 2);
 });

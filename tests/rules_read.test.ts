@@ -16,7 +16,7 @@ Deno.test("[Rules _read] basic", () => {
   const A = db.get("readAllowed");
   assertEquals(A, undefined);
   assertThrows(
-    () => db.get("readForbidden.a.b.c"),
+    () => db.get("readForbidden/a/b/c"),
     PermissionError,
     "/readForbidden",
   );
@@ -62,7 +62,7 @@ Deno.test("[Rules _read] overlapping rules", () => {
   const db = new Store({ rules });
 
   assertEquals(db.get("a"), undefined);
-  assertEquals(db.get("a.z"), undefined);
+  assertEquals(db.get("a/z"), undefined);
   assertThrows(() => db.get("c"));
   assertThrows(() => db.get("b"));
 });
@@ -96,7 +96,7 @@ Deno.test("[Rules _read] with find", () => {
 
   assertThrows(() => db.find("", () => true));
   assertThrows(() => db.find("arr", () => true));
-  assertThrows(() => db.find("arr.0", () => true));
+  assertThrows(() => db.find("arr/0", () => true));
 });
 
 Deno.test("[Rules _read] with findAndRemove", () => {
@@ -111,7 +111,7 @@ Deno.test("[Rules _read] with findAndRemove", () => {
   assertThrows(() => db.find("", () => true), PermissionError, "explicit");
   assertThrows(() => db.find("arr", () => true), PermissionError, "/arr");
   assertThrows(
-    () => db.find("arr.0", () => true),
+    () => db.find("arr/0", () => true),
     TypeError,
     "Object or Array",
   );
@@ -133,7 +133,7 @@ Deno.test("[Rules _read] with findOne", () => {
   );
   assertThrows(() => db.findOne("arr", () => true), PermissionError, "/arr");
   assertThrows(
-    () => db.findOne("arr.0", () => true),
+    () => db.findOne("arr/0", () => true),
     TypeError,
     "Object or Array",
   );
@@ -149,7 +149,7 @@ Deno.test("[Rules _read] with findOneAndRemove", () => {
   });
   assertThrows(() => db.findOneAndRemove("", () => true));
   assertThrows(() => db.findOneAndRemove("arr", () => true));
-  assertThrows(() => db.findOneAndRemove("arr.0", () => true));
+  assertThrows(() => db.findOneAndRemove("arr/0", () => true));
 });
 
 Deno.test("[Rules _read]  findOne with one child not allowed", () => {

@@ -30,8 +30,8 @@ export function isSet(obj: any): any {
   }
 }
 // match "\" "/" o "."
-// const pathSeparator = /[\/]/;
-const pathSeparator = /[\\\\/\.]/;
+const pathSeparator = /[\/]/;
+// const pathSeparator = /[\\\\/\.]/;
 export function keysFromPath(path: string): Keys {
   return path.split(pathSeparator).filter((key) => key);
 }

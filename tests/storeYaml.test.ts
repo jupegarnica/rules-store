@@ -24,9 +24,9 @@ Deno.test("[StoreYaml] load DB with name", () => {
     name: "./tests/test.json",
   });
 
-  assertEquals(db.get("arr.0"), 1);
-  assertEquals(db.get("arr.1"), 2);
-  assertEquals(db.get("obj.a"), 1);
+  assertEquals(db.get("arr/0"), 1);
+  assertEquals(db.get("arr/1"), 2);
+  assertEquals(db.get("obj/a"), 1);
 
   assertEquals(existsSync(db.storePath), true);
 });
@@ -37,9 +37,9 @@ Deno.test("[StoreYaml] load DB with folder", () => {
     folder: "./tests",
   });
 
-  assertEquals(db.get("arr.0"), 1);
-  assertEquals(db.get("arr.1"), 2);
-  assertEquals(db.get("obj.a"), 1);
+  assertEquals(db.get("arr/0"), 1);
+  assertEquals(db.get("arr/1"), 2);
+  assertEquals(db.get("obj/a"), 1);
 
   assertEquals(existsSync(db.storePath), true);
 });
@@ -89,7 +89,7 @@ Deno.test("[StoreYaml] autoSave config on push", async () => {
 Deno.test("[StoreYaml] autoSave config on remove", async () => {
   const db = new StoreYaml({ name: testStorePath, autoSave: true });
   db.set("arr", [1, 2]);
-  db.remove("arr.0");
+  db.remove("arr/0");
 
   await delay(2);
   assertEquals(existsSync(db.storePath), true);
@@ -99,11 +99,11 @@ Deno.test("[StoreYaml] autoSave config on remove", async () => {
 
 Deno.test("[StoreYaml] set and get null", () => {
   const db = new StoreYaml();
-  db.set("a.b.c", null);
-  assertEquals(db.get("a.b.c"), null);
+  db.set("a/b/c", null);
+  assertEquals(db.get("a/b/c"), null);
   db.write();
   db.load();
-  assertEquals(db.get("a.b.c"), null);
+  assertEquals(db.get("a/b/c"), null);
   db.deleteStore();
 });
 

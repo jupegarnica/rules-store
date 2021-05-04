@@ -18,12 +18,13 @@ Deno.test("[Classes] may work as an normal object", () => {
     _write: () => () => true,
   };
 
-  const db = new StoreJson({ rules, name: "tests//test.json" });
+  const db = new StoreJson({ rules, name: "tests/car.json" });
   const honda = new Car("1923BF", "Honda", { a: 33 });
   db.set("car", honda);
   assertEquals(db.get("car"), honda);
   db.write();
   db.load();
-  assertEquals(db.get("car.brand"), "Honda");
-  assertEquals(db.get("car.data.a"), 33);
+  assertEquals(db.get("car/brand"), "Honda");
+  assertEquals(db.get("car/data/a"), 33);
+  db.deleteStore();
 });

@@ -58,7 +58,7 @@ Deno.test("[Store] Set function inmutable behavior", () => {
     data.b = 2;
     return { b: 1 };
   });
-  const B = db.get("a.b");
+  const B = db.get("a/b");
   assertEquals(B, 1);
   assertEquals(
     db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b,
@@ -82,7 +82,7 @@ Deno.test("[Store] find inmutable behavior", () => {
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
     1,
   );
-  const B = db.get("a.b.c.d");
+  const B = db.get("a/b/c/d");
   assertEquals(B, 1);
 });
 
@@ -98,7 +98,7 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
     1,
   );
-  const B = db.get("a.b.c.d");
+  const B = db.get("a/b/c/d");
   assertEquals(B, 1);
 });
 
@@ -114,7 +114,7 @@ Deno.test("[Store] findOne inmutable behavior", () => {
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
     1,
   );
-  const B = db.get("a.b.c.d");
+  const B = db.get("a/b/c/d");
   assertEquals(B, 1);
 });
 
@@ -132,7 +132,7 @@ Deno.test("[Store] findOne inmutable behavior on returned", () => {
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b.c.d,
     1,
   );
-  const B = db.get("a.b.c.d");
+  const B = db.get("a/b/c/d");
   assertEquals(B, 1);
 });
 
@@ -143,7 +143,7 @@ Deno.test("[Store] Get inmutable behavior", () => {
   const A = db.get("a");
   A.b = 2;
 
-  const B = db.get("a.b");
+  const B = db.get("a/b");
   assertEquals(B, 1);
 });
 
@@ -163,11 +163,11 @@ Deno.test("[Rules context] rootData inmutable", () => {
     },
   };
   const db = new Store({ rules });
-  db.set("a.b", 1);
-  db.get("x.y.z");
+  db.set("a/b", 1);
+  db.get("x/y/z");
   assertEquals(calls, 1);
   assertEquals(
-    db.get("a.b"),
+    db.get("a/b"),
     1,
   );
   assertEquals(calls, 2);
@@ -187,9 +187,9 @@ Deno.test("[Rules context] data inmutable", () => {
     },
   };
   const db = new Store({ rules });
-  db.set("a.b", 1);
+  db.set("a/b", 1);
   assertEquals(
-    db.get("a.b"),
+    db.get("a/b"),
     1,
   );
   assertEquals(calls, 1);
@@ -213,9 +213,9 @@ Deno.test("[Rules context] data inmutable even root", () => {
     },
   };
   const db = new Store({ rules });
-  assertEquals(db.set("a.b.c", 1), 1);
+  assertEquals(db.set("a/b/c", 1), 1);
   assertEquals(calls, 1);
-  assertEquals(db.get("a.b.c"), 1);
+  assertEquals(db.get("a/b/c"), 1);
   assertEquals(calls, 2);
 });
 
@@ -235,10 +235,10 @@ Deno.test("[Rules context] data, newData, rootData inmutable", () => {
     },
   };
   const db = new Store({ rules });
-  assertEquals(db.set("a.b", 1), 1);
+  assertEquals(db.set("a/b", 1), 1);
   assertEquals(calls, 1);
   assertEquals(
-    db.get("a.b"),
+    db.get("a/b"),
     1,
   );
   assertEquals(calls, 2);
@@ -263,9 +263,9 @@ Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
     },
   };
   const db = new Store({ rules });
-  db.set("a.b", 1);
+  db.set("a/b", 1);
   assertEquals(mock.calls.length, 3);
-  db.get("a.b");
+  db.get("a/b");
   assertEquals(mock.calls.length, 4);
   mock.restore();
 });
@@ -317,7 +317,7 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
     return true;
   });
   assertEquals(res[0][1].c.d, 1);
-  db.set("a.b.c.d", 2);
+  db.set("a/b/c/d", 2);
   assertEquals(res[0][1].c.d, 1);
 });
 

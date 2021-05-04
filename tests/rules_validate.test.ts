@@ -19,9 +19,9 @@ Deno.test("[Rules _validate] list of numbers", () => {
   const db = new Store({ rules });
   const A = db.set("numbers", [1, 2]);
   assertEquals(A, [1, 2]);
-  db.set("numbers.2", 3);
+  db.set("numbers/2", 3);
   assertThrows(
-    () => db.set("numbers.0", false),
+    () => db.set("numbers/0", false),
     ValidationError,
     "path /numbers/0",
   );
@@ -47,7 +47,7 @@ Deno.test("[Rules _validate] on object", () => {
     initialData: { a: { b: 1, c: 2 } },
   });
 
-  db.set("a.b", 0);
+  db.set("a/b", 0);
   assertThrows(
     () => db.set("a", 1),
     ValidationError,
@@ -66,7 +66,7 @@ Deno.test("[Rules _validate] on object", () => {
   );
 
   assertThrows(
-    () => db.set("a.c", 5),
+    () => db.set("a/c", 5),
     ValidationError,
     "/a/c",
   );

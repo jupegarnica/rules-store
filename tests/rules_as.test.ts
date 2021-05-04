@@ -12,8 +12,8 @@ Deno.test("[Rules _as] get", () => {
   };
   const db = new Store({ rules, initialData: { a: { b: 1 } } });
 
-  assertEquals(db.get("a.b"), 1);
-  assertEquals(db.get("a.c"), undefined);
+  assertEquals(db.get("a/b"), 1);
+  assertEquals(db.get("a/c"), undefined);
   assertEquals(db.get("a"), { b: 1, c: 2 });
 });
 
@@ -56,8 +56,8 @@ Deno.test({
     };
     const db = new Store({ rules, initialData: { a: { b: 1 } } });
     assertEquals(db.set("a", { b: 1, c: 2 }), { b: "b1", c: "c2" });
-    assertEquals(db.get("a.b"), "b1");
-    assertEquals(db.get("a.c"), "c2");
+    assertEquals(db.get("a/b"), "b1");
+    assertEquals(db.get("a/c"), "c2");
   },
 });
 
@@ -83,8 +83,8 @@ Deno.test({
       },
     };
     const db = new Store({ rules, initialData: { a: { b: { c: 1 } } } });
-    assertEquals(db.get("a.b.c"), "z1");
-    assertEquals(db.get("a.b"), { c: "z1", extra: 33 });
+    assertEquals(db.get("a/b/c"), "z1");
+    assertEquals(db.get("a/b"), { c: "z1", extra: 33 });
     assertEquals(db.get("a"), '{"b":{"c":"z1","extra":33}}');
   },
 });

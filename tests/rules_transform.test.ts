@@ -60,13 +60,13 @@ Deno.test("[Rules _transform] in array and obj", () => {
 
   db.push("numbers", "1");
   assertEquals(db.get("numbers"), [1]);
-  assertEquals(db.get("numbers.0"), 1);
-  assertThrows(() => db.set("numbers.0", "ups"));
+  assertEquals(db.get("numbers/0"), 1);
+  assertThrows(() => db.set("numbers/0", "ups"));
   assertEquals(db.get("numbers"), [1]);
 
-  db.set("object.a", "2");
-  assertEquals(db.get("object.a"), 2);
-  assertThrows(() => db.set("object.a", "ups"));
+  db.set("object/a", "2");
+  assertEquals(db.get("object/a"), 2);
+  assertThrows(() => db.set("object/a", "ups"));
 });
 
 Deno.test("[Rules _transform] on remove", () => {
@@ -111,8 +111,8 @@ Deno.test("[Rules _transform] node not touched", () => {
     initialData: { a: { b: 1, c: { d: 3 } } },
   });
 
-  db.set("a.c.d", 0);
-  assertEquals(db.get("a.b"), 1);
+  db.set("a/c/d", 0);
+  assertEquals(db.get("a/b"), 1);
 });
 
 Deno.test("[Rules _transform] newData receive the  precedente transformations", () => {
@@ -204,7 +204,7 @@ Deno.test("[Rules _transform] apply rollback if validation fails", () => {
     rules,
     initialData: { a: { b: { c: 0 } } },
   });
-  assertThrows(() => db.set("a.b.c", 1));
+  assertThrows(() => db.set("a/b/c", 1));
 
   assertEquals(db.get(""), { a: { b: { c: 0 } } });
 });

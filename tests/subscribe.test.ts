@@ -81,7 +81,7 @@ Deno.test("[Observe] assert payload inmutable", () => {
   assertEquals(id, 1);
   assertEquals(called, 0);
 
-  db.set("a.b", 1);
+  db.set("a/b", 1);
   assertEquals(called, 1);
   assertEquals(db.get("a"), { b: 1 });
   assertDeepClone(
@@ -136,19 +136,19 @@ Deno.test({
 
 Deno.test("[Observe] with deeper set", () => {
   const db = new Store();
-  db.set("a.b", { c: 0, d: 0 });
+  db.set("a/b", { c: 0, d: 0 });
 
   let called = 0;
   const onChange: Observer = (newData) => {
     called++;
     assertEquals(newData.c, 1);
   };
-  db.observe("a.b", onChange);
+  db.observe("a/b", onChange);
 
   assertEquals(called, 0);
-  db.set("a.b.c", 1);
+  db.set("a/b/c", 1);
   assertEquals(called, 1);
-  db.set("a.b.d", 2);
+  db.set("a/b/d", 2);
   assertEquals(called, 2);
 });
 Deno.test("[Observe]", () => {
@@ -194,34 +194,34 @@ Deno.test("[Observe] .off", () => {
 
 Deno.test("[Observe] Deep basic ", () => {
   const db = new Store();
-  db.set("a.b.c", true);
+  db.set("a/b/c", true);
 
   let called = false;
   const onChangeC: Observer = (newData) => {
     called = true;
     assertEquals(newData, true);
   };
-  const id = db.observe("a.b.c", onChangeC);
+  const id = db.observe("a/b/c", onChangeC);
   assertEquals(id, 1);
   assertEquals(called, false);
 });
 
 Deno.test("[Observe] assert newData and oldData", () => {
   const db = new Store();
-  db.set("a.b.c", true);
+  db.set("a/b/c", true);
   const onChange: Spy<void> = spy((newData, { oldData }) => ({
     newData,
     oldData,
   }));
 
-  db.observe("a.b", onChange);
+  db.observe("a/b", onChange);
 
-  db.set("a.b.c", 33);
+  db.set("a/b/c", 33);
   assertEquals(onChange.calls.length, 1);
   assertEquals(onChange.calls[0].args[1].newData, { c: 33 });
   assertEquals(onChange.calls[0].args[1].oldData, { c: true });
 
-  db.set("a.b.d", 34);
+  db.set("a/b/d", 34);
   assertEquals(onChange.calls.length, 2);
   assertEquals(onChange.calls[1].args[1].newData, { c: 33, d: 34 });
   assertEquals(onChange.calls[1].args[1].oldData, { c: 33 });
@@ -240,32 +240,32 @@ Deno.test("[Observe] assert newData and oldData", () => {
 
 Deno.test("[Observe] assert newData and oldData cloned", () => {
   const db = new Store();
-  db.set("a.b.c", true);
+  db.set("a/b/c", true);
   const mock: Spy<typeof testCalled> = spy(testCalled, "noop");
 
-  db.observe("a.b", (_: Value, { newData, oldData }) => ({
+  db.observe("a/b", (_: Value, { newData, oldData }) => ({
     newData,
     oldData,
   }));
-  db.set("a.b.c", 33);
+  db.set("a/b/c", 33);
   assertEquals(mock.calls.length, 2);
   mock.restore();
 });
 
 Deno.test("[Observe] assert newData cloned", () => {
   const db = new Store();
-  db.set("a.b.c", true);
+  db.set("a/b/c", true);
   const mock: Spy<typeof testCalled> = spy(testCalled, "noop");
 
-  db.observe("a.b", (_: Value, { newData }) => newData);
-  db.set("a.b.c", 33);
+  db.observe("a/b", (_: Value, { newData }) => newData);
+  db.set("a/b/c", 33);
   assertEquals(mock.calls.length, 1);
   mock.restore();
 });
 
 Deno.test("[Observe] inmutable callback", () => {
   const db = new Store();
-  db.set("a.b.c", 0);
+  db.set("a/b/c", 0);
 
   let called = 0;
   const onChange = (_: Value, { newData }: Value) => {
@@ -274,17 +274,17 @@ Deno.test("[Observe] inmutable callback", () => {
     newData.c = 2;
     assertEquals(newData, { c: 2 });
   };
-  db.observe("a.b", onChange);
+  db.observe("a/b", onChange);
 
   assertEquals(called, 0);
-  db.set("a.b.c", 1);
+  db.set("a/b/c", 1);
   assertEquals(called, 1);
-  assertEquals(db.get("a.b.c"), 1);
+  assertEquals(db.get("a/b/c"), 1);
 });
 
 Deno.test("[Observe] Deep remove with subscription", () => {
   const db = new Store();
-  db.set("a.b.c", 1);
+  db.set("a/b/c", 1);
 
   let called = 0;
   const onChange: Observer = (newData, { oldData }) => {
@@ -292,15 +292,15 @@ Deno.test("[Observe] Deep remove with subscription", () => {
     assertEquals(newData, undefined);
     assertEquals(oldData, 1);
   };
-  db.observe("a.b.c", onChange);
+  db.observe("a/b/c", onChange);
 
   assertEquals(called, 0);
 
-  const B = db.remove("a.b");
+  const B = db.remove("a/b");
   assertEquals(called, 1);
 
   assertEquals(B, { c: 1 });
-  assertEquals(db.get("a.b.c"), undefined);
+  assertEquals(db.get("a/b/c"), undefined);
 });
 
 Deno.test("[Observe] with params", () => {

@@ -70,14 +70,14 @@ Deno.test("[Rules _write] .remove _write true but _read false ", () => {
 
   assertThrows(
     () => {
-      db.remove("arr.0");
+      db.remove("arr/0");
     },
     Error,
     "read disallow",
   );
 
   assertEquals(
-    db.remove("arr.0", false),
+    db.remove("arr/0", false),
     undefined,
   );
 });
@@ -110,10 +110,10 @@ Deno.test("[Rules _write] with .findOneAndRemove", () => {
     name: "./tests/test.json",
   });
 
-  assertThrows(() => db.findOneAndRemove("arr.0", () => true));
+  assertThrows(() => db.findOneAndRemove("arr/0", () => true));
   //  throw,  key 0 is not a Object or Array
   assertThrows(
-    () => db.findOneAndRemove("arr.0", () => true),
+    () => db.findOneAndRemove("arr/0", () => true),
     TypeError,
     "not Object or Array",
   );

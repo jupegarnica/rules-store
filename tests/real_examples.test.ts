@@ -52,11 +52,11 @@ Deno.test({
     const db = new Store({ rules });
     const A = db.set("myNumbers", [1, 2]);
     assertEquals(A, [1, 2]);
-    db.set("myNumbers.2", 3);
+    db.set("myNumbers/2", 3);
     db.push("myNumbers", 4);
-    db.remove("myNumbers.0");
+    db.remove("myNumbers/0");
 
-    assertThrows(() => db.set("myNumbers.2", null));
+    assertThrows(() => db.set("myNumbers/2", null));
     assertThrows(() => db.set("myNumbers", null));
     assertThrows(() => db.push("myNumbers", 5, null));
     assertEquals(db.get("myNumbers"), [2, 3, 4]);
@@ -138,14 +138,14 @@ Deno.test({
       rules,
       initialData: { users: { data: [] } },
     });
-    db.push("users.data", { age: 18 });
-    db.push("users.data", { age: 20 });
-    db.push("users.data", { age: 56 });
-    db.push("users.data", { age: 34 });
-    db.push("users.data", { age: 45 });
+    db.push("users/data", { age: 18 });
+    db.push("users/data", { age: 20 });
+    db.push("users/data", { age: 56 });
+    db.push("users/data", { age: 34 });
+    db.push("users/data", { age: 45 });
 
-    assertEquals(db.get("users.totalUsers"), undefined);
-    assertEquals(db.get("users.maxAge"), undefined);
+    assertEquals(db.get("users/totalUsers"), undefined);
+    assertEquals(db.get("users/maxAge"), undefined);
     assertEquals(db.get("users").maxAge, 56);
     assertEquals(db.get("users").totalUsers, 5);
   },
@@ -155,7 +155,7 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  // ignore: true,
+  ignore: true,
   name: "[Examples] auth store",
   fn: () => {
     const initialData = {
@@ -220,8 +220,8 @@ Deno.test({
       },
     );
 
-    console.log(("juan@garn.dev"));
-    console.log(isEmail("juan@garn.dev"));
+    // console.log(("juan@garn.dev"));
+    // console.log(isEmail("juan@garn.dev"));
 
     const newUUID = v4.generate();
     authStore.set("users/" + newUUID, {

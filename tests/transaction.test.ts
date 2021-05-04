@@ -81,7 +81,7 @@ Deno.test("[Transactions] on remove", () => {
   const db = new Store();
   db.set("a", [1, 2, 3]);
   db.beginTransaction();
-  db.remove("a.1");
+  db.remove("a/1");
   assertEquals(
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
     [1, 2, 3],
@@ -99,7 +99,7 @@ Deno.test("[Transactions] on remove", () => {
   const db = new Store();
   db.set("a", [1, 2, 3]);
   db.beginTransaction();
-  db.remove("a.1");
+  db.remove("a/1");
   assertEquals(
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
     [1, 2, 3],
@@ -190,7 +190,7 @@ Deno.test("[Transactions] on remove subscription", () => {
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
-    "a.1",
+    "a/1",
     (newData, { oldData }) => {
       assertEquals(newData, 3);
       assertEquals(oldData, 2);
@@ -198,7 +198,7 @@ Deno.test("[Transactions] on remove subscription", () => {
     },
   );
   db.beginTransaction();
-  db.remove("a.1");
+  db.remove("a/1");
   assertEquals(mock.calls.length, 0);
   db.commit();
   assertEquals(mock.calls.length, 1);
@@ -217,7 +217,7 @@ Deno.test("[Transactions] on remove subscription 2", () => {
     },
   );
   db.beginTransaction();
-  db.remove("a.1");
+  db.remove("a/1");
   assertEquals(mock.calls.length, 0);
   db.commit();
   assertEquals(mock.calls.length, 1);
@@ -236,8 +236,8 @@ Deno.test("[Transactions] on remove subscription 3", () => {
     },
   );
   db.beginTransaction();
-  db.remove("a.1");
-  db.remove("a.1");
+  db.remove("a/1");
+  db.remove("a/1");
   assertEquals(mock.calls.length, 0);
   db.commit();
   assertEquals(mock.calls.length, 1);
@@ -255,17 +255,17 @@ Deno.test({
       mock,
     );
     db.beginTransaction();
-    db.remove("a.1");
+    db.remove("a/1");
     assertEquals(
       db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
       [1, 3],
     );
-    db.set("a.1", 10);
+    db.set("a/1", 10);
     assertEquals(
       db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a,
       [1, 10],
     );
-    db.remove("a.1");
+    db.remove("a/1");
     assertEquals(mock.calls.length, 0);
     db.rollback();
     assertEquals(db.get("a"), [1, 2, 3]);
@@ -292,11 +292,11 @@ Deno.test("[Transactions] findAndRemove subscription on children once each", () 
 
   const db = new Store({ initialData: { a: [1, 2, 3] } });
   db.observe(
-    "a.1",
+    "a/1",
     mock,
   );
   db.observe(
-    "a.2",
+    "a/2",
     mock,
   );
   db.findAndRemove("a", ([, val]: KeyValue) => val > 1);

@@ -266,7 +266,7 @@ Deno.test("[Rules Templates] asDate", () => {
     //     ({ newData }: RuleContext) =>
     //       newData instanceof Date || newData instanceof String,
     //   _transform: ({ newData }: RuleContext) => new Date(newData).toISOString(),
-    //   _as: ({ data }: RuleContext) => new Date(data),
+    //   _readAs: ({ data }: RuleContext) => new Date(data),
     // },
   };
   const db = new Store({ rules });

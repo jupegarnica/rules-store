@@ -457,7 +457,7 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Observe] with _as",
+  name: "[Observe] with _readAs",
   fn: () => {
     const onChange: Spy<void> = spy(() => {});
     const db = new Store({
@@ -466,7 +466,7 @@ Deno.test({
           $i: {
             _read: () => true,
             _write: () => true,
-            _as: (newData) => {
+            _readAs: (newData) => {
               return (newData && ({ ...newData, hola: "mundo" }));
             },
           },
@@ -501,7 +501,7 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Observe] with _as 2",
+  name: "[Observe] with _readAs 2",
   fn: () => {
     const onChange: Spy<void> = spy(() => {});
     const db = new Store({
@@ -510,7 +510,7 @@ Deno.test({
           $i: {
             _read: () => true,
             _write: () => true,
-            _as: (newData) => {
+            _readAs: (newData) => {
               return (newData && ({ ...newData, hola: "mundo" }));
             },
           },

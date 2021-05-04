@@ -591,29 +591,29 @@ Deno.test("[Helpers] getParamsFromKeys", () => {
 Deno.test("[Helpers] findRule", () => {
   const fn = () => 0;
   const rules = {
-    _as: fn,
+    _readAs: fn,
 
     a: {
-      _as: () => 1,
+      _readAs: () => 1,
     },
     $else: {
-      _as: () => 2,
+      _readAs: () => 2,
     },
   };
 
-  assertEquals(findRule("_as", [], rules)["_as"](), 0);
-  assertEquals(findRule("_as", [], rules), {
+  assertEquals(findRule("_readAs", [], rules)["_readAs"](), 0);
+  assertEquals(findRule("_readAs", [], rules), {
     params: {},
     rulePath: [],
-    _as: fn,
+    _readAs: fn,
   });
-  assertEquals(findRule("_as", ["a"], rules)["_as"](), 1);
-  assertEquals(findRule("_as", ["b"], rules).params.$else, "b");
-  assertEquals(findRule("_as", ["x", "y"], rules), {
+  assertEquals(findRule("_readAs", ["a"], rules)["_readAs"](), 1);
+  assertEquals(findRule("_readAs", ["b"], rules).params.$else, "b");
+  assertEquals(findRule("_readAs", ["x", "y"], rules), {
     params: {
       $else: "x",
     },
-    _as: undefined,
+    _readAs: undefined,
     rulePath: ["x", "y"],
   });
 });
@@ -860,30 +860,30 @@ Deno.test({
   fn: () => {
     const trueFn = () => true;
     const rules = {
-      _as: trueFn,
+      _readAs: trueFn,
       $x: {
-        _as: trueFn,
+        _readAs: trueFn,
         b: {
-          _as: trueFn,
+          _readAs: trueFn,
         },
       },
     };
     assertEquals(
-      findAllRules("_as", { a: { b: { c: 1 } } }, rules, ["a", "b"]),
+      findAllRules("_readAs", { a: { b: { c: 1 } } }, rules, ["a", "b"]),
       [{
-        _as: trueFn,
+        _readAs: trueFn,
         rulePath: ["a", "b"],
         params: { $x: "a" },
       }],
     );
     assertEquals(
-      findAllRules("_as", { a: { b: { c: 1 } } }, rules, ["a"]),
+      findAllRules("_readAs", { a: { b: { c: 1 } } }, rules, ["a"]),
       [{
-        _as: trueFn,
+        _readAs: trueFn,
         rulePath: ["a"],
         params: { $x: "a" },
       }, {
-        _as: trueFn,
+        _readAs: trueFn,
         rulePath: ["a", "b"],
         params: { $x: "a" },
       }],

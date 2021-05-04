@@ -58,5 +58,5 @@ export const asDate = {
   _transform: (newData: Value) => new Date(newData).toISOString(),
   // _validate: (newData:Value) =>
   //   new Date(newData).toString() !== "Invalid Date",
-  _as: (data: Value) => new Date(data),
+  _readAs: (data: Value) => new Date(data),
 };

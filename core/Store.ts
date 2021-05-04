@@ -90,9 +90,9 @@ export class Store {
     if (typeof _transform === "function") {
       throw new Error("_transform rule can not be apply at root level");
     }
-    const { _as } = findRule("_as", [], rules);
-    if (typeof _as === "function") {
-      throw new Error("_as rule can not be apply at root level");
+    const { _readAs } = findRule("_readAs", [], rules);
+    if (typeof _readAs === "function") {
+      throw new Error("_readAs rule can not be apply at root level");
     }
   }
 
@@ -132,7 +132,7 @@ export class Store {
    * '\\a\\b\\c'  escaped \
    *
    * @param valueOrFunction The new value or a function to run with the oldValue
-   * @returns  The value added, maybe transformed by _transform and/or _as
+   * @returns  The value added, maybe transformed by _transform and/or _readAs
    *
    */
   public set(
@@ -652,9 +652,9 @@ export class Store {
 
   // private _getAsFrom(target: ObjectOrArray, keys: Keys): Value {
   //   let data;
-  //   const maybeFound = findRule("_as", keys, this.#rules);
-  //   if (typeof maybeFound._as === "function") {
-  //     data = maybeFound._as(
+  //   const maybeFound = findRule("_readAs", keys, this.#rules);
+  //   if (typeof maybeFound._readAs === "function") {
+  //     data = maybeFound._readAs(
   //       this._createRuleArgs(maybeFound.params, keys, target),
   //     );
   //   } else {
@@ -676,7 +676,7 @@ export class Store {
     deepSet(diff, path, value);
 
     const mutationsToApply = this._findMutations(
-      "_as",
+      "_readAs",
       diff.root,
       keys,
     );

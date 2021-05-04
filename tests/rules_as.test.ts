@@ -2,12 +2,12 @@ import { Store } from "../core/Store.ts";
 import type { Value } from "../core/types.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 
-Deno.test("[Rules _as] get", () => {
+Deno.test("[Rules _readAs] get", () => {
   const rules = {
     _read: () => true,
     _write: () => true,
     a: {
-      _as: (data: Value) => ({ ...data, c: 2 }),
+      _readAs: (data: Value) => ({ ...data, c: 2 }),
     },
   };
   const db = new Store({ rules, initialData: { a: { b: 1 } } });
@@ -17,12 +17,12 @@ Deno.test("[Rules _as] get", () => {
   assertEquals(db.get("a"), { b: 1, c: 2 });
 });
 
-Deno.test("[Rules _as] find", () => {
+Deno.test("[Rules _readAs] find", () => {
   const rules = {
     _read: () => true,
     _write: () => true,
     a: {
-      _as: (data: Value) => ({ ...data, c: 2 }),
+      _readAs: (data: Value) => ({ ...data, c: 2 }),
     },
   };
   const db = new Store({ rules, initialData: { a: { b: 1 } } });
@@ -40,17 +40,17 @@ Deno.test("[Rules _as] find", () => {
 
 Deno.test({
   // only: true,
-  name: "[Rules _as] deeper",
+  name: "[Rules _readAs] deeper",
   fn: () => {
     const rules = {
       _read: () => true,
       _write: () => true,
       $x: {
         b: {
-          _as: (data: Value) => "b" + (data),
+          _readAs: (data: Value) => "b" + (data),
         },
         c: {
-          _as: (data: Value) => "c" + (data),
+          _readAs: (data: Value) => "c" + (data),
         },
       },
     };
@@ -63,19 +63,19 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Rules _as] nested",
+  name: "[Rules _readAs] nested",
   fn: () => {
     const rules = {
       _read: () => true,
       _write: () => true,
       $x: {
-        _as: (data: Value) => JSON.stringify(data),
+        _readAs: (data: Value) => JSON.stringify(data),
         $y: {
-          _as: (data: Value) => {
+          _readAs: (data: Value) => {
             return ({ ...data, extra: 33 });
           },
           $z: {
-            _as: (data: Value) => {
+            _readAs: (data: Value) => {
               return "z" + (data);
             },
           },
@@ -91,10 +91,10 @@ Deno.test({
 
 Deno.test({
   // only: true,
-  name: "[Rules _as] on root",
+  name: "[Rules _readAs] on root",
   fn: () => {
     const rules = {
-      _as: () => {},
+      _readAs: () => {},
     };
     assertThrows((() => new Store({ rules })));
   },

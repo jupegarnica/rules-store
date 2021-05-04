@@ -8,7 +8,7 @@ Deno.test("[Lab] dates example", () => {
       _write: () => (newData: Value) => newData instanceof Date,
       _transform: (newData: Value) => (newData).toISOString(),
       _validate: (newData: Value) => typeof newData === "string",
-      _as: (data: Value) => new Date(data),
+      _readAs: (data: Value) => new Date(data),
     },
   };
   const db = new StoreJson({ rules });
@@ -96,7 +96,7 @@ Deno.test("[Lab] symbols", () => {
       sym: {
         _write: (newData: Value) => typeof newData === "symbol",
         _transform: (newData: Value) => String(newData.description),
-        _as: (data: Value) => Symbol.for(data),
+        _readAs: (data: Value) => Symbol.for(data),
       },
     },
   });
@@ -150,7 +150,7 @@ Deno.test({
         set: {
           _write: (newData) => newData instanceof Set,
           _transform: (newData) => [...newData],
-          _as: (data) => {
+          _readAs: (data) => {
             return new Set(data);
           },
         },

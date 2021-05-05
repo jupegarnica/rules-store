@@ -4,7 +4,7 @@ _An observable data store heavily inspired by firebase rules_
 
 Rules Store is not about an observable data store with persistence.
 
-**Rules Store is about managing runtime data with security and confidence** writing a rules which ensure all data is stored as expected.
+**Rules Store is about managing runtime data with security and confidence** writing rules which ensure all data is stored and read as expected.
 
 Maybe that sound familiar if you work with Databases, but it no usual talking about state management in frontend.
 
@@ -32,12 +32,12 @@ const rules = {
   },
 };
 const authStore = new StoreYaml({
+  rules,
   initialData,
   autoSave: true,
-  rules,
 });
-const uuid = v4.generate();
 
+const uuid = v4.generate();
 authStore.set(`users/${uuid}`, {
   email: 'juan@geekshubs.com',
   password: '12345678',

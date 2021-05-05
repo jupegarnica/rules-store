@@ -221,14 +221,14 @@ Deno.test({
     try {
       authStore.observe(
         "users/$uuid/email",
-        (email, { isCreated, isUpdated, isDeleted, oldData, $uuid }) => {
-          if (isCreated) {
+        (email, { isCreation, isUpdate, isRemove, oldData, $uuid }) => {
+          if (isCreation) {
             authStore.set("emails/" + email, $uuid);
           }
-          if (isDeleted) {
+          if (isRemove) {
             authStore.remove("emails/" + oldData);
           }
-          if (isUpdated) {
+          if (isUpdate) {
             authStore.remove("emails/" + oldData);
             authStore.set("emails/" + email, $uuid);
           }

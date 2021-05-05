@@ -45,25 +45,25 @@ Deno.test("[Observe] assert payload", () => {
   assertEquals(called, 1);
 });
 
-Deno.test("[Observe] assert payload isUpdated, isCreated and isDeleted", () => {
+Deno.test("[Observe] assert payload isUpdate, isCreation and isRemove", () => {
   const db = new Store();
   const onChange: Spy<void> = spy();
 
   db.observe("a", onChange);
   db.set("a", 0);
-  assertEquals(onChange.calls[0].args[1].isCreated, true);
-  assertEquals(onChange.calls[0].args[1].isUpdated, false);
-  assertEquals(onChange.calls[0].args[1].isDeleted, false);
+  assertEquals(onChange.calls[0].args[1].isCreation, true);
+  assertEquals(onChange.calls[0].args[1].isUpdate, false);
+  assertEquals(onChange.calls[0].args[1].isRemove, false);
 
   db.set("a", 1);
-  assertEquals(onChange.calls[1].args[1].isCreated, false);
-  assertEquals(onChange.calls[1].args[1].isUpdated, true);
-  assertEquals(onChange.calls[1].args[1].isDeleted, false);
+  assertEquals(onChange.calls[1].args[1].isCreation, false);
+  assertEquals(onChange.calls[1].args[1].isUpdate, true);
+  assertEquals(onChange.calls[1].args[1].isRemove, false);
 
   db.remove("a");
-  assertEquals(onChange.calls[2].args[1].isCreated, false);
-  assertEquals(onChange.calls[2].args[1].isDeleted, true);
-  assertEquals(onChange.calls[2].args[1].isUpdated, false);
+  assertEquals(onChange.calls[2].args[1].isCreation, false);
+  assertEquals(onChange.calls[2].args[1].isRemove, true);
+  assertEquals(onChange.calls[2].args[1].isUpdate, false);
 });
 
 Deno.test("[Observe] assert payload inmutable", () => {

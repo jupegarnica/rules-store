@@ -107,16 +107,18 @@ export class Store {
     if (typeof _readAs === "function") {
       throw new Error("_readAs rule can not be apply at root level");
     }
+    const { _writeAs } = findRule("_writeAs", [], rules);
+    if (typeof _writeAs === "function") {
+      throw new Error("_writeAs rule can not be apply at root level");
+    }
   }
 
   /**
    * Retrieves a value from database by specified path.
    *
-   * @param path The path can be an string delimited by . / or \
+   * @param path The path can be an string delimited by /
    * As:
-   * 'a.b.c'
    * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
-   * '\\a\\b\\c'  escaped \
    * @returns The cloned value found or undefined if not found
    */
   public get(
@@ -140,9 +142,7 @@ export class Store {
    *
    * @param path  The path can be an string delimited by . / or \
    * As:
-   * 'a.b.c'
    * '/a/b/c' same as 'a/b/c'  or 'a/b/c/'
-   * '\\a\\b\\c'  escaped \
    *
    * @param valueOrFunction The new value or a function to run with the oldValue
    * @returns  The value added, maybe transformed by _transform and/or _readAs
@@ -549,6 +549,9 @@ export class Store {
       newData: undefined,
       oldData: undefined,
       rootData: {},
+      isUpdate: oldData !== undefined && newData !== undefined,
+      isCreation: oldData === undefined,
+      isRemove: newData === undefined,
       ...params,
     };
     applyCloneOnGet(context, "oldData", oldData);
@@ -566,9 +569,9 @@ export class Store {
       ...params,
       oldData: oldData,
       newData: newData,
-      isUpdated: oldData !== undefined && newData !== undefined,
-      isCreated: oldData === undefined,
-      isDeleted: newData === undefined,
+      isUpdate: oldData !== undefined && newData !== undefined,
+      isCreation: oldData === undefined,
+      isRemove: newData === undefined,
     } as ObserverContext;
     applyCloneOnGet(payload, "newData", newData);
     applyCloneOnGet(payload, "oldData", oldData);

@@ -33,9 +33,9 @@ export type ObserverContext = {
   _newData: Value;
   oldData: Value;
   _oldData: Value;
-  isUpdated: boolean;
-  isCreated: boolean;
-  isDeleted: boolean;
+  isUpdate: boolean;
+  isCreation: boolean;
+  isRemove: boolean;
   [param: string]: string | Value;
 };
 export type ObserverArgs = [Value, ObserverContext];
@@ -70,6 +70,9 @@ export type RuleContext = {
   _newData: Value;
   _oldData: Value;
   _rootData: ObjectOrArray;
+  isUpdate: boolean;
+  isCreation: boolean;
+  isRemove: boolean;
   [param: string]: string | ObjectOrArray | Value;
 };
 
@@ -79,11 +82,12 @@ export type RuleArgs = [Value, RuleContext];
 export type Rule = (...args: RuleArgs) => any;
 
 export type Rules = {
-  ".read"?: Rule;
-  ".write"?: Rule;
-  ".validate"?: Rule;
-  ".transform"?: Rule;
-  ".as"?: Rule;
+  "_read"?: Rule;
+  "_write"?: Rule;
+  "_validate"?: Rule;
+  "_transform"?: Rule;
+  "_writeAs"?: Rule;
+  "_readAs"?: Rule;
   [key: string]: Rules | Rule | undefined;
 };
 

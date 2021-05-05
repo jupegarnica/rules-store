@@ -238,3 +238,41 @@ Deno.test("[Rules context] rootData", () => {
   db.get("w/x/y/z");
   assertEquals(calls, 2);
 });
+
+Deno.test({
+  // only: true,
+  name: "[Rules context] isCreation isUpdate isRemove",
+  fn: () => {
+    const mock: Spy<void> = spy(() => true);
+    const rules = {
+      _read: () => true,
+
+      a: {
+        _write: mock,
+      },
+    };
+
+    const db = new Store({ rules });
+    db.set("a", 0);
+    assertEquals(mock.calls.length, 1);
+    assertEquals(mock.calls[0].args[1].isCreation, true);
+    assertEquals(mock.calls[0].args[1].isUpdate, false);
+    assertEquals(mock.calls[0].args[1].isRemove, false);
+    db.set("a", 0);
+    assertEquals(mock.calls.length, 2);
+    assertEquals(mock.calls[1].args[1].isCreation, false);
+    assertEquals(mock.calls[1].args[1].isUpdate, true);
+    assertEquals(mock.calls[1].args[1].isRemove, false);
+    db.set("a", 1);
+    assertEquals(mock.calls.length, 3);
+    assertEquals(mock.calls[2].args[1].isCreation, false);
+    assertEquals(mock.calls[2].args[1].isUpdate, true);
+    assertEquals(mock.calls[2].args[1].isRemove, false);
+
+    db.remove("a");
+    assertEquals(mock.calls.length, 4);
+    assertEquals(mock.calls[3].args[1].isCreation, false);
+    assertEquals(mock.calls[3].args[1].isUpdate, false);
+    assertEquals(mock.calls[3].args[1].isRemove, true);
+  },
+});

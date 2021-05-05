@@ -36,23 +36,11 @@ const benchOptions: [
   BenchmarkRunOptions,
   ((progress: BenchmarkRunProgress) => void | Promise<void>),
 ] = [{
-  // skip: /Yaml/i,
   skip: /(Bson)|(Yaml)/i,
   only,
-  // skip: /(autoSave)|(Bson)/i,
   // only: /Set Json. autoSave/,
-  // only: /GetAll/,
-  // only: /\[Set\]/,
-  // only: /(\[Get\])/,
-  // only: /Write/,
-  // only: /Load/,
-  // only: /(Load)|(Write)/,
-  // only: /(Get)|(Set)|(Load)|(Write)/,
-  // only: /(\[Get\])|(\[Set\])/,
-  // only: /(Find)|(FindOne)|(Set)/,
-  // only: /(BSON)|(JSON)/i,
   // silent: true,
-}, () => {} // (p: BenchmarkRunProgress) => {
+}, () => {}// (p: BenchmarkRunProgress) => {
   // initial progress data
 
   // console.log(p.state);
@@ -70,9 +58,9 @@ const rules = {
     i: {
       i: {
         _transform: (data: number) => data,
+        _validate: () => true,
         _writeAs: (data: number) => data,
         _readAs: (data: number) => data,
-        _validate: () => true,
       },
     },
   },
@@ -148,6 +136,20 @@ bench({
     db.write();
   },
 });
+
+// bench({
+//   name: `[Set object]  OPS=${RUNS} children`,
+//   runs: 1,
+//   func(b): void {
+//     const obj: any = {};
+
+//     b.start();
+//     for (let i = 0; i < RUNS; i++) {
+//       obj[`item${i}`] = { i: { i: { i } } };
+//     }
+//     b.stop();
+//   },
+// });
 
 bench({
   name: `[Set Bson]  OPS=${RUNS} children`,

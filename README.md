@@ -4,11 +4,13 @@ _An observable data store heavily inspired by firebase rules_
 
 Rules Store is not about an observable data store with persistence.
 
-**Rules Store is about managing runtime state data with security and confidence** writing a rules which ensure all data is stored as expected. Maybe that sound familiar if you work with Databases, but it no usual talking about runtime state management in frontend or backend.
+**Rules Store is about managing runtime data with security and confidence** writing a rules which ensure all data is stored as expected.
+
+Maybe that sound familiar if you work with Databases, but it no usual talking about state management in frontend.
 
 ## Example
 
-````ts
+```ts
 const initialData = {
   users: {},
 };
@@ -24,7 +26,7 @@ const rules = {
       password: {
         _validate: (password: string) => password.length >= 8,
         _writeAs: (password: string) => encrypt(password),
-        _readAs: () => "********",
+        _readAs: () => '********',
       },
     },
   },
@@ -37,21 +39,19 @@ const authStore = new StoreYaml({
 const uuid = v4.generate();
 
 authStore.set(`users/${uuid}`, {
-  email: "juan@geekshubs.com",
-  password: "12345678",
+  email: 'juan@geekshubs.com',
+  password: '12345678',
 });
 
-assertEquals(
-  authStore.get(`users/${uuid}`),
-  {
-    email: "juan@geekshubs.com",
-    password: "********",
-  },
-);
+assertEquals(authStore.get(`users/${uuid}`), {
+  email: 'juan@geekshubs.com',
+  password: '********',
+});
+
 try {
-  authStore.set("users/" + uuid, {
-    email: "@notValidEmail",
-    password: "12345678",
+  authStore.set('users/' + uuid, {
+    email: '@notValidEmail',
+    password: '12345678',
   });
 } catch (error) {
   assertEquals(error instanceof ValidationError, true);
@@ -93,4 +93,7 @@ https://github.com/denyncrawford/dndb
 #
 
 Forked from [MaximilianHeidenreich/DsDDB](https://github.com/MaximilianHeidenreich/DsDDB)
-````
+
+```
+
+```

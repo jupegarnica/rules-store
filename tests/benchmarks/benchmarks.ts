@@ -40,7 +40,7 @@ const benchOptions: [
   only,
   // only: /Set Json. autoSave/,
   // silent: true,
-}, () => {}// (p: BenchmarkRunProgress) => {
+}, () => {} // (p: BenchmarkRunProgress) => {
   // initial progress data
 
   // console.log(p.state);
@@ -54,13 +54,39 @@ const benchOptions: [
 const rules = {
   _write: () => true,
   _read: () => true,
-  $item: {
-    i: {
-      i: {
+  $a: {
+    _write: () => true,
+    _read: () => true,
+
+    _transform: (data: number) => data,
+    _validate: () => true,
+    _writeAs: (data: number) => data,
+    _readAs: (data: number) => data,
+    $b: {
+      _write: () => true,
+      _read: () => true,
+
+      _transform: (data: number) => data,
+      _validate: () => true,
+      _writeAs: (data: number) => data,
+      _readAs: (data: number) => data,
+      $c: {
+        _write: () => true,
+        _read: () => true,
+
         _transform: (data: number) => data,
         _validate: () => true,
         _writeAs: (data: number) => data,
         _readAs: (data: number) => data,
+        $d: {
+          _write: () => true,
+          _read: () => true,
+
+          _transform: (data: number) => data,
+          _validate: () => true,
+          _writeAs: (data: number) => data,
+          _readAs: (data: number) => data,
+        },
       },
     },
   },
@@ -105,6 +131,24 @@ bench({
     b.start();
     for (let i = 0; i < RUNS; i++) {
       db.set(`item` + i, { i: { i: { i } } });
+    }
+    b.stop();
+    db.write();
+  },
+});
+
+bench({
+  name: `[Set] deep OPS=${RUNS} children`,
+  runs: 1,
+  func(b): void {
+    const db = new StoreJson({
+      rules,
+      name: `${FOLDER}/${RUNS}.json`,
+    });
+
+    b.start();
+    for (let i = 0; i < RUNS; i++) {
+      db.set(`item${i}/i/i`, i);
     }
     b.stop();
     db.write();

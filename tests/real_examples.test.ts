@@ -6,31 +6,62 @@ import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 import { isEmail } from "https://deno.land/x/isemail/mod.ts";
 import { v4 } from "https://deno.land/std@0.95.0/uuid/mod.ts";
 import { ValidationError } from "../core/Errors.ts";
-
-// Generate a v4 uuid.
 const encrypt = bcrypt.hashSync;
-// const decrypt = bcrypt.compareSync;
+
+// Deno.test({
+//   // only: true,
+//   name: "[Examples] counter",
+//   fn: () => {
+//     const initialData = {
+//       count: 0,
+//     };
+//     const rules = {
+//       count: {
+//         _read: () => false,
+//         _write: () => true,
+//         _validate: (data: number) => typeof data === "number",
+//       },
+//     };
+
+//     const store = new Store({ rules, initialData });
+//     store.set("count", 1);
+//     assertThrows(
+//       () => store.set("count", "2"),
+//       ValidationError,
+//       "Validation fails at path /count",
+//     );
+//     assertThrows(
+//       () => store.get("count"),
+//       PermissionError,
+//       "read disallowed at path /count",
+//     );
+//   },
+// });
+
 Deno.test({
   // only: true,
   name: "[Examples] counter",
   fn: () => {
+    const initialData = {
+      count: 0,
+    };
     const rules = {
       count: {
         _read: () => true,
         _write: () => true,
-        _validate: (newData: Value, { _oldData }: RuleContext) =>
-          typeof newData === "number" &&
-          (newData - _oldData === 1 || !_oldData),
+        _validate: (newData: Value, { oldData, isUpdate }: RuleContext) =>
+          isUpdate && (newData - oldData === 1),
       },
     };
 
-    const db = new Store({ rules });
-    db.set("count", 0);
-    assertEquals(db.get("count"), 0);
+    const db = new Store({ rules, initialData });
     db.set("count", 1);
-    assertEquals(db.get("count"), 1);
-    assertThrows(() => db.set("count", 10));
-    assertThrows(() => db.set("count", 11));
+    db.set("count", 2);
+
+    assertThrows(() => db.set("count", 10), ValidationError);
+    assertThrows(() => db.remove("count"));
+
+    assertEquals(db.get("count"), 2);
   },
 });
 
@@ -284,6 +315,68 @@ Deno.test({
   fn: async () => {
     const initialData = {
       users: {},
+    };
+
+    const rules = {
+      users: {
+        $uuid: {
+          _write: () => true,
+          _read: () => true,
+          email: {
+            _validate: (email: string) => isEmail(email),
+          },
+          password: {
+            _validate: (password: string) => password.length >= 8,
+            _writeAs: (password: string) => encrypt(password),
+            _readAs: () => "********",
+          },
+        },
+      },
+    };
+    const authStore = new StoreYaml({
+      initialData,
+      autoSave: true,
+      rules,
+    });
+    const uuid = v4.generate();
+
+    authStore.set("users/" + uuid, {
+      email: "juan@geekshubs.com",
+      password: "12345678",
+    });
+
+    assertEquals(
+      authStore.get("users/" + uuid),
+      {
+        email: "juan@geekshubs.com",
+        password: "********",
+      },
+    );
+    try {
+      authStore.set("users/" + uuid, {
+        email: "@notValidEmail",
+        password: "12345678",
+      });
+    } catch (error) {
+      assertEquals(error instanceof ValidationError, true);
+      assertEquals(
+        error.message,
+        `Validation fails at path /users/${uuid}/email`,
+      );
+    }
+
+    await authStore.writeLazy();
+    authStore.deleteStore();
+  },
+});
+
+Deno.test({
+  // only: true,
+  // ignore: true,
+  name: "[Examples] counter",
+  fn: async () => {
+    const initialData = {
+      counter: 0,
     };
 
     const rules = {

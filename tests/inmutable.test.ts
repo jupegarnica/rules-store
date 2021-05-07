@@ -2,9 +2,9 @@ import { assertEquals, spy } from "./test_deps.ts";
 import { Store } from "../core/Store.ts";
 import type { Spy } from "./test_deps.ts";
 import type { KeyValue, RuleContext, Value } from "../core/types.ts";
-import { testCalled } from "../core/helpers.ts";
+import { assertDeepClone, testCalled } from "../core/helpers.ts";
 
-Deno.test("[Store] Set inmutable behavior", () => {
+Deno.test("[Inmutable] Set inmutable behavior", () => {
   const db = new Store();
   const obj = { b: 1 };
   db.set("a", obj);
@@ -14,13 +14,32 @@ Deno.test("[Store] Set inmutable behavior", () => {
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b,
     1,
   );
+
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] getPrivateData getPrivateNewData", () => {
+Deno.test("[Inmutable] Get inmutable behavior", () => {
+  const db = new Store();
+  db.set("a", { b: 1 });
+
+  const A = db.get("a");
+  A.b = 2;
+  const B = db.get("a/b");
+  assertEquals(B, 1);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
+});
+
+Deno.test("[Inmutable] getPrivateData getPrivateNewData", () => {
   const db = new Store();
   const obj = { b: 1 };
   db.set("a", obj);
-
+  obj.b = 2;
   assertEquals(
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: false }),
     {},
@@ -29,9 +48,13 @@ Deno.test("[Store] getPrivateData getPrivateNewData", () => {
     db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: false }),
     {},
   );
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] Set function inmutable behavior", () => {
+Deno.test("[Inmutable] Set function inmutable behavior", () => {
   const db = new Store();
   const a = { b: 1 };
   db.set("a", a);
@@ -68,9 +91,13 @@ Deno.test("[Store] Set function inmutable behavior", () => {
     db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }).a.b,
     1,
   );
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] find inmutable behavior", () => {
+Deno.test("[Inmutable] find inmutable behavior", () => {
   const db = new Store();
   const a = { b: { c: { d: 1 } } };
   db.set("a", a);
@@ -84,9 +111,13 @@ Deno.test("[Store] find inmutable behavior", () => {
   );
   const B = db.get("a/b/c/d");
   assertEquals(B, 1);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] find inmutable behavior on returned", () => {
+Deno.test("[Inmutable] find inmutable behavior on returned", () => {
   const db = new Store();
   const a = { b: { c: { d: 1 } } };
   db.set("a", a);
@@ -100,9 +131,13 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
   );
   const B = db.get("a/b/c/d");
   assertEquals(B, 1);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] findOne inmutable behavior", () => {
+Deno.test("[Inmutable] findOne inmutable behavior", () => {
   const db = new Store();
   const a = { b: { c: { d: 1 } } };
   db.set("a", a);
@@ -116,9 +151,13 @@ Deno.test("[Store] findOne inmutable behavior", () => {
   );
   const B = db.get("a/b/c/d");
   assertEquals(B, 1);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] findOne inmutable behavior on returned", () => {
+Deno.test("[Inmutable] findOne inmutable behavior on returned", () => {
   const db = new Store();
   const a = { b: { c: { d: 1 } } };
   db.set("a", a);
@@ -134,17 +173,10 @@ Deno.test("[Store] findOne inmutable behavior on returned", () => {
   );
   const B = db.get("a/b/c/d");
   assertEquals(B, 1);
-});
-
-Deno.test("[Store] Get inmutable behavior", () => {
-  const db = new Store();
-  db.set("a", { b: 1 });
-
-  const A = db.get("a");
-  A.b = 2;
-
-  const B = db.get("a/b");
-  assertEquals(B, 1);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
 Deno.test("[Rules context] rootData inmutable", () => {
@@ -171,6 +203,10 @@ Deno.test("[Rules context] rootData inmutable", () => {
     1,
   );
   assertEquals(calls, 2);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
 Deno.test("[Rules context] data inmutable", () => {
@@ -178,10 +214,11 @@ Deno.test("[Rules context] data inmutable", () => {
   const rules = {
     _write: () => true,
     $a: {
-      _read(data: Value) {
+      _read(data: Value, { newData, oldData }: RuleContext) {
         calls++;
         assertEquals(data, { b: 1 });
-        data.b = 2;
+        newData.b = 2;
+        oldData.b = 3;
         return true;
       },
     },
@@ -193,6 +230,10 @@ Deno.test("[Rules context] data inmutable", () => {
     1,
   );
   assertEquals(calls, 1);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
 Deno.test("[Rules context] data inmutable even root", () => {
@@ -217,6 +258,10 @@ Deno.test("[Rules context] data inmutable even root", () => {
   assertEquals(calls, 1);
   assertEquals(db.get("a/b/c"), 1);
   assertEquals(calls, 2);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
 Deno.test("[Rules context] data, newData, rootData inmutable", () => {
@@ -242,6 +287,10 @@ Deno.test("[Rules context] data, newData, rootData inmutable", () => {
     1,
   );
   assertEquals(calls, 2);
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
 Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
@@ -270,7 +319,7 @@ Deno.test("[Rules context] only clone data, newData, rootData on get", () => {
   mock.restore();
 });
 
-Deno.test("[Store] find clone data only on get value", () => {
+Deno.test("[Inmutable] find clone data only on get value", () => {
   const db = new Store();
   // deno-lint-ignore no-explicit-any
   const mock: Spy<{ noop: () => any }> = spy(testCalled, "noop");
@@ -290,7 +339,7 @@ Deno.test("[Store] find clone data only on get value", () => {
   mock.restore();
 });
 
-Deno.test("[Store] find clone only key on get value", () => {
+Deno.test("[Inmutable] find clone only key on get value", () => {
   const db = new Store();
   // deno-lint-ignore no-explicit-any
   const mock: Spy<{ noop: () => any }> = spy(testCalled, "noop");
@@ -309,7 +358,7 @@ Deno.test("[Store] find clone only key on get value", () => {
   mock.restore();
 });
 
-Deno.test("[Store] find inmutable behavior on returned", () => {
+Deno.test("[Inmutable] find inmutable behavior on returned", () => {
   const db = new Store();
   const a = { b: { c: { d: 1 } } };
   db.set("a", a);
@@ -319,9 +368,14 @@ Deno.test("[Store] find inmutable behavior on returned", () => {
   assertEquals(res[0][1].c.d, 1);
   db.set("a/b/c/d", 2);
   assertEquals(res[0][1].c.d, 1);
+  res[0][1].c.d = 3;
+  assertDeepClone(
+    db.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+    db.getPrivateNewData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
+  );
 });
 
-Deno.test("[Store] find sort", () => {
+Deno.test("[Inmutable] find sort", () => {
   const db = new Store();
 
   const a = [{ b: 1 }, { b: 2 }, { b: 3 }];
@@ -333,7 +387,7 @@ Deno.test("[Store] find sort", () => {
   assertEquals(res.map(([, v]) => v), [{ b: 3 }, { b: 2 }, { b: 1 }]);
   assertEquals(db.get("a"), [{ b: 1 }, { b: 2 }, { b: 3 }]);
 });
-// Deno.test("[Store] Proxy a keyValue", () => {
+// Deno.test("[Inmutable] Proxy a keyValue", () => {
 //   const obj = { b: 1 };
 //   const _pair = ["a", { b: 9 }] as KeyValue;
 

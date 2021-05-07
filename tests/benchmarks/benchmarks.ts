@@ -133,7 +133,7 @@ bench({
       db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
-    db.write();
+    db.persist();
   },
 });
 
@@ -151,7 +151,7 @@ bench({
       db.set(`item${i}/i/i`, i);
     }
     b.stop();
-    db.write();
+    db.persist();
   },
 });
 
@@ -177,7 +177,7 @@ bench({
       db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
-    db.write();
+    db.persist();
   },
 });
 
@@ -208,7 +208,7 @@ bench({
       db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
-    db.write();
+    db.persist();
   },
 });
 
@@ -225,7 +225,7 @@ bench({
       db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
-    db.write();
+    db.persist();
   },
 });
 bench({
@@ -276,7 +276,7 @@ bench({
       db.set(`item` + i, { i: { i: { i } } });
     }
     b.stop();
-    db.write();
+    db.persist();
   },
 });
 
@@ -599,7 +599,7 @@ bench({
       name: `${FOLDER}/${RUNS}.json`,
     });
     b.start();
-    db.write();
+    db.persist();
     b.stop();
   },
 });
@@ -613,7 +613,7 @@ bench({
 // name: `${FOLDER}/${RUNS}.json` });
 //     b.start();
 //     for (let i = 0; i < RUNS; i++) {
-//       db.write();
+//       db.persist();
 //     }
 //     b.stop();
 //   },
@@ -628,7 +628,7 @@ bench({
       name: `${FOLDER}/${RUNS}.bson`,
     });
     b.start();
-    db.write();
+    db.persist();
     b.stop();
   },
 });
@@ -642,7 +642,7 @@ bench({
 // name: `${FOLDER}/${RUNS}.bson` });
 //     b.start();
 //     for (let i = 0; i < RUNS; i++) {
-//       db.write();
+//       db.persist();
 //     }
 //     b.stop();
 //   },
@@ -657,7 +657,7 @@ bench({
       name: `${FOLDER}/${RUNS}.yaml`,
     });
     b.start();
-    db.write();
+    db.persist();
     b.stop();
   },
 });
@@ -671,7 +671,7 @@ bench({
 // name: `${FOLDER}/${RUNS}.yaml` });
 //     b.start();
 //     for (let i = 0; i < RUNS; i++) {
-//       db.write();
+//       db.persist();
 //     }
 //     b.stop();
 //   },

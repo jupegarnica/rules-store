@@ -19,7 +19,7 @@ export class StoreJson extends StorePersistance {
     return;
   }
 
-  public write(): void {
+  public persist(): void {
     const data = JSON.stringify(
       this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
     );
@@ -29,7 +29,7 @@ export class StoreJson extends StorePersistance {
       encoder.encode(data),
     );
   }
-  public deleteStore(): void {
+  public deletePersisted(): void {
     const storePath = this.storePath;
     if (!existsSync(storePath)) {
       throw new StoreNotFoundError(`${storePath} not exists`);

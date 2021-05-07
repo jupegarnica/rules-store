@@ -763,7 +763,7 @@ export class Store {
 
   protected _mutate(
     keys: Keys,
-    value: Value,
+    newValue: Value,
     type: MutationType = "set",
   ): { applied: Mutation[]; removed: Mutation[] } {
     const removed: Mutation[] = [];
@@ -772,13 +772,17 @@ export class Store {
     try {
       // create write diff
       const diff = this._dataShape;
-      deepSet(diff, keys, (value ?? null));
-
+      deepSet(diff, keys, (newValue ?? null));
+      const value = deepClone(newValue);
       if (this.#enabledRules["_write"]) {
         // apply write
         this._applyMutations(
           this.#newData,
-          [{ keys, value, type: type === "remove" ? "set" : type }],
+          [{
+            keys,
+            value,
+            type: type === "remove" ? "set" : type,
+          }],
           removed,
         );
 

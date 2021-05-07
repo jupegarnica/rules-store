@@ -5,38 +5,43 @@ import type { RuleContext, Value } from "../core/types.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 import { isEmail } from "https://deno.land/x/isemail/mod.ts";
 import { v4 } from "https://deno.land/std@0.95.0/uuid/mod.ts";
-import { ValidationError } from "../core/Errors.ts";
+import { PermissionError, ValidationError } from "../core/Errors.ts";
 const encrypt = bcrypt.hashSync;
 
-// Deno.test({
-//   // only: true,
-//   name: "[Examples] counter",
-//   fn: () => {
-//     const initialData = {
-//       count: 0,
-//     };
-//     const rules = {
-//       count: {
-//         _read: () => false,
-//         _write: () => true,
-//         _validate: (data: number) => typeof data === "number",
-//       },
-//     };
+Deno.test({
+  // only: true,
+  name: "[Examples] counter",
+  fn: () => {
+    const rules = {
+      counter: {
+        count: {
+          _read_: () => true,
+          // only allow to update data
+          _write: (_: number, { isUpdate }: RuleContext) => isUpdate,
+          // validate the counter only increments by one
+          _validate: (data: number, { oldData }: RuleContext) =>
+            data - oldData === 1,
+        },
+      },
+    };
+    const store = new Store({
+      rules,
+      initialData: { counter: { count: 0 } },
+    });
 
-//     const store = new Store({ rules, initialData });
-//     store.set("count", 1);
-//     assertThrows(
-//       () => store.set("count", "2"),
-//       ValidationError,
-//       "Validation fails at path /count",
-//     );
-//     assertThrows(
-//       () => store.get("count"),
-//       PermissionError,
-//       "read disallowed at path /count",
-//     );
-//   },
-// });
+    store.set("counter/count", 1); // ok
+    assertThrows(
+      () => store.set("counter/count", 3),
+      ValidationError,
+      "Validation fails at path /counter/count",
+    );
+    assertThrows(
+      () => store.set("counter/count", undefined),
+      PermissionError,
+      "write disallowed at path /counter/count",
+    );
+  },
+});
 
 Deno.test({
   // only: true,
@@ -298,11 +303,11 @@ Deno.test({
       authStore.remove("/users/" + uuid);
       assertEquals(authStore.get("emails/" + email2), undefined);
 
-      await authStore.writeLazy();
-      authStore.deleteStore();
+      await authStore.persistLazy();
+      authStore.deletePersisted();
     } catch (error) {
-      await authStore.writeLazy();
-      authStore.deleteStore();
+      await authStore.persistLazy();
+      authStore.deletePersisted();
       throw error;
     }
   },
@@ -365,8 +370,8 @@ Deno.test({
       );
     }
 
-    await authStore.writeLazy();
-    authStore.deleteStore();
+    await authStore.persistLazy();
+    authStore.deletePersisted();
   },
 });
 
@@ -427,7 +432,7 @@ Deno.test({
       );
     }
 
-    await authStore.writeLazy();
-    authStore.deleteStore();
+    await authStore.persistLazy();
+    authStore.deletePersisted();
   },
 });

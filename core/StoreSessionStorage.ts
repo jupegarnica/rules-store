@@ -16,13 +16,13 @@ export class StoreSessionStorage extends StorePersistance {
     return;
   }
 
-  public write(): void {
+  public persist(): void {
     const data = JSON.stringify(
       this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
     );
     sessionStorage.setItem(this.storePath, data);
   }
-  public deleteStore(): void {
+  public deletePersisted(): void {
     sessionStorage.clear();
   }
 }

@@ -33,7 +33,7 @@ Deno.test("[Lab] dates persistance as ISO String", () => {
   const iso = date.toISOString();
   db.set("date", date);
   assertEquals(db.get("date"), date);
-  db.write();
+  db.persist();
   db.load();
   assertEquals(db.get("date"), iso);
 });
@@ -102,7 +102,7 @@ Deno.test("[Lab] symbols", () => {
   });
   const id = Symbol.for("hola");
   db.set("sym", id);
-  db.write();
+  db.persist();
   db.load();
 
   assertEquals(
@@ -111,7 +111,7 @@ Deno.test("[Lab] symbols", () => {
   );
 
   assertThrows(() => db.set("sym", "hola"));
-  db.deleteStore();
+  db.deletePersisted();
 });
 
 Deno.test("[Lab] collection", () => {
@@ -124,7 +124,7 @@ Deno.test("[Lab] collection", () => {
     initialData: [1, 2, 3],
   });
   db.push("", 4);
-  db.write();
+  db.persist();
   db.load();
   assertEquals(
     db.get(""),
@@ -136,7 +136,7 @@ Deno.test("[Lab] collection", () => {
     1,
   );
 
-  db.deleteStore();
+  db.deletePersisted();
   assertThrows(() => db.set("hola", "mundo"), TypeError, "not Object");
 });
 

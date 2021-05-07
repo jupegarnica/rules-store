@@ -7,7 +7,7 @@
 
 //   console.log(db.get(''));
 
-//   db.write();
+//   db.persist();
 //   // const removed = db.findOneAndRemove(
 //   //   "arr",
 //   //   // deno-lint-ignore no-explicit-any
@@ -22,7 +22,7 @@
 //   db.set("a", 2);
 // //   console.log(db.get("").a.b);
 
-//   // db.write();
+//   // db.persist();
 //   // const removed = db.findOneAndRemove(
 //   //   "arr",
 //   //   // deno-lint-ignore no-explicit-any

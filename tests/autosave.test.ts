@@ -11,28 +11,28 @@ if (existsSync(testStorePath)) {
   Deno.removeSync(testStorePath);
 }
 
-Deno.test("[writeLazy] must write lazy", async () => {
+Deno.test("[persistLazy] must write lazy", async () => {
   const db = new StoreJson({ name: testStorePath, autoSave: false });
   db.set(`item0`, 0);
-  db.writeLazy();
+  db.persistLazy();
   assertEquals(existsSync(db.storePath), false);
-  await db.writeLazy();
+  await db.persistLazy();
   assertEquals(existsSync(db.storePath), true);
   await Deno.remove(db.storePath);
 });
 
-Deno.test("[writeLazy] autoSave must write lazy", async () => {
+Deno.test("[persistLazy] autoSave must write lazy", async () => {
   const RUNS = 10;
 
   const db = new StoreJson({ name: testStorePath, autoSave: true });
 
-  const mock: Spy<StoreJson> = spy(db, "write");
+  const mock: Spy<StoreJson> = spy(db, "persist");
   for (let i = 0; i < RUNS; i++) {
     db.set(`item` + i, i);
   }
   assertEquals(existsSync(db.storePath), false);
   assertEquals(mock.calls.length, 0);
-  await db.writeLazy();
+  await db.persistLazy();
   assertEquals(mock.calls.length, 1);
   assertEquals(existsSync(db.storePath), true);
 
@@ -43,7 +43,7 @@ Deno.test("[writeLazy] autoSave must write lazy", async () => {
   mock.restore();
 });
 
-Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
+Deno.test("[persistLazy] autoSave and writeLazyDelay", async () => {
   const RUNS = 3;
 
   const db = new StoreJson({
@@ -52,12 +52,12 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
     writeLazyDelay: 4,
   });
 
-  const mock: Spy<StoreJson> = spy(db, "write");
+  const mock: Spy<StoreJson> = spy(db, "persist");
   for (let i = 0; i < RUNS; i++) {
     db.set(`item` + i, i);
     await delay(0);
   }
-  await db.writeLazy();
+  await db.persistLazy();
 
   assertEquals(mock.calls.length, 1);
   assertEquals(existsSync(db.storePath), true);
@@ -69,7 +69,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay", async () => {
   mock.restore();
 });
 
-Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
+Deno.test("[persistLazy] autoSave and writeLazyDelay 2", async () => {
   const RUNS = 3;
 
   const db = new StoreJson({
@@ -78,7 +78,7 @@ Deno.test("[writeLazy] autoSave and writeLazyDelay 2", async () => {
     writeLazyDelay: 0,
   });
 
-  const mock: Spy<StoreJson> = spy(db, "write");
+  const mock: Spy<StoreJson> = spy(db, "persist");
   for (let i = 0; i < RUNS; i++) {
     db.set(`item` + i, i);
     await delay(4);

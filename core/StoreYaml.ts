@@ -26,7 +26,7 @@ export class StoreYaml extends StorePersistance {
     return;
   }
 
-  public write(): void {
+  public persist(): void {
     const data = this.getPrivateData({
       I_PROMISE_I_WONT_MUTATE_THIS_DATA: true,
     });
@@ -34,7 +34,7 @@ export class StoreYaml extends StorePersistance {
     const encoder = new TextEncoder();
     return Deno.writeFileSync(this.storePath, encoder.encode(txt));
   }
-  public deleteStore(): void {
+  public deletePersisted(): void {
     const storePath = this.storePath;
     if (!existsSync(storePath)) {
       throw new StoreNotFoundError(`${storePath} not exists`);

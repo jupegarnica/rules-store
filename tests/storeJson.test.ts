@@ -15,7 +15,7 @@ Deno.test({
     db.set("number", 5);
     assertEquals(db.get("number"), 5);
 
-    db.write();
+    db.persist();
 
     assertEquals(existsSync(db.storePath), true);
 
@@ -48,13 +48,13 @@ Deno.test("[StoreJson] load DB with folder", () => {
   assertEquals(existsSync(db.storePath), true);
 });
 
-Deno.test("[StoreJson] DB write and delete store", () => {
+Deno.test("[StoreJson] DB persist and delete store", () => {
   const db = new StoreJson({ name: testStorePath });
 
   db.set("number5", 5);
   db.set("number10", 10);
 
-  db.write();
+  db.persist();
 
   const db2 = new StoreJson({ name: testStorePath });
 
@@ -62,9 +62,9 @@ Deno.test("[StoreJson] DB write and delete store", () => {
 
   assertEquals(existsSync(db.storePath), true);
 
-  db.deleteStore();
+  db.deletePersisted();
   assertThrows(() => {
-    db2.deleteStore();
+    db2.deletePersisted();
   });
 
   const exists = existsSync(db.storePath);
@@ -79,7 +79,7 @@ Deno.test("[StoreJson] autoSave config on set", async () => {
   db.set("number5", 5);
   await delay(5);
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 
@@ -92,7 +92,7 @@ Deno.test("[StoreJson] autoSave config on push", async () => {
   db.push("arr", 1, 2);
   await delay(5);
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 Deno.test("[StoreJson] autoSave config on remove", async () => {
@@ -105,7 +105,7 @@ Deno.test("[StoreJson] autoSave config on remove", async () => {
   await delay(5);
 
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 
@@ -122,7 +122,7 @@ Deno.test({
     db.findAndRemove("arr", () => true);
     await delay(5);
     assertEquals(existsSync(db.storePath), true);
-    db.deleteStore();
+    db.deletePersisted();
     assertEquals(existsSync(db.storePath), false);
   },
 });
@@ -135,7 +135,7 @@ Deno.test("[StoreJson] autoSave config on findOneAndRemove", async () => {
   db.findOneAndRemove("arr", () => true);
   await delay(5);
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 
@@ -143,8 +143,8 @@ Deno.test("[StoreJson] set and get null", () => {
   const db = new StoreJson();
   db.set("a.b.c", null);
   assertEquals(db.get("a.b.c"), null);
-  db.write();
+  db.persist();
   db.load();
   assertEquals(db.get("a.b.c"), null);
-  db.deleteStore();
+  db.deletePersisted();
 });

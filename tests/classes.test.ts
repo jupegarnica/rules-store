@@ -22,9 +22,9 @@ Deno.test("[Classes] may work as an normal object", () => {
   const honda = new Car("1923BF", "Honda", { a: 33 });
   db.set("car", honda);
   assertEquals(db.get("car"), honda);
-  db.write();
+  db.persist();
   db.load();
   assertEquals(db.get("car/brand"), "Honda");
   assertEquals(db.get("car/data/a"), 33);
-  db.deleteStore();
+  db.deletePersisted();
 });

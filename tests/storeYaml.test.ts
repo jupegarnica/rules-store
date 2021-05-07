@@ -12,7 +12,7 @@ Deno.test("[StoreYaml] Write DB", async () => {
   db.set("number", 5);
   assertEquals(db.get("number"), 5);
 
-  db.write();
+  db.persist();
 
   assertEquals(existsSync(db.storePath), true);
 
@@ -49,7 +49,7 @@ Deno.test("[StoreYaml] DB write and delete store", () => {
   db.set("number5", 5);
   db.set("number10", 10);
 
-  db.write();
+  db.persist();
 
   const db2 = new StoreYaml({ name: testStorePath });
 
@@ -57,9 +57,9 @@ Deno.test("[StoreYaml] DB write and delete store", () => {
 
   assertEquals(existsSync(db.storePath), true);
 
-  db.deleteStore();
+  db.deletePersisted();
   assertThrows(() => {
-    db2.deleteStore();
+    db2.deletePersisted();
   });
 
   const exists = existsSync(db.storePath);
@@ -71,7 +71,7 @@ Deno.test("[StoreYaml] autoSave config on set", async () => {
   db.set("number5", 5);
   await delay(2);
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 
@@ -83,7 +83,7 @@ Deno.test("[StoreYaml] autoSave config on push", async () => {
   await delay(2);
 
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 Deno.test("[StoreYaml] autoSave config on remove", async () => {
@@ -93,7 +93,7 @@ Deno.test("[StoreYaml] autoSave config on remove", async () => {
 
   await delay(2);
   assertEquals(existsSync(db.storePath), true);
-  db.deleteStore();
+  db.deletePersisted();
   assertEquals(existsSync(db.storePath), false);
 });
 
@@ -101,10 +101,10 @@ Deno.test("[StoreYaml] set and get null", () => {
   const db = new StoreYaml();
   db.set("a/b/c", null);
   assertEquals(db.get("a/b/c"), null);
-  db.write();
+  db.persist();
   db.load();
   assertEquals(db.get("a/b/c"), null);
-  db.deleteStore();
+  db.deletePersisted();
 });
 
 //  TODO fix empty items in array,
@@ -114,5 +114,5 @@ Deno.test("[StoreYaml] set and get null", () => {
 
 //   db.set("arr", [, 1]);
 //   console.log(db.get(""));
-//   await db.writeLazy();
+//   await db.persistLazy();
 // });

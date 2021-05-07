@@ -75,6 +75,7 @@ Deno.test("[Observe] assert payload inmutable", () => {
     called++;
     newData.b = 2;
     oldData.b = 3;
+    // data.b = 4;
   };
 
   const id = db.observe("a", onChange);

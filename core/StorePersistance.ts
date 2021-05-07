@@ -13,7 +13,7 @@ export abstract class StorePersistance extends Store {
   /**
    * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
    */
-  public writeLazy: () => Promise<void>;
+  public persistLazy: () => Promise<void>;
 
   /**
    * Create a new Store instance.
@@ -22,7 +22,7 @@ export abstract class StorePersistance extends Store {
    * @param {string} config.name - it defaults to .store.db
    * @param {string} config.folder - it defaults to mainModulePath
    * @param {boolean} config.autoSave - whether or not should be lazily write to disk after every update.
-   * @param {number} config.writeLazyDelay - The debounce delay for .writeLazy.  It defaults to 0
+   * @param {number} config.writeLazyDelay - The debounce delay for .persistLazy.  It defaults to 0
    * */
 
   constructor(config: Config = {}) {
@@ -33,8 +33,8 @@ export abstract class StorePersistance extends Store {
     this._folder = config.folder || "";
     this._storePath = [this._folder, this._name].filter(Boolean).join("/");
     this.load();
-    this.writeLazy = debounce(
-      () => this.write(),
+    this.persistLazy = debounce(
+      () => this.persist(),
       this.#writeLazyDelay,
     );
   }
@@ -50,8 +50,8 @@ export abstract class StorePersistance extends Store {
   ): Value {
     const returned = super._commit(toCommit);
     if (this.#autoSave) {
-      this.writeLazy().catch((error) => {
-        // TODO what to do if write with writeLazy fails?
+      this.persistLazy().catch((error) => {
+        // TODO what to do if write with persistLazy fails?
         console.error(error);
         // throw error;
       });
@@ -68,11 +68,11 @@ export abstract class StorePersistance extends Store {
    * Persist data
    *
    */
-  abstract write(): void;
+  abstract persist(): void;
 
   /**
    * Deletes the persisted data .
    *
    */
-  abstract deleteStore(): void;
+  abstract deletePersisted(): void;
 }

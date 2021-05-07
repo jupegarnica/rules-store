@@ -14,8 +14,8 @@ Deno.test({
         _write(data: Value, { oldData, newData, rootData }: RuleContext) {
           calls++;
           assertEquals(data, 2);
-          assertEquals(rootData.a, 0);
           assertEquals(newData, 2);
+          assertEquals(rootData.a, 0);
           assertEquals(oldData, 0);
           return true;
         },
@@ -120,16 +120,16 @@ Deno.test({
 
 Deno.test("[Rules context] _read depending the oldData", () => {
   const rules = {
-    _write: () => true,
     a: {
+      _write: () => true,
       _read: (_: Value, context: RuleContext) => context.oldData.b === 1,
     },
   };
   const db = new Store({ rules });
   db.set("a/b", 1);
   assertEquals(db.get("a/b"), 1);
-  // db.set("a/b", 2);
-  // assertThrows(() => db.get("a/b"));
+  db.set("a/b", 2);
+  assertThrows(() => db.get("a/b"));
 });
 
 Deno.test("[Rules context] params _read", () => {

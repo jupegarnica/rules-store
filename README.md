@@ -2,13 +2,13 @@
 
 _An observable data store with persistence heavily inspired by firebase rules_
 
-**Rules Store is about managing runtime data with security and confidence** writing rules which ensure all data is stored and read as expected. Maybe that sound familiar if you work with Databases, but it no usual talking about state management in frontend.
+**Rules Store is about managing runtime data with security and confidence** writing rules which ensure all data is stored and read as expected. Maybe that sound familiar if you work with Databases, but it no usual talking about runtime state management.
 
 The main motivation is to bring the databases developers' mindset to runtime state management.
 
 ## Getting Started
 
-### CRUD operation
+### CRUD operations
 
 The main methods to read or write into the data store are `.get(path: string)`, `.set(path: string, value: any)` and `.remove(path: string)`
 
@@ -68,7 +68,7 @@ const rules = {
 const store = new Store({ rules });
 
 store.set('counter/count', 1);
-store.get('counter'); // throws PermissionError, 'Not explicit permission to read'
+store.get('counter/count'); // throws PermissionError, 'Not explicit permission to read'
 store.set('elseWhere', 1); // throws PermissionError, 'Not explicit permission to write'
 ```
 
@@ -101,63 +101,144 @@ store.set('counter/count', 1.5); // throws ValidationError, 'Validation fails at
 store.set('counter/count', '1'); // throws ValidationError, 'Validation fails at path /counter/count
 ```
 
-### Persistance
-
 ### Observe
 
-## Example
+Any path can be observed to make any logic when a certain node has changed.
+
+Use `.observe('path/to/observe', callback)`
 
 ```ts
-const initialData = {
-  users: {},
-};
+const store = new Store();
 
+store.observe('counter/count', (count) => {
+  if (count > 3) {
+    console.log(`count has reached ${data}`);
+  }
+});
+
+store.set('counter/count', 3);
+store.set('counter/count', 4); // logs 'count has reached 4'
+```
+
+### Persistance
+
+The data store in the store can be persisted to Json, Yaml, LocalStorage or SessionStorage.
+
+Just import the one that fit your needs.
+
+```ts
+// Store has not persistance adapter
+import { Store } from './core/Store.ts';
+
+// StoreJson and StoreYaml, add persistance in deno
+import { StoreJson } from './core/StoreJson.ts';
+import { StoreYaml } from './core/StoreYaml.ts';
+
+// StoreLocalStorage and StoreSessionStorage, add persistance in the browser
+import { StoreLocalStorage } from './core/StoreLocalStorage.ts';
+import { StoreSessionStorage } from './core/StoreSessionStorage.ts';
+
+const store = new StoreJson({ name: 'store.json' });
+// will load data from './store.json' if the file exist
+
+store.set('counter/count', 0);
+
+store.persist();
+// Synchronously updates or create a store.json file with  {"counter":{"count":0}}
+```
+
+## In depth
+
+### Rules
+
+#### RuleContext
+
+All the rules will recibe two arguments.
+The first one is a reference to the data written or read at that node. **So you should not mutate this argument**
+And second one is a object context with the following properties:
+
+```ts
+export type RuleContext = {
+  oldData: Value; // A getter to get cloned old data (the previous value at that path)
+  newData: Value; // A getter to get cloned payload to be written.
+  rootData: ObjectOrArray; // A getter to get cloned value from the root data
+  _newData: Value; // A reference to the data written or read (same as first argument)
+  _oldData: Value; // A reference to the old data
+  _rootData: ObjectOrArray; // A reference to the root data
+  isUpdate: boolean; // true if is performing an update
+  isCreation: boolean; // true if is performing a creation
+  isRemove: boolean; // true if is performing a deletion
+  [$param: string]: string; // TODO
+};
+```
+
+```ts
+import { Store } from './core/Store.ts';
 const rules = {
-  users: {
-    $uuid: {
-      _write: () => true,
-      _read: () => true,
-      email: {
-        _validate: (email: string) => isEmail(email),
-      },
-      password: {
-        _validate: (password: string) => password.length >= 8,
-        _writeAs: (password: string) => encrypt(password),
-        _readAs: () => '********',
-      },
+  counter: {
+    count: {
+      _read_: () => true,
+      // only allow to update data
+      _write: (_, { isUpdate }) => isUpdate,
+      // validate the counter only increments by one
+      _validate: (data, { oldData }) => data - oldData === 1,
     },
   },
 };
-const authStore = new StoreYaml({
+const store = new Store({
   rules,
-  initialData,
-  autoSave: true,
+  initialData: { counter: { count: 0 } },
 });
 
-const uuid = v4.generate();
-authStore.set(`users/${uuid}`, {
-  email: 'juan@geekshubs.com',
-  password: '12345678',
-});
-
-assertEquals(authStore.get(`users/${uuid}`), {
-  email: 'juan@geekshubs.com',
-  password: '********',
-});
-
-try {
-  authStore.set('users/' + uuid, {
-    email: '@notValidEmail',
-    password: '12345678',
-  });
-} catch (error) {
-  assertEquals(error instanceof ValidationError, true);
-  assertEquals(
-    error.message,
-    `Validation fails at path /users/${uuid}/email`,
-  );
-}
+store.set('counter/count', 1); // ok
+store.set('counter/count', 3); // throws ValidationError, 'Validation fails at path /counter/count
+// deletion
+store.set('counter/count', undefined); // throws PermissionError, 'write disallowed at path /counter/count'
 ```
+
+#### Permissions \_write and \_read
+
+#### Validation \_validate
+
+#### Transformations \_transform \_writeAs \_readAs
+
+### Reading and Updating
+
+#### .get
+
+#### .getRef
+
+#### .set
+
+#### .remove
+
+#### .push
+
+#### .find
+
+#### .findOne
+
+#### .findAndRemove
+
+#### .findAndUpdate
+
+#### .findOneAndUpdate
+
+#### .findOneAndRemove
+
+### Observability
+
+#### .observe
+
+#### .off
+
+### Transactions
+
+#### .beginTransaction
+
+#### .commit
+
+#### .rollback
 
 # RoadMap
 

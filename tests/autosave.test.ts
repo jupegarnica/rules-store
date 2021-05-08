@@ -43,13 +43,13 @@ Deno.test("[persistLazy] autoSave must write lazy", async () => {
   mock.restore();
 });
 
-Deno.test("[persistLazy] autoSave and writeLazyDelay", async () => {
+Deno.test("[persistLazy] autoSave and persistLazyDelay", async () => {
   const RUNS = 3;
 
   const db = new StoreJson({
     name: testStorePath,
     autoSave: true,
-    writeLazyDelay: 4,
+    persistLazyDelay: 4,
   });
 
   const mock: Spy<StoreJson> = spy(db, "persist");
@@ -69,13 +69,13 @@ Deno.test("[persistLazy] autoSave and writeLazyDelay", async () => {
   mock.restore();
 });
 
-Deno.test("[persistLazy] autoSave and writeLazyDelay 2", async () => {
+Deno.test("[persistLazy] autoSave and persistLazyDelay 2", async () => {
   const RUNS = 3;
 
   const db = new StoreJson({
     name: testStorePath,
     autoSave: true,
-    writeLazyDelay: 0,
+    persistLazyDelay: 0,
   });
 
   const mock: Spy<StoreJson> = spy(db, "persist");

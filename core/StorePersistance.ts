@@ -6,12 +6,12 @@ export abstract class StorePersistance extends Store {
    * Config state
    */
   #autoSave = false;
-  #writeLazyDelay: number;
+  #persistLazyDelay: number;
   protected _name: string;
   protected _folder: string;
   protected _storePath = "";
   /**
-   * Writes cached data to disk asynchronously debounced with a delay defined at config.writeLazyDelay
+   * Writes cached data to disk asynchronously debounced with a delay defined at config.persistLazyDelay
    */
   public persistLazy: () => Promise<void>;
 
@@ -22,20 +22,20 @@ export abstract class StorePersistance extends Store {
    * @param {string} config.name - it defaults to .store.db
    * @param {string} config.folder - it defaults to mainModulePath
    * @param {boolean} config.autoSave - whether or not should be lazily write to disk after every update.
-   * @param {number} config.writeLazyDelay - The debounce delay for .persistLazy.  It defaults to 0
+   * @param {number} config.persistLazyDelay - The debounce delay for .persistLazy.  It defaults to 0
    * */
 
   constructor(config: Config = {}) {
     super(config);
     this.#autoSave = config.autoSave ?? false;
-    this.#writeLazyDelay = config.writeLazyDelay ?? 0;
+    this.#persistLazyDelay = config.persistLazyDelay ?? 0;
     this._name = config.name || ".store.db";
     this._folder = config.folder || "";
     this._storePath = [this._folder, this._name].filter(Boolean).join("/");
     this.load();
     this.persistLazy = debounce(
       () => this.persist(),
-      this.#writeLazyDelay,
+      this.#persistLazyDelay,
     );
   }
   /**

@@ -147,6 +147,43 @@ store.persist();
 // Synchronously updates or create a store.json file with  {"counter":{"count":0}}
 ```
 
+#### AutoSave
+
+If the config `autoSave` is set to true, every mutation will be lazily persisted. That means it will perform a debounced persist with a default timeout of 0. Can be changed with config.persistLazyDelay
+
+And also exist a `.persistLazy()` method which returns `Promise<void>` resolved when the persistance will complete.
+
+```ts
+const store = new StoreJson({
+  name: 'store.json',
+  autoSave: true,
+  // persistLazyDelay: 0,  default
+});
+
+store.set('a', 1); // will run this.persistLazy()
+db.persistLazy().then(() => console.log('written to disk'));
+db.persistLazy().then(() => console.log('written to disk'));
+
+// only one write to disk will be done.
+```
+
+### Transactions
+
+It can be tricky to undo some operations manually. So you can perform multiples operation as one transaction and finally commit all or rollback.
+
+```ts
+const store = new Store({ initialData: { count: 0 } });
+
+try {
+  store.beginTransaction();
+  store.set('count', 1);
+  store.set('elseWhere', true);
+  store.commit();
+} catch (error) {
+  store.rollback();
+}
+```
+
 ## In depth
 
 ### Rules

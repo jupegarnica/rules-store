@@ -1,0 +1,25 @@
+@base_url=http://localhost:1357
+
+###
+
+POST {{base_url}}/signup
+Content-Type: application/json
+
+{
+    "name": "garn",
+    "email":"garn@valencia.io",
+    "password": "12345"
+}
+
+
+
+###
+
+POST {{base_url}}/signin
+Content-Type: application/json
+
+{
+    "name": "garn",
+    "email":"juan@valencia.io",
+    "password": "12345"
+}

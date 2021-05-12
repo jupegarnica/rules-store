@@ -1,0 +1,12 @@
+users:
+  ceb48977-c61a-4899-a8a1-01fe2c97cb88:
+    name: garn
+    email: juan@valencia.io
+    password: $2a$10$fgRqxt1/oxaA9MFYBxnYku.eQcR7WOVBbJje/zzt545mZ5r5q.Jn2
+  0251fc54-22e8-4a94-9928-fa3b74003d9d:
+    name: garn
+    email: garn@valencia.io
+    password: $2a$10$ZaK07DWxS..Vv2eRqnRD0OAojv2Tcs3Yw6U1IGYooYX4KXZyqz4ci
+emails:
+  juan@valencia.io: ceb48977-c61a-4899-a8a1-01fe2c97cb88
+  garn@valencia.io: 0251fc54-22e8-4a94-9928-fa3b74003d9d

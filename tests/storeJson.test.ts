@@ -1,7 +1,7 @@
 import { StoreJson } from "../core/StoreJson.ts";
 import { existsSync } from "../core/deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
-const testStorePath = "./tests/test.store.json";
+const testStorePath = "./test.store.json";
 
 // Persistance StoreJson
 ////////////////////////
@@ -25,7 +25,7 @@ Deno.test({
 
 Deno.test("[StoreJson] load DB with name", () => {
   const db = new StoreJson({
-    name: "./tests/test.json",
+    name: "./test.json",
   });
 
   assertEquals(db.get("arr/0"), 1);
@@ -38,7 +38,7 @@ Deno.test("[StoreJson] load DB with name", () => {
 Deno.test("[StoreJson] load DB with folder", () => {
   const db = new StoreJson({
     name: "test.json",
-    folder: "./tests",
+    folder: "../tests",
   });
 
   assertEquals(db.get("arr/0"), 1);

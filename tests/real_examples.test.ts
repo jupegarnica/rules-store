@@ -249,7 +249,7 @@ Deno.test({
     };
     const authStore = new StoreYaml({
       name: "auth.yaml",
-      folder: "tests",
+      folder: "../tests",
       initialData,
       autoSave: true,
       rules,

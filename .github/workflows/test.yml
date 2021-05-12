@@ -25,7 +25,7 @@ jobs:
         run: deno --version
 
       - name: Run tests
-        run: deno test --unstable --allow-read --allow-write
+        run: deno test --unstable --allow-read --allow-write --location=http://localhost:1357
   lint:
     runs-on: ubuntu-latest
     name: Lint

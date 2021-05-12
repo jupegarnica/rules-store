@@ -1,9 +1,11 @@
 import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
 
 const watcher = Deno.watchFs(".");
-let cmd = "deno test --no-check --allow-read --allow-write --unstable".split(
-  " ",
-);
+let cmd =
+  "deno test --no-check --allow-read --allow-write --unstable --location=http://localhost:1357"
+    .split(
+      " ",
+    );
 cmd = cmd.concat(Deno.args);
 
 let running = false;

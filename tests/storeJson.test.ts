@@ -3,9 +3,6 @@ import { existsSync } from "../core/deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 const testStorePath = "./test.store.json";
 
-// Persistance StoreJson
-////////////////////////
-
 Deno.test({
   // only: true,
   name: "[StoreJson] Write DB",

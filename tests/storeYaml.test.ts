@@ -3,9 +3,6 @@ import { existsSync } from "../core/deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 const testStorePath = "./test.store.yaml";
 
-// Persistance StoreYaml
-////////////////////////
-
 Deno.test("[StoreYaml] Write DB", async () => {
   const db = new StoreYaml({ name: testStorePath });
 

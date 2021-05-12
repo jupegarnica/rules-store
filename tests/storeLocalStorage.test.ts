@@ -3,7 +3,6 @@ import { assertEquals } from "./test_deps.ts";
 const testStorePath = "./test.store";
 
 Deno.test({
-  // only: true,
   ignore: Deno.env.get("DENO_ENV") === "CI",
   name: "[StoreLocalStorage] Persist and load from localStorage",
   sanitizeResources: false,

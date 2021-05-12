@@ -1,4 +1,12 @@
-export class PermissionError extends Error {}
-export class ValidationError extends Error {}
-export class StoreNotFoundError extends Error {}
-export class SubscriptionNotFoundError extends Error {}
+export class PermissionError extends Error {
+  name = "PermissionError";
+}
+export class ValidationError extends Error {
+  name = "ValidationError";
+}
+export class StoreNotFoundError extends Error {
+  name = "StoreNotFoundError";
+}
+export class SubscriptionNotFoundError extends Error {
+  name = "SubscriptionNotFoundError";
+}

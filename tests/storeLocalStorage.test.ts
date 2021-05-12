@@ -4,6 +4,7 @@ const testStorePath = "./test.store";
 
 Deno.test({
   // only: true,
+  ignore: Deno.env.get("DENO_ENV") === "CI",
   name: "[StoreLocalStorage] Persist and load from localStorage",
   sanitizeResources: false,
   fn: () => {
@@ -21,6 +22,7 @@ Deno.test({
 
       db2.set("number", 5);
       assertEquals(db2.get("number"), 5);
+      db2.deletePersisted();
     }
   },
 });

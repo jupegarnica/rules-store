@@ -10,7 +10,7 @@ The main motivation is to bring the databases developers' mindset to runtime sta
 
 ### CRUD operations
 
-The main methods to read or write into the data store are `.get(path: string)`, `.set(path: string, value: any)` and `.remove(path: string)`
+The main methods to read or write into the data store are `.get(path: string)`, `.set(path: string, valueOrFunction: any)` and `.remove(path: string)`
 
 ```ts
 import { Store } from './core/Store.ts';

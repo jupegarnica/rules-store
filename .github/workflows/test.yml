@@ -10,9 +10,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        deno: [1.3, 1.x]
+        # deno: [1.3, 1.x]
+        deno: [1.x]
         os: [macOS-latest, ubuntu-latest, windows-2019]
     name: Test with Deno ${{ matrix.deno }}  ${{ matrix.os }}
+    env:
+      DENO_ENV: CI
     steps:
       - uses: actions/checkout@master
 
@@ -25,7 +28,7 @@ jobs:
         run: deno --version
 
       - name: Run tests
-        run: deno test --unstable --allow-read --allow-write
+        run: deno test --unstable --allow-read --allow-write --allow-env
   lint:
     runs-on: ubuntu-latest
     name: Lint

@@ -1,10 +1,7 @@
 import { StoreYaml } from "../core/StoreYaml.ts";
 import { existsSync } from "../core/deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
-const testStorePath = "./tests/test.store.yaml";
-
-// Persistance StoreYaml
-////////////////////////
+const testStorePath = "./test.store.yaml";
 
 Deno.test("[StoreYaml] Write DB", async () => {
   const db = new StoreYaml({ name: testStorePath });
@@ -21,7 +18,7 @@ Deno.test("[StoreYaml] Write DB", async () => {
 
 Deno.test("[StoreYaml] load DB with name", () => {
   const db = new StoreYaml({
-    name: "./tests/test.json",
+    name: "./test.json",
   });
 
   assertEquals(db.get("arr/0"), 1);
@@ -34,7 +31,7 @@ Deno.test("[StoreYaml] load DB with name", () => {
 Deno.test("[StoreYaml] load DB with folder", () => {
   const db = new StoreYaml({
     name: "test.json",
-    folder: "./tests",
+    folder: "../tests",
   });
 
   assertEquals(db.get("arr/0"), 1);

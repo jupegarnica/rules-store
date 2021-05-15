@@ -28,7 +28,7 @@ Deno.test("[Lab] dates persistance as ISO String", () => {
     _write: () => () => true,
   };
 
-  const db = new StoreJson({ rules, name: "tests/test.json" });
+  const db = new StoreJson({ rules, name: "test.json" });
   const date = new Date("1999-01-08T23:00:00.000Z");
   const iso = date.toISOString();
   db.set("date", date);

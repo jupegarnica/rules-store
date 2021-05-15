@@ -1,6 +1,7 @@
 scripts:
-  test: deno test --allow-read --allow-write --unstable
-  test-watch: deno run -A --unstable --watch tests/test-watch.ts
+  test: deno test --allow-read --allow-env  --allow-write --unstable --location=http://localhost:1357
+  test-watch: deno test --watch --allow-read --allow-env  --allow-write --unstable --no-check --location=http://localhost:1357
+  # test-watch-custom: deno run -A --unstable --watch tests/test-watch.ts
   debug: deno run -A  --no-check --unstable --watch tests/debug.ts
   bench: deno run -A --unstable tests/benchmarks/benchmarks.ts
   bench-watch: deno run --no-check -A --unstable --watch tests/benchmarks/benchmarks.ts

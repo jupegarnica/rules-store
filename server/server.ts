@@ -1,12 +1,12 @@
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
-import { signin, signup } from "./routes.ts";
+import { signIn, signUp } from "./routes.ts";
 
 const port = 1357;
 const router = new Router();
 
 router
-  .post("/signin", signin)
-  .post("/signup", signup);
+  .post("/signIn", signIn)
+  .post("/signUp", signUp);
 
 const app = new Application();
 

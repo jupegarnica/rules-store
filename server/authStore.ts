@@ -27,7 +27,10 @@ const rules = {
         }
         return true;
       },
-      _readAs: (user, { $uuid }) => ({ ...user, uuid: $uuid }),
+      _readAs: (user: Value, { $uuid }: RuleContext) => ({
+        ...user,
+        uuid: $uuid,
+      }),
       name: {
         _validate: (name: string) =>
           typeof name === "string" && name.length >= 3,
@@ -56,7 +59,6 @@ const rules = {
 };
 const authStore = new StoreYaml({
   name: "auth.yaml",
-  //   folder: "tests",
   initialData,
   autoSave: true,
   rules,

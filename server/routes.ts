@@ -1,12 +1,13 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
 import { create, getNumericDate } from "https://deno.land/x/djwt@v2.2/mod.ts";
+import type { Payload } from "https://deno.land/x/djwt@v2.2/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 import { v4 } from "https://deno.land/std@0.95.0/uuid/mod.ts";
 import { authStore } from "./authStore.ts";
 import { ValidationError } from "../core/Errors.ts";
 const key = Deno.env.get("JWT-SECRET") ?? "secret";
 
-export const signin = async (ctx: Context) => {
+export const signIn = async (ctx: Context) => {
   const { value } = ctx.request.body();
   const { email, password } = (await value);
 
@@ -46,7 +47,7 @@ export const signin = async (ctx: Context) => {
   };
 };
 
-export const signup = async (ctx: Context) => {
+export const signUp = async (ctx: Context) => {
   try {
     const { value } = ctx.request.body();
     const body = (await value);

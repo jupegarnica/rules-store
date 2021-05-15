@@ -494,17 +494,7 @@ export function findRule(
 //   return rulesFound;
 // }
 
-// export const debounce = (fn: (...a: any[]) => any, ms = 0, self: any) => {
-//   let timeoutId: number;
-//   // deno-lint-ignore no-explicit-any
-//   return function (...args: any[]) {
-//     clearTimeout(timeoutId);
-//     timeoutId = setTimeout(() => fn.apply(self, args), ms);
-//   };
-// };
-
-// // deno-lint-ignore no-explicit-any
-// export const debounce = (fn: Callable, ms = 0, self: any) => {
+// export const debounce = (fn: Callable, ms = 0) => {
 //   let timeoutId: number;
 //   const pending: {
 //     resolve: Callable;
@@ -517,7 +507,7 @@ export function findRule(
 //       timeoutId = setTimeout(() => {
 //         const currentPending = [...pending];
 //         pending.length = 0;
-//         Promise.resolve(fn.apply(self, args)).then(
+//         Promise.resolve(fn(args)).then(
 //           (data) => {
 //             currentPending.forEach(({ resolve }) => resolve(data));
 //           },
@@ -530,13 +520,6 @@ export function findRule(
 //     });
 // };
 
-// export const debounce = (fn, ms = 0, self) => {
-//   let timeoutId;
-//   return function(...args) {
-//     clearTimeout(timeoutId);
-//     timeoutId = setTimeout(() => fn.apply(self, args), ms);
-//   };
-// };
 export const debounce = function (fn: Callable, delay = 0) {
   let id: number;
   let lastTime: number;

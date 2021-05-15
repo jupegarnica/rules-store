@@ -1069,22 +1069,36 @@ class StorePersistance extends Store {
         return returned;
     }
 }
-class StoreLocalStorage1 extends StorePersistance {
+class StoreUrl1 extends StorePersistance {
     load() {
-        const data = localStorage.getItem(this.storePath);
-        if (!data) return;
-        const decoded = JSON.parse(data);
-        this._setData(decoded);
-        return;
+        const searchParams = new URLSearchParams(location.search);
+        const text = searchParams.get(this.storePath);
+        if (!text) return;
+        const data = JSON.parse(text);
+        this._setData(data);
     }
     persist() {
         const data = JSON.stringify(this.getPrivateData({
             I_PROMISE_I_WONT_MUTATE_THIS_DATA: true
         }));
-        localStorage.setItem(this.storePath, data);
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.set(this.storePath, data);
+        if (window.history?.replaceState) {
+            const url = location.protocol + "//" + location.host + location.pathname + "?" + searchParams.toString();
+            window.history?.replaceState({
+                path: url
+            }, "", url);
+        }
     }
     deletePersisted() {
-        localStorage.clear();
+        const searchParams = new URLSearchParams(location.search);
+        searchParams.delete(this.storePath);
+        if (window.history?.replaceState) {
+            const url = location.protocol + "//" + location.host + location.pathname + "?" + searchParams.toString();
+            window.history?.replaceState({
+                path: url
+            }, "", url);
+        }
     }
 }
-export { StoreLocalStorage1 as StoreLocalStorage };
+export { StoreUrl1 as StoreUrl };

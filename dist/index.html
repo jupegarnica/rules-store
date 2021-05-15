@@ -10,9 +10,10 @@
     <title>Document</title>
     <script type="module">
       // import { StoreLocalStorage as Store } from './StoreLocalStorage.mjs';
-      import { StoreSessionStorage as Store } from './StoreSessionStorage.mjs';
+      import { StoreUrl as Store } from './StoreUrl.mjs';
 
       const store = new Store({
+        name: 'state',
         autoSave: true,
         initialData: {
           count: 0,

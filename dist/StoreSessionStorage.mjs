@@ -7,8 +7,9 @@ function isSet(obj) {
         return obj.constructor;
     }
 }
+const pathSeparator = /\//;
 function keysFromPath(path) {
-    return path.split(/[\\\\/\.]/).filter((key)=>key
+    return path.split(pathSeparator).filter((key)=>key
     );
 }
 function pathFromKeys(keys) {
@@ -430,6 +431,9 @@ function equal(c, d) {
                 if (!compare(a && a[key], b && b[key])) {
                     return false;
                 }
+                if (key in a && !(key in b) || key in b && !(key in a)) {
+                    return false;
+                }
             }
             seen.set(a, b);
             return true;
@@ -438,8 +442,10 @@ function equal(c, d) {
     })(c, d);
 }
 class PermissionError extends Error {
+    name = "PermissionError";
 }
 class ValidationError extends Error {
+    name = "ValidationError";
 }
 const allowAll = {
     _read: ()=>true
@@ -459,6 +465,14 @@ class Store {
     #mutationsToRollback = [];
     #mutationDiff = {
     };
+    #enabledRules = {
+        _read: true,
+        _write: true,
+        _readAs: true,
+        _writeAs: true,
+        _transform: true,
+        _validate: true
+    };
     get _dataShape() {
         return Array.isArray(this.#newData) ? [] : {
         };
@@ -471,6 +485,11 @@ class Store {
         if (config.rules) {
             this._assertValidRules(config.rules);
         }
+        if (config.skipRules) {
+            for (const rule of config.skipRules){
+                this.#enabledRules[rule] = false;
+            }
+        }
         this.#rules = deepClone(config.rules ?? allowAll);
         this._setData(deepClone(config.initialData ?? {
         }));
@@ -480,9 +499,13 @@ class Store {
         if (typeof _transform === "function") {
             throw new Error("_transform rule can not be apply at root level");
         }
-        const { _as  } = findRule("_as", [], rules);
-        if (typeof _as === "function") {
-            throw new Error("_as rule can not be apply at root level");
+        const { _readAs  } = findRule("_readAs", [], rules);
+        if (typeof _readAs === "function") {
+            throw new Error("_readAs rule can not be apply at root level");
+        }
+        const { _writeAs  } = findRule("_writeAs", [], rules);
+        if (typeof _writeAs === "function") {
+            throw new Error("_writeAs rule can not be apply at root level");
         }
     }
     get(path) {
@@ -748,6 +771,9 @@ class Store {
             oldData: undefined,
             rootData: {
             },
+            isUpdate: oldData !== undefined && newData !== undefined,
+            isCreation: oldData === undefined,
+            isRemove: newData === undefined,
             ...params
         };
         applyCloneOnGet(context, "oldData", oldData);
@@ -763,11 +789,11 @@ class Store {
         const newData = this._getAsFrom(this.#newData, keys);
         const payload = {
             ...params,
-            _oldData: oldData,
-            _newData: newData,
-            isUpdated: oldData !== undefined && newData !== undefined,
-            isCreated: oldData === undefined,
-            isDeleted: newData === undefined
+            oldData: oldData,
+            newData: newData,
+            isUpdate: oldData !== undefined && newData !== undefined,
+            isCreation: oldData === undefined,
+            isRemove: newData === undefined
         };
         applyCloneOnGet(payload, "newData", newData);
         applyCloneOnGet(payload, "oldData", oldData);
@@ -824,7 +850,9 @@ class Store {
         return deepGet(this._data, keys);
     }
     _getAndCheck(keys) {
-        this._checkPermission("_read", keys);
+        if (this.#enabledRules["_read"]) {
+            this._checkPermission("_read", keys);
+        }
         return this._get(keys);
     }
     _getAs(keys) {
@@ -837,6 +865,9 @@ class Store {
         } else {
             value = deepGet(target, keys);
         }
+        if (!this.#enabledRules["_readAs"]) {
+            return value;
+        }
         const diff = {
             root: this._dataShape
         };
@@ -845,7 +876,7 @@ class Store {
             ...keys
         ];
         deepSet(diff, path, value);
-        const mutationsToApply = this._findMutations("_as", diff.root, keys);
+        const mutationsToApply = this._findMutations("_readAs", diff.root, keys);
         this._applyMutations(diff.root, mutationsToApply, [], false);
         return deepGet(diff, path);
     }
@@ -887,23 +918,36 @@ class Store {
             }
         }
     }
-    _mutate(keys, value, type = "set") {
+    _mutate(keys, newValue, type = "set") {
         const removed = [];
-        let mutationsToApply = [];
+        const mutationsToApply = [];
         try {
             const diff = this._dataShape;
-            deepSet(diff, keys, value ?? null);
-            this._applyMutations(this.#newData, [
-                {
-                    keys,
-                    value,
-                    type: type === "remove" ? "set" : type
-                }
-            ], removed);
-            this._checkPermission("_write", keys);
-            mutationsToApply = this._findMutations("_transform", diff);
-            this._applyMutations(this.#newData, mutationsToApply, removed);
-            this._checkValidation(diff);
+            deepSet(diff, keys, newValue ?? null);
+            const value = deepClone(newValue);
+            if (this.#enabledRules["_write"]) {
+                this._applyMutations(this.#newData, [
+                    {
+                        keys,
+                        value,
+                        type: type === "remove" ? "set" : type
+                    }
+                ], removed);
+                this._checkPermission("_write", keys);
+            }
+            if (this.#enabledRules["_transform"]) {
+                const transformMutations = this._findMutations("_transform", diff, keys);
+                mutationsToApply.push(...transformMutations);
+                this._applyMutations(this.#newData, transformMutations, removed);
+            }
+            if (this.#enabledRules["_validate"]) {
+                this._checkValidation(diff);
+            }
+            if (this.#enabledRules["_writeAs"]) {
+                const writeAsMutations = this._findMutations("_writeAs", diff, keys);
+                mutationsToApply.push(...writeAsMutations);
+                this._applyMutations(this.#newData, writeAsMutations, removed);
+            }
             deepMerge(this.#mutationDiff, diff);
             const currentMutation = {
                 keys,
@@ -933,80 +977,92 @@ class Store {
         };
     }
     _commit(toCommit) {
-        this._notify();
+        const notifications = this._findNotifications();
         const removed = [];
         try {
             this._applyMutations(this.#data, toCommit, removed, true);
             this.#mutationDiff = this._dataShape;
+            this._notify(notifications);
         } catch (error) {
-            this._rollback(removed, toCommit);
+            this._rollback(removed, toCommit, this.#data);
             throw error;
         }
     }
-    _rollback(toRollback, applied) {
+    _rollback(toRollback, applied, target = this.#newData) {
         const removed = [];
-        this._applyMutations(this.#newData, toRollback.reverse(), removed);
+        this._applyMutations(target, toRollback.reverse(), removed);
         this.#mutationsToCommit = this.#mutationsToCommit.filter((saved)=>applied.every((applied)=>saved !== applied
             )
         );
     }
-    _notify() {
-        if (Object.keys(this.#mutationDiff).length === 0) return;
+    _notify(notifications) {
+        for (const { callback , args , id  } of notifications){
+            try {
+                callback(...args);
+            } catch (error) {
+                console.error(`Subscription callback ${id} has thrown.\n`, error.message);
+                throw error;
+            }
+        }
+    }
+    _findNotifications() {
+        const notifications = [];
+        if (Object.keys(this.#mutationDiff).length === 0) return notifications;
         for (const subscription of this.#subscriptions){
             const { path , callback , id  } = subscription;
             const paths = pathsMatched(this.#mutationDiff, path);
             for (const keys of paths){
-                const params = getParamsFromKeys(keys, path);
                 try {
                     this._checkPermission("_read", keys);
                 } catch (error) {
                     console.warn(`Subscription ${id} has not read permission.\n`, error.message);
-                    return;
+                    continue;
                 }
                 const oldData = deepGet(this.#data, keys);
                 const newData = deepGet(this.#newData, keys);
                 if (!equal(oldData, newData)) {
+                    const params = getParamsFromKeys(keys, path);
                     const args = this._createObserverArgs(params, keys);
-                    try {
-                        callback(...args);
-                    } catch (error) {
-                        console.error(`Subscription callback ${id} has thrown.\n`, error.message);
-                    }
+                    notifications.push({
+                        callback,
+                        args,
+                        id
+                    });
                 }
             }
         }
+        return notifications;
     }
 }
 class StorePersistance extends Store {
-    #storePath;
     #autoSave = false;
-    #writeLazyDelay;
-    writeLazy;
-    constructor(config1){
+    #persistLazyDelay;
+    _name;
+    _folder;
+    _storePath = "";
+    persistLazy;
+    constructor(config1 = {
+    }){
         super(config1);
-        this.#autoSave = config1?.autoSave ?? false;
-        this.#writeLazyDelay = config1?.writeLazyDelay ?? 0;
-        const name = config1?.name || ".store.db";
-        let folder = config1?.folder;
-        if (!folder && typeof Deno !== "undefined") {
-            const defaultFolder = Deno.mainModule.replace("file://", "").split("/").slice(0, -1).join("/");
-            folder = defaultFolder;
-        }
-        this.#storePath = [
-            folder,
-            name
+        this.#autoSave = config1.autoSave ?? false;
+        this.#persistLazyDelay = config1.persistLazyDelay ?? 0;
+        this._name = config1.name || ".store.db";
+        this._folder = config1.folder || "";
+        this._storePath = [
+            this._folder,
+            this._name
         ].filter(Boolean).join("/");
         this.load();
-        this.writeLazy = debounce(()=>this.write()
-        , this.#writeLazyDelay);
+        this.persistLazy = debounce(()=>this.persist()
+        , this.#persistLazyDelay);
     }
     get storePath() {
-        return this.#storePath;
+        return this._storePath;
     }
     _commit(toCommit) {
         const returned = super._commit(toCommit);
         if (this.#autoSave) {
-            this.writeLazy().catch((error)=>{
+            this.persistLazy().catch((error)=>{
                 console.error(error);
             });
         }
@@ -1021,13 +1077,13 @@ class StoreSessionStorage1 extends StorePersistance {
         this._setData(decoded);
         return;
     }
-    write() {
+    persist() {
         const data = JSON.stringify(this.getPrivateData({
             I_PROMISE_I_WONT_MUTATE_THIS_DATA: true
         }));
         sessionStorage.setItem(this.storePath, data);
     }
-    deleteStore() {
+    deletePersisted() {
         sessionStorage.clear();
     }
 }

@@ -54,6 +54,10 @@ const benchOptions: [
 const rules = {
   _write: () => true,
   _read: () => true,
+};
+const manyRules = {
+  _write: () => true,
+  _read: () => true,
   $a: {
     _write: () => true,
     _read: () => true,
@@ -125,6 +129,24 @@ bench({
   func(b): void {
     const db = new StoreJson({
       rules,
+      name: `${FOLDER}/${RUNS}.json`,
+    });
+
+    b.start();
+    for (let i = 0; i < RUNS; i++) {
+      db.set(`item` + i, { i: { i: { i } } });
+    }
+    b.stop();
+    db.persist();
+  },
+});
+
+bench({
+  name: `[Set] manyRules OPS=${RUNS} children`,
+  runs: 1,
+  func(b): void {
+    const db = new StoreJson({
+      rules: manyRules,
       name: `${FOLDER}/${RUNS}.json`,
     });
 

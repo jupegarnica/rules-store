@@ -22,7 +22,7 @@ const store = new Store();
 
 store.set('count', 1); // create data.count = 1
 store.get('count'); // returns 1
-store.set('count', 2); // update data.count = 2
+store.set('count', (oldValue) => oldValue + 1); // update data.count = 2
 store.get('elseWhere'); // returns undefined
 store.remove('count'); // returns the value removed, 2
 ```

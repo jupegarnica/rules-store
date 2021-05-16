@@ -385,7 +385,7 @@ store.set('a/b', { c: 1 }); // ok, because _validation at /a/b/d won't run.
 store.set('a/b', { c: 1, d: 2 }); // Throws ValidationError
 ```
 
-In `store.set('a/b', { c: 1 })` example it will run the \_validate rule found at `/a/b` and `/a/b/c`, but not `/a/b/d`
+In `store.set('a/b', { c: 1 })` example it will run the \_validate rule found at `/a/b` and `/a/b/c`, but not `/a/b/d` because this path can be found in the payload
 
 #### Transformations \_transform \_writeAs \_readAs
 
@@ -443,21 +443,17 @@ store.set('myDate', date); // returns a date object,  but stores a date ISO stri
 - [x] SubscriptionPayload with isUpdated isDeleted isCreated
 - [x] \_getAs applied deeper, not only to the target path
 - [x] .findAndUpdate .findOneAndUpdate
-- [ ] rule \_writeAs
-- [ ] bundle StoreLocalStorage
+- [x] rule \_writeAs
+- [x] bundle StoreLocalStorage
+- [x] bundle StoreUrl
 - [ ] bundle to npm
 - [ ] Write to disk as transaction. https://github.com/npm/write-file-atomic
+- [ ] Remote server with authentication with realtime subscription through webSockets.
 
 # Related projects
 
 https://github.com/denyncrawford/dndb
 
-[MaximilianHeidenreich/DsDDB](https://github.com/MaximilianHeidenreich/DsDDB)
-
-#
+https://github.com/typicode/lowdb
 
 Forked from [MaximilianHeidenreich/DsDDB](https://github.com/MaximilianHeidenreich/DsDDB)
-
-```
-
-```

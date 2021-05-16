@@ -390,7 +390,9 @@ In `store.set('a/b', { c: 1 })` example it will run the \_validate rule found at
 #### Transformations \_transform \_writeAs \_readAs
 
 `_readAs` will transform on getting, but will never mutate the stored data.
+
 `_transform` will transform the payload before being validated.
+
 `_writeAs_` will transform the payload after being validated.
 
 ```ts

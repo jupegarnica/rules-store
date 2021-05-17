@@ -3,6 +3,7 @@ export { StoreYaml } from "../core/StoreYaml.ts";
 export { StoreLocalStorage } from "../core/StoreLocalStorage.ts";
 export { StoreSessionStorage } from "../core/StoreSessionStorage.ts";
 export { StoreUrl } from "../core/StoreUrl.ts";
+export { StorePersistance } from "../core/StorePersistance.ts";
 export { Store } from "../core/Store.ts";
 export {
   PermissionError,

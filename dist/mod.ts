@@ -3,6 +3,7 @@ export { StoreYaml } from "../core/StoreYaml.ts";
 export { StoreLocalStorage } from "../core/StoreLocalStorage.ts";
 export { StoreSessionStorage } from "../core/StoreSessionStorage.ts";
 export { StoreUrl } from "../core/StoreUrl.ts";
+export { Store } from "../core/Store.ts";
 export {
   PermissionError,
   StoreNotFoundError,
@@ -13,14 +14,10 @@ export {
 export type {
   BaseConfig,
   Callable,
-  Config,
+  ConfigPersistance,
   Finder,
-  Keys,
   KeyValue,
   Mapper,
-  Mutation,
-  MutationType,
-  Notification,
   ObjectOrArray,
   Observer,
   ObserverArgs,
@@ -29,9 +26,7 @@ export type {
   Rule,
   RuleArgs,
   RuleContext,
-  RuleFound,
   Rules,
-  Subscription,
   Value,
   ValueOrFunction,
 } from "../core/types.ts";

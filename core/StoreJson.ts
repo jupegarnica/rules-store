@@ -3,7 +3,7 @@ import { dirname, existsSync, fromFileUrl, resolve } from "./deps.ts";
 import { StorePersistance } from "./StorePersistance.ts";
 
 export class StoreJson extends StorePersistance {
-  load(): void {
+  public load(): void {
     const filename = this._name;
     const folder = resolve(fromFileUrl(dirname(Deno.mainModule)), this._folder);
     const storePath = resolve(folder, filename);
@@ -12,7 +12,7 @@ export class StoreJson extends StorePersistance {
 
     const data = Deno.readFileSync(storePath);
     const decoder = new TextDecoder("utf-8");
-    const decoded = JSON.parse(decoder.decode(data));
+    const decoded = this.parse(decoder.decode(data));
 
     this._setData(decoded);
 
@@ -20,7 +20,7 @@ export class StoreJson extends StorePersistance {
   }
 
   public persist(): void {
-    const data = JSON.stringify(
+    const data = this.stringify(
       this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
     );
     const encoder = new TextEncoder();

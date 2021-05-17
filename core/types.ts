@@ -103,9 +103,11 @@ export type BaseConfig = {
     "_validate",
   ];
 };
-export type Config = BaseConfig & {
+export type ConfigPersistance = BaseConfig & {
   autoSave?: boolean;
   name?: string;
   folder?: string;
   persistLazyDelay?: number;
+  serializer?: (data: ObjectOrArray) => string;
+  deserializer?: (data: string) => ObjectOrArray;
 };

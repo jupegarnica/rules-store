@@ -4,7 +4,7 @@ import { StorePersistance } from "./StorePersistance.ts";
 import { Bson } from "https://deno.land/x/bson@v0.1.3/mod.ts";
 
 export class StoreBson extends StorePersistance {
-  load(): void {
+  public load(): void {
     const filename = this._name;
     const folder = resolve(fromFileUrl(dirname(Deno.mainModule)), this._folder);
     const storePath = resolve(folder, filename);

@@ -1,5 +1,10 @@
 import { Store } from "./Store.ts";
-import type { Config, Mutation, Value } from "./types.ts";
+import type {
+  ConfigPersistance,
+  Mutation,
+  ObjectOrArray,
+  Value,
+} from "./types.ts";
 import { debounce } from "./helpers.ts";
 export abstract class StorePersistance extends Store {
   /**
@@ -10,6 +15,8 @@ export abstract class StorePersistance extends Store {
   protected _name: string;
   protected _folder: string;
   protected _storePath = "";
+  protected stringify = (data: ObjectOrArray) => JSON.stringify(data, null, 2);
+  protected parse = JSON.parse;
   /**
    * Writes cached data to disk asynchronously debounced with a delay defined at config.persistLazyDelay
    */
@@ -18,14 +25,16 @@ export abstract class StorePersistance extends Store {
   /**
    * Create a new Store instance.
    *
-   * @param {Config} config - The configuration
+   * @param {ConfigPersistance} config - The configuration
    * @param {string} config.name - it defaults to .store.db
    * @param {string} config.folder - it defaults to mainModulePath
    * @param {boolean} config.autoSave - whether or not should be lazily write to disk after every update.
    * @param {number} config.persistLazyDelay - The debounce delay for .persistLazy.  It defaults to 0
+   * @param {(data:ObjectOrArray) => string} config.serializer -   It defaults to JSON.stringify
+   * @param {(data:string) => ObjectOrArray} config.deserializer -   It defaults to JSON.parse
    * */
 
-  constructor(config: Config = {}) {
+  constructor(config: ConfigPersistance = {}) {
     super(config);
     this.#autoSave = config.autoSave ?? false;
     this.#persistLazyDelay = config.persistLazyDelay ?? 0;

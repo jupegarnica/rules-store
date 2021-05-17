@@ -7,17 +7,17 @@ declare namespace sessionStorage {
 }
 
 export class StoreSessionStorage extends StorePersistance {
-  load(): void {
+  public load(): void {
     const data = sessionStorage.getItem(this.storePath);
     if (!data) return;
-    const decoded = JSON.parse((data));
+    const decoded = this.parse((data));
     this._setData(decoded);
 
     return;
   }
 
   public persist(): void {
-    const data = JSON.stringify(
+    const data = this.stringify(
       this.getPrivateData({ I_PROMISE_I_WONT_MUTATE_THIS_DATA: true }),
     );
     sessionStorage.setItem(this.storePath, data);

@@ -6,6 +6,9 @@ declare namespace window.history {
 
 export class StoreUrl extends StorePersistance {
   load(): void {
+    if (!window.history?.replaceState) {
+      throw new Error("not window.history?.replaceState");
+    }
     const searchParams = new URLSearchParams(location.search);
     const text = searchParams.get(this.storePath);
     if (!text) return;
@@ -19,40 +22,24 @@ export class StoreUrl extends StorePersistance {
     );
     const searchParams = new URLSearchParams(location.search);
     searchParams.set(this.storePath, data);
+    const { protocol, host, pathname } = location;
+    const path = `${protocol}//${host}${pathname}?${searchParams.toString()}`;
 
-    if (window.history?.replaceState) {
-      const url = location.protocol +
-        "//" + location.host +
-        location.pathname +
-        "?" +
-        searchParams.toString();
-
-      window.history?.replaceState(
-        {
-          path: url,
-        },
-        "",
-        url,
-      );
-    }
+    window.history?.replaceState(
+      { path },
+      "",
+      path,
+    );
   }
   public deletePersisted(): void {
     const searchParams = new URLSearchParams(location.search);
     searchParams.delete(this.storePath);
-    if (window.history?.replaceState) {
-      const url = location.protocol +
-        "//" + location.host +
-        location.pathname +
-        "?" +
-        searchParams.toString();
-
-      window.history?.replaceState(
-        {
-          path: url,
-        },
-        "",
-        url,
-      );
-    }
+    const { protocol, host, pathname } = location;
+    const path = `${protocol}//${host}${pathname}?${searchParams.toString()}`;
+    window.history?.replaceState(
+      { path },
+      "",
+      path,
+    );
   }
 }

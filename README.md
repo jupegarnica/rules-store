@@ -270,14 +270,14 @@ And second one is a object context with the following properties:
 export type RuleContext = {
   oldData: Value; // A getter to get cloned old data (the previous value at that path)
   newData: Value; // A getter to get cloned payload to be written.
-  rootData: ObjectOrArray; // A getter to get cloned value from the root data
+  rootData: ObjectOrArray; // A getter to get cloned data from the root
   _newData: Value; // A reference to the data written or read (same as first argument)
   _oldData: Value; // A reference to the old data
   _rootData: ObjectOrArray; // A reference to the root data
   isUpdate: boolean; // true if is performing an update
   isCreation: boolean; // true if is performing a creation
   isRemove: boolean; // true if is performing a deletion
-  [$param: string]: string; // every dynamic params found up upstream.
+  [$param: string]: string; // every dynamic params found upstream.
 };
 ```
 
@@ -389,11 +389,11 @@ In `store.set('a/b', { c: 1 })` example it will run the \_validate rule found at
 
 #### Transformations \_transform \_writeAs \_readAs
 
-`_readAs` will transform on getting, but will never mutate the stored data.
-
 `_transform` will transform the payload before being validated.
 
 `_writeAs_` will transform the payload after being validated.
+
+`_readAs` will transform on read, but will never mutate the stored data.
 
 ```ts
 import { Store } from './core/Store.ts';

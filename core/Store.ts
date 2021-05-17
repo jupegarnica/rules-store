@@ -72,11 +72,11 @@ export class Store {
     _validate: true,
   };
 
-  get _dataShape() {
+  protected get _dataShape() {
     return Array.isArray(this.#newData) ? [] : {};
   }
 
-  get _data() {
+  protected get _data() {
     return this.#duringTransaction ? this.#newData : this.#data;
   }
   /**

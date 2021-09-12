@@ -10,7 +10,7 @@ export {
   StoreNotFoundError,
   SubscriptionNotFoundError,
   ValidationError,
-} from "./core/Errors.ts";
+} from "./Errors.ts";
 
 export type {
   BaseConfig,
@@ -30,4 +30,4 @@ export type {
   Rules,
   Value,
   ValueOrFunction,
-} from "./core/types.ts";
+} from "./types.ts";

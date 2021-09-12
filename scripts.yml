@@ -1,6 +1,6 @@
 scripts:
   version: git tag -a 2.0.0 -m "2.0.0" && git push origin main --tags
-  test: deno test --allow-read --allow-env  --allow-write --unstable --location=http://localhost:1357
+  test: deno test --no-check --allow-read --allow-env  --allow-write --unstable --location=http://localhost:1357
   test-watch: deno test --watch --allow-read --allow-env  --allow-write --unstable --no-check --location=http://localhost:1357
   # test-watch-custom: deno run -A --unstable --watch tests/test-watch.ts
   debug: deno run -A --location http://localhost:1357  --no-check --unstable --watch  tests/debug.ts

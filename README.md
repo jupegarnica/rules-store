@@ -17,7 +17,7 @@ The main methods to read or write into the data store are
 - `.remove(path: string)`
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store();
 
 store.set('count', 1); // create data.count = 1
@@ -38,7 +38,7 @@ There are also more advance methods:
 - `.findOneAndUpdate(path: string, finder: ([key, value]) => boolean, mapper: (data: any) => any )`
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store();
 const db = new Store();
 db.set('obj', { a: 1, b: 2, c: 3 });
@@ -57,7 +57,7 @@ db.get('obj'); // returns { a: 1, b: 4, c: 6 }
 The path can point as deep as needed using a slash `/` as separator.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store();
 
 store.set('counter/count', 1);
@@ -87,7 +87,7 @@ Following our counter example, nothing stops us to set the counter to any non nu
 If you like, you can instantiate the store with a rules object in order the give permission to read or write at a given path. And transform or validate that the data will be stored conforming certain criteria.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const rules = {
   counter: {
     _write: () => true,
@@ -110,7 +110,7 @@ There are 6 kinds of rules:
 - `_readAs`: Transform the data on get, but not real mutation will be made to the stored data.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const rules = {
   counter: {
     count: {
@@ -134,7 +134,7 @@ store.set('counter/count', '1'); // throws ValidationError, 'Validation fails at
 It posible to use a dynamic key node starting the key with a `$`, the param matched can be read from the rule context in the second argument.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const rules = {
   $anything: {
     // allow to write if the key starts with an `A`
@@ -199,16 +199,16 @@ Just import the one that fit your needs.
 
 ```ts
 // Store has not persistance adapter
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 
 // StoreJson and StoreYaml, add persistance in deno
-import { StoreJson } from './core/StoreJson.ts';
-import { StoreYaml } from './core/StoreYaml.ts';
+import { StoreJson } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
+import { StoreYaml } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 
 // StoreLocalStorage, StoreSessionStorage and StoreUrl, add persistance in the browser
-import { StoreLocalStorage } from './core/StoreLocalStorage.ts';
-import { StoreSessionStorage } from './core/StoreSessionStorage.ts';
-import { StoreUrl } from './core/StoreUrl.ts';
+import { StoreLocalStorage } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
+import { StoreSessionStorage } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
+import { StoreUrl } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 
 const store = new StoreJson({ name: 'store.json' });
 // will load data from './store.json' if the file exist
@@ -282,7 +282,7 @@ export type RuleContext = {
 ```
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const rules = {
   counter: {
     count: {
@@ -310,7 +310,7 @@ store.set('counter/count', undefined); // throws PermissionError, 'write disallo
 `_write` and `_read` cascade, that means that the first rule found in the path will permit to write or read downstream.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const rules = {
   counter: {
     _write: () => true,
@@ -329,7 +329,7 @@ store.set('counter/count', 1); // Ok, Permission allowed at /counter
 The permission only will granted by founding a rule in the path. If not rule found it will disallow permission.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store({
   rules: {},
 });
@@ -340,7 +340,7 @@ store.set('counter/count', 1); // throws PermissionError, 'Not explicit permissi
 The rules will be find only in the path, not in the payload.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store({
   rules: {
     counter: {
@@ -364,7 +364,7 @@ The rule `_validate` will validate the whole payload, and all the rules found in
 **All the validations must pass in order to allow writing.**
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store({
   rules: {
     a: {
@@ -396,7 +396,7 @@ In `store.set('a/b', { c: 1 })` example it will run the \_validate rule found at
 `_readAs` will transform on read, but will never mutate the stored data.
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store({
   rules: {
     secret: {
@@ -412,7 +412,7 @@ store.set('secret', '  1234  '); // Throws ValidationError
 ```
 
 ```ts
-import { Store } from './core/Store.ts';
+import { Store } from 'https://deno.land/x/rules_store@2.0.0/core/mod.ts';
 const store = new Store({
   rules: {
     myDate: {

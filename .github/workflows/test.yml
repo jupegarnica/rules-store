@@ -28,7 +28,7 @@ jobs:
         run: deno --version
 
       - name: Run tests
-        run: deno test --unstable --allow-read --allow-write --allow-env
+        run: deno test --unstable --allow-read --allow-write --allow-env core
   lint:
     runs-on: ubuntu-latest
     name: Lint

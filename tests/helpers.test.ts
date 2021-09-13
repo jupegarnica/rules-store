@@ -15,7 +15,6 @@ import {
   // findDeepestRule,
   pathsMatched,
 } from "../core/helpers.ts";
-import { ObjectOrArray } from "../core/types.ts";
 import { findAllRules, findRule } from "../core/helpers.ts";
 import { assertEquals, assertThrows, delay, Spy, spy } from "./test_deps.ts";
 

@@ -1,6 +1,6 @@
-import { Store } from "../core/Store.ts";
+import { Store } from "../Store.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
-import type { KeyValue, RuleContext, Value } from "../core/types.ts";
+import type { KeyValue, RuleContext, Value } from "../types.ts";
 import {
   asDate,
   denyAll,
@@ -11,7 +11,7 @@ import {
   onlyRemove,
   onlyUpdate,
   withTimestamps,
-} from "../core/rulesTemplates.ts";
+} from "../rulesTemplates.ts";
 
 Deno.test("[Rules Templates] denyAll", () => {
   const rules = {

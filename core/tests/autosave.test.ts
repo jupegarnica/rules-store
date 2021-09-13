@@ -1,5 +1,5 @@
-import { StoreJson } from "../core/StoreJson.ts";
-import { existsSync } from "../core/deps.ts";
+import { StoreJson } from "../StoreJson.ts";
+import { existsSync } from "../deps.ts";
 import { assertEquals, delay, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
 

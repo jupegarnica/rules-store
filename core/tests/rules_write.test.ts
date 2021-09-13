@@ -1,8 +1,8 @@
-import { Store } from "../core/Store.ts";
-import { StoreYaml } from "../core/StoreYaml.ts";
-import { StoreJson } from "../core/StoreJson.ts";
+import { Store } from "../Store.ts";
+import { StoreYaml } from "../StoreYaml.ts";
+import { StoreJson } from "../StoreJson.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
-import { PermissionError } from "../core/Errors.ts";
+import { PermissionError } from "../Errors.ts";
 Deno.test("[Rules _write] .set", () => {
   const rules = {
     allowed: {

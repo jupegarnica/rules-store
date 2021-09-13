@@ -1,8 +1,8 @@
-import { Store } from "../core/Store.ts";
-import { StoreYaml } from "../core/StoreYaml.ts";
+import { Store } from "../Store.ts";
+import { StoreYaml } from "../StoreYaml.ts";
 import { assertEquals, assertObjectMatch, assertThrows } from "./test_deps.ts";
-import type { RuleContext, Value } from "../core/types.ts";
-import { PermissionError, ValidationError } from "../core/Errors.ts";
+import type { RuleContext, Value } from "../types.ts";
+import { PermissionError, ValidationError } from "../Errors.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.2.4/mod.ts";
 import { isEmail } from "https://deno.land/x/isemail/mod.ts";
 import { v4 } from "https://deno.land/std@0.95.0/uuid/mod.ts";

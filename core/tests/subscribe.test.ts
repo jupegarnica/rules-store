@@ -1,9 +1,9 @@
-import { PermissionError } from "../core/Errors.ts";
-import { Store } from "../core/Store.ts";
-import { Observer, Value } from "../core/types.ts";
+import { PermissionError } from "../Errors.ts";
+import { Store } from "../Store.ts";
+import { Observer, Value } from "../types.ts";
 import { assertEquals, assertThrows, spy } from "./test_deps.ts";
 import type { Spy } from "./test_deps.ts";
-import { assertDeepClone, testCalled } from "../core/helpers.ts";
+import { assertDeepClone, testCalled } from "../helpers.ts";
 
 Deno.test("[Observe]", () => {
   const db = new Store();

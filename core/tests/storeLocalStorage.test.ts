@@ -1,4 +1,4 @@
-import { StoreLocalStorage } from "../core/StoreLocalStorage.ts";
+import { StoreLocalStorage } from "../StoreLocalStorage.ts";
 import { assertEquals } from "./test_deps.ts";
 const testStorePath = "./test.store";
 

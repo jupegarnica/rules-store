@@ -1,5 +1,5 @@
-import { StoreJson } from "../core/StoreJson.ts";
-import type { Value } from "../core/types.ts";
+import { StoreJson } from "../StoreJson.ts";
+import type { Value } from "../types.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 Deno.test("[Lab] dates example", () => {
   const rules = {

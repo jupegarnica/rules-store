@@ -12,9 +12,9 @@ import {
 
 // import { duration } from "https://deno.land/x/tims/mod.ts";
 // import * as colors from "https://deno.land/std@0.93.0/fmt/colors.ts";
-// import { StoreYaml } from "../../core/StoreYaml.ts";
-// import { StoreBson } from "../../core/StoreBson.ts";
-// import { KeyValue } from "../../core/types.ts";
+// import { StoreYaml } from "../../StoreYaml.ts";
+// import { StoreBson } from "../../StoreBson.ts";
+// import { KeyValue } from "../../types.ts";
 
 const RUNS = 1e6;
 const object = {} as { [key: string]: number };

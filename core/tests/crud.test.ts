@@ -1,5 +1,5 @@
-import { Store } from "../core/Store.ts";
-import { KeyValue } from "../core/types.ts";
+import { Store } from "../Store.ts";
+import { KeyValue } from "../types.ts";
 import { assertEquals, assertThrows } from "./test_deps.ts";
 
 Deno.test("[Store] Simple set and get", () => {

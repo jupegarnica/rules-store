@@ -1,5 +1,5 @@
-import { StoreYaml } from "../core/StoreYaml.ts";
-import { existsSync } from "../core/deps.ts";
+import { StoreYaml } from "../StoreYaml.ts";
+import { existsSync } from "../deps.ts";
 import { assertEquals, assertThrows, delay } from "./test_deps.ts";
 const testStorePath = "./test.store.yaml";
 

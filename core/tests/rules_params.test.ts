@@ -1,4 +1,4 @@
-// import { findDeepestRule } from "../core/helpers.ts";
+// import { findDeepestRule } from "../helpers.ts";
 // import { assertEquals } from "./test_deps.ts";
 
 // const context = { data: "bar", params: {}, newData: undefined, rootData: {} };

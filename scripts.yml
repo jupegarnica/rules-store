@@ -1,7 +1,7 @@
 scripts:
   version: git tag -a 2.0.1 -m "2.0.1" && git push origin main --tags
-  test: deno test --no-check --allow-read --allow-env  --allow-write --unstable --location=http://localhost:1357
-  test-watch: deno test --watch --allow-read --allow-env  --allow-write --unstable --no-check --location=http://localhost:1357
+  test: deno test --no-check --allow-read --allow-env  --allow-write --unstable --location=http://localhost:1357 core
+  test-watch: deno test --watch --allow-read --allow-env  --allow-write --unstable --no-check --location=http://localhost:1357 core
   # test-watch-custom: deno run -A --unstable --watch tests/test-watch.ts
   debug: deno run -A --location http://localhost:1357  --no-check --unstable --watch  tests/debug.ts
   bench: deno run -A --unstable tests/benchmarks/benchmarks.ts
@@ -24,6 +24,7 @@ scripts:
   update:
     cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts core/deps.ts tests/test_deps.ts
     watch: false
+  server:  deno run --no-check --watch -A "./server/main.ts"
 
 # watcher:
 #   # The number of milliseconds after the last change.

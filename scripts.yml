@@ -22,20 +22,16 @@ scripts:
       - deno bundle --unstable core/StoreSessionStorage.ts dist/StoreSessionStorage.mjs
       - deno bundle --unstable core/StoreUrl.ts dist/StoreUrl.mjs
   update:
-    cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts core/deps.ts tests/test_deps.ts
+    cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts core/deps.ts core/tests/test_deps.ts server/test_deps.ts
     watch: false
-  server:  deno run --no-check --watch -A "./server/main.ts"
-  test-server: deno test --no-check --allow-read --allow-env  --allow-write --unstable --location=http://localhost:1357 server
-  test-server-watch: deno test --watch --no-check --allow-read --allow-env --allow-net  --allow-write --unstable --location=http://localhost:1357 server
 
-# watcher:
-#   # The number of milliseconds after the last change.
-#   interval: 350
-#   # The file extensions that it will scan for.
-#   exts: ['js', 'jsx', 'ts', 'tsx', 'yaml', 'yml']
-#   # The globs that it will scan for.
-#   match: ['**/*.*']
-#   # The globs that it will not scan for.
-#   skip: ['*/.git/*']
-#   # Use the legacy file monitoring algorithm. (walking)
-#   legacy: false
+  server:  deno run --no-check --watch -A "./server/main.ts"
+  test-server:
+    pll:
+      - vr server
+      - sleep 1 && deno test --no-check --allow-read --allow-env --allow-net  --allow-write --unstable --location=http://localhost:1357 server
+
+  test-server-watch:
+    pll:
+      - vr server
+      - sleep 1 && deno test --watch --no-check --allow-read --allow-env --allow-net  --allow-write --unstable --location=http://localhost:1357 server

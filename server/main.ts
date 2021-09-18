@@ -6,6 +6,8 @@ import {
   red
 } from 'https://deno.land/std@0.105.0/fmt/colors.ts';
 import createStoreMiddleWare from './middleware.ts';
+
+import rules from './rules.ts';
 const app = new Application();
 
 // Logger
@@ -27,7 +29,7 @@ app.use(async (ctx, next) => {
   const ms = Date.now() - start;
   ctx.response.headers.set('X-Response-Time', `${ms}ms`);
 });
-app.use(createStoreMiddleWare({ name: 'db.json' }));
+app.use(createStoreMiddleWare({ name: 'db.json' ,rules}));
 
 app.addEventListener('listen', ({ hostname, port }) => {
   console.log(

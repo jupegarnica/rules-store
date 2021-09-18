@@ -32,7 +32,7 @@ export abstract class StorePersistance extends Store {
    * @param {number} config.persistLazyDelay - The debounce delay for .persistLazy.  It defaults to 0
    * @param {(data:ObjectOrArray) => string} config.serializer -   It defaults to JSON.stringify
    * @param {(data:string) => ObjectOrArray} config.deserializer -   It defaults to JSON.parse
-   * */
+   */
 
   constructor(config: ConfigPersistance = {}) {
     super(config);
@@ -70,18 +70,15 @@ export abstract class StorePersistance extends Store {
 
   /**
    * Load persisted data into cache
-   *
    */
   abstract load(): void;
   /**
    * Persist data
-   *
    */
   abstract persist(): void;
 
   /**
    * Deletes the persisted data .
-   *
    */
   abstract deletePersisted(): void;
 }

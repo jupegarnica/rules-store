@@ -48,7 +48,6 @@ import { allowAll } from "./rulesTemplates.ts";
 
 /**
  * A data Store heavily inspired from firebase realtime database.
- *
  */
 export class Store {
   /**
@@ -84,8 +83,7 @@ export class Store {
    *
    * @param {BaseConfig} config - The configuration
    * @param {Rules} config.rules - it defaults to allowAll
-   *
-   * */
+   */
   constructor(config: BaseConfig = {}) {
     if (config.rules) {
       this._assertValidRules(config.rules);
@@ -146,7 +144,6 @@ export class Store {
    *
    * @param valueOrFunction The new value or a function to run with the oldValue
    * @returns  The value added, maybe transformed by _transform and/or _readAs
-   *
    */
   public set(
     path: string,
@@ -176,7 +173,6 @@ export class Store {
    * @param path The path
    * @param returnRemoved whether or not it will return the value removed. Useful to skip read rules.  Defaults to true
    * @returns  The value removed
-   *
    */
   public remove(path: string, returnRemoved = true): Value | void {
     const keys = keysFromPath(path);

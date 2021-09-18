@@ -6,6 +6,10 @@ _An observable data store with persistence heavily inspired by firebase rules_
 
 The main motivation is to bring the databases developers' mindset to runtime state management.
 
+## Auto generated docs
+
+https://doc.deno.land/https/deno.land/x/rules_store@2.1.1/core/mod.ts
+
 ## Getting Started
 
 ### CRUD operations

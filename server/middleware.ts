@@ -3,6 +3,7 @@ import {
   ConfigPersistance,
   StoreJson,
   PermissionError,
+  ValidationError,
 } from '../core/mod.ts';
 import {
   bold,
@@ -92,6 +93,13 @@ const createStoreMiddleWare: (
           };
           context.response.status = 405;
           break;
+        case ValidationError: {
+          context.response.body = {
+            error: 'Validation Error - ' + error.message,
+          };
+          context.response.status = 422;
+          break;
+        }
         default:
           context.response.status = 500;
           context.response.body = {

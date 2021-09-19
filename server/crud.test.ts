@@ -40,7 +40,7 @@ Deno.test("[API CRUD] PATCH to old data", async () => {
 Deno.test("[API CRUD] PATCH to a not object", async () => {
   const payload = { a: 0 };
 
-  const response = await apiCall("PATCH", "/new/a", payload);
+  const response = await apiCall("PATCH", "/new/b", payload);
   const { error } = await response.json();
   assertEquals(response.status, 405);
   assertEquals(error, "Method not allowed - Target not a object");

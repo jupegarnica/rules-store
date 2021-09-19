@@ -1,4 +1,5 @@
-import type { Middleware } from 'https://deno.land/x/oak@v9.0.0/mod.ts';
+import type { Middleware,Context } from 'https://deno.land/x/oak@v9.0.0/mod.ts';
+import  { helpers } from 'https://deno.land/x/oak@v9.0.1/mod.ts';
 import {
   ConfigPersistance,
   StoreJson,
@@ -21,9 +22,23 @@ const createStoreMiddleWare: (
     try {
       switch (method) {
         case 'GET': {
-          const data = store.getRef(path);
-          context.response.body = { data };
+          const query = [...context.request.url.searchParams.entries()];
+
+          if (query.length) {
+            const data = store.find(path, ([, record])=> {
+                return query.every(([key, value])=> record[key]=== value)
+
+            }).map(([,v])=>v);
+            context.response.body = { data };
+
+          } else {
+
+            const data = store.getRef(path);
+
+            context.response.body = { data };
+          }
           break;
+
         }
         case 'POST': {
           const body = await context.request.body();

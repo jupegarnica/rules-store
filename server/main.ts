@@ -9,6 +9,8 @@ import createStoreMiddleWare from './middleware.ts';
 
 import rules from './rules.ts';
 const app = new Application();
+const controller = new AbortController();
+const { signal } = controller;
 
 // Logger
 app.use(async (ctx, next) => {
@@ -29,6 +31,15 @@ app.use(async (ctx, next) => {
   const ms = Date.now() - start;
   ctx.response.headers.set('X-Response-Time', `${ms}ms`);
 });
+
+app.use(async (ctx,next) => {
+  await next();
+  const closeServer = ctx.request.headers.get('x-close-server') === 'true'
+  if (closeServer) {
+    controller.abort();
+  }
+});
+
 app.use(createStoreMiddleWare({ name: 'db.json' ,rules}));
 
 app.addEventListener('listen', ({ hostname, port }) => {
@@ -37,4 +48,4 @@ app.addEventListener('listen', ({ hostname, port }) => {
   );
   // console.log(bold("  using HTTP server: " + yellow(serverType)));
 });
-await app.listen({ port: 8000 });
+await app.listen({ port: 8000,signal });

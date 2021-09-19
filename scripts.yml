@@ -25,13 +25,19 @@ scripts:
     cmd: deno run -A https://deno.land/x/udd@0.4.1/main.ts core/deps.ts core/tests/test_deps.ts server/test_deps.ts
     watch: false
 
-  server:  deno run --no-check --watch -A "./server/main.ts"
-  test-server:
-    pll:
-      - vr server
-      - sleep 1 && deno test --no-check --allow-read --allow-env --allow-net  --allow-write --unstable --location=http://localhost:1357 server
+  close-server: deno run --allow-net --no-check "./server/closeServer.js"
 
+  server:  deno run --no-check -A "./server/main.ts"
+  server-watch:  deno run --no-check --watch -A "./server/main.ts"
+  test-server:
+    - pll:
+      - vr server
+      - vr run-tests-server
+  run-tests-server:
+    - sleep 1
+    - deno test --no-check --allow-read --allow-env --allow-net  --allow-write --unstable --location=http://localhost:1357 server
+    - vr close-server
   test-server-watch:
     pll:
-      - vr server
+      - vr server-watch
       - sleep 1 && deno test --watch --no-check --allow-read --allow-env --allow-net  --allow-write --unstable --location=http://localhost:1357 server

@@ -4,6 +4,20 @@ on:
       - '**.ts'
 name: Test
 jobs:
+  test-server:
+    runs-on: ubuntu-latest
+    name: test-server
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup Deno
+        uses: denolib/setup-deno@master
+        with:
+          deno-version: 1.x
+      - uses: jurassiscripts/setup-velociraptor@v1
+      - name: Print deno version
+        run: deno --version
+      - run: vr test-server
+
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30

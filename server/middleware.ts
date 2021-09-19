@@ -1,15 +1,11 @@
-import type { Middleware,Context } from 'https://deno.land/x/oak@v9.0.0/mod.ts';
-import  { helpers } from 'https://deno.land/x/oak@v9.0.1/mod.ts';
+import type { Middleware } from "https://deno.land/x/oak@v9.0.0/mod.ts";
 import {
   ConfigPersistance,
-  StoreJson,
   PermissionError,
+  StoreJson,
   ValidationError,
-} from '../core/mod.ts';
-import {
-  bold,
-  red,
-} from 'https://deno.land/std@0.105.0/fmt/colors.ts';
+} from "../core/mod.ts";
+import { bold, red } from "https://deno.land/std@0.105.0/fmt/colors.ts";
 
 const createStoreMiddleWare: (
   conf: ConfigPersistance,
@@ -21,26 +17,22 @@ const createStoreMiddleWare: (
 
     try {
       switch (method) {
-        case 'GET': {
+        case "GET": {
           const query = [...context.request.url.searchParams.entries()];
 
           if (query.length) {
-            const data = store.find(path, ([, record])=> {
-                return query.every(([key, value])=> record[key]=== value)
-
-            }).map(([,v])=>v);
+            const data = store.find(path, ([, record]) => {
+              return query.every(([key, value]) => record[key] === value);
+            }).map(([, v]) => v);
             context.response.body = { data };
-
           } else {
-
             const data = store.getRef(path);
 
             context.response.body = { data };
           }
           break;
-
         }
-        case 'POST': {
+        case "POST": {
           const body = await context.request.body();
           const value = await body.value;
           const data = store.push(path, value);
@@ -48,7 +40,7 @@ const createStoreMiddleWare: (
           context.response.body = { data };
           break;
         }
-        case 'PUT': {
+        case "PUT": {
           const body = await context.request.body();
           const value = await body.value;
 
@@ -57,25 +49,25 @@ const createStoreMiddleWare: (
           context.response.body = { data };
           break;
         }
-        case 'PATCH': {
+        case "PATCH": {
           const body = await context.request.body();
           const value = await body.value;
           const oldData = store.getRef(path);
-          if (typeof oldData !== 'object') {
-            throw new TypeError('Target not a object');
+          if (typeof oldData !== "object") {
+            throw new TypeError("Target not a object");
           }
-          if (typeof value !== 'object') {
-            throw new TypeError('Body not a object');
+          if (typeof value !== "object") {
+            throw new TypeError("Body not a object");
           }
           const data = store.set(path, { ...oldData, ...value });
           store.persist();
           context.response.body = { data };
           break;
         }
-        case 'DELETE': {
+        case "DELETE": {
           const returnRemoved =
-            context.request.headers.get('x-return-removed') ===
-            'true';
+            context.request.headers.get("x-return-removed") ===
+              "true";
           const data = store.remove(path, returnRemoved);
           store.persist();
           if (data) {
@@ -89,7 +81,7 @@ const createStoreMiddleWare: (
         }
 
         default:
-          throw new Error('Invalid method');
+          throw new Error("Invalid method");
       }
     } catch (error) {
       console.error(bold(red(error.name)), error.message);
@@ -98,19 +90,19 @@ const createStoreMiddleWare: (
         case PermissionError:
           context.response.status = 403;
           context.response.body = {
-            error: 'Forbidden - ' + error.message,
+            error: "Forbidden - " + error.message,
           };
 
           break;
         case TypeError:
           context.response.body = {
-            error: 'Method not allowed - ' + error.message,
+            error: "Method not allowed - " + error.message,
           };
           context.response.status = 405;
           break;
         case ValidationError: {
           context.response.body = {
-            error: 'Validation Error - ' + error.message,
+            error: "Validation Error - " + error.message,
           };
           context.response.status = 422;
           break;

@@ -5,7 +5,7 @@ Deno.test("[API CRUD] POST to an array", async () => {
   const payload = { b: 1 };
 
   const response = await apiCall("POST", "/array", payload);
-  const { data} = await response.json();
+  const { data } = await response.json();
 
   assertEquals(data, payload);
 });
@@ -62,7 +62,9 @@ Deno.test("[API CRUD] GET data", async () => {
 Deno.test("[API CRUD] DELETE  data", async () => {
   const payload = { b: 2, a: 0 };
 
-  const response = await apiCall("DELETE", "/new", undefined,{'x-return-removed':'true'});
+  const response = await apiCall("DELETE", "/new", undefined, {
+    "x-return-removed": "true",
+  });
   const { data } = await response.json();
   assertEquals(data, payload);
 });
@@ -73,13 +75,11 @@ Deno.test("[API CRUD] GET DELETED data", async () => {
 });
 
 Deno.test("[API CRUD] DELETE  no data", async () => {
-
   const response = await apiCall("DELETE", "/no-data");
-  assertEquals(response.status, 204 );
+  assertEquals(response.status, 204);
 });
 
 Deno.test("[API CRUD] DELETE  array", async () => {
-
   const response = await apiCall("DELETE", "/array/0");
   // const { data } = await response.json();
   assertEquals(response.status, 204);

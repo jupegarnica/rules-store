@@ -1,4 +1,4 @@
-import type { RuleContext } from '../core/mod.ts';
+import type { RuleContext } from "../core/mod.ts";
 const rules = {
   onlyRead: {
     _read: () => true,
